@@ -22,7 +22,7 @@ namespace FirstWebApplication.Controllers
             _logger = logger;
         }
 
-        /*
+        
         public async Task<IActionResult> Index()
         {
             string viewModel = "Connected successfuly to MariaDB!";
@@ -36,12 +36,12 @@ namespace FirstWebApplication.Controllers
             {
                 return Content("Failed to connect to MariaDB: " + ex.Message);
             }
-        }*/
-
+        }
+        /*
         public IActionResult Index()
         {
             return View();
-        }
+        }*/
 
         // Blir kalt etter at vi trykker på "Register Obstacle" knappen
 
