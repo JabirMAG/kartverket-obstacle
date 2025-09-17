@@ -37,26 +37,22 @@ namespace FirstWebApplication.Controllers
                 return Content("Failed to connect to MariaDB: " + ex.Message);
             }
         }*/
-        
+
+        [HttpGet]
+        public ActionResult DataForm()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult DataForm(ObstacleData obstacledata)
+        {
+            return View("Overview", obstacledata);
+        }
+
         public IActionResult Index()
         {
             return View();
-        }
-
-        // Blir kalt etter at vi trykker på "Register Obstacle" knappen
-
-        [HttpGet]
-        public IActionResult Dataform()
-        {
-            return View();
-        }
-
-
-        // Blir kalt etter at vi trykker på "Submit" knappen på Dataform viewwt
-        [HttpPost]
-        public IActionResult Dataform(ObstacleData obstacledata)
-        {
-            return View("Overview", obstacledata);
         }
 
 
