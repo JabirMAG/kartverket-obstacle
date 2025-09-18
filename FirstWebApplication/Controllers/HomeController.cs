@@ -42,9 +42,10 @@ namespace FirstWebApplication.Controllers
             return View();
         }
 
-      
-
-
+        public IActionResult ThankForm()
+        {
+           return View();
+        }
 
 
         public IActionResult Privacy()
