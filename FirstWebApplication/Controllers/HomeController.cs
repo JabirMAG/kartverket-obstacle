@@ -22,7 +22,6 @@ namespace FirstWebApplication.Controllers
             _logger = logger;
         }
 
-
      
 
        public IActionResult Index()
@@ -30,9 +29,10 @@ namespace FirstWebApplication.Controllers
             return View();
         }
 
-      
-
-
+        public IActionResult ThankForm()
+        {
+           return View();
+        }
 
 
         public IActionResult Privacy()
