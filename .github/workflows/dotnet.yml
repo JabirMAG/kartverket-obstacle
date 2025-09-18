@@ -27,10 +27,10 @@ jobs:
             ${{ runner.os }}-dotnet-
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore FirstWebApplication.sln
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build  FirstWebApplication.sln --no-restore
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test  FirstWebApplication.sln --no-build --verbosity normal
