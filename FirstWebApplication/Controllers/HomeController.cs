@@ -25,17 +25,7 @@ namespace FirstWebApplication.Controllers
         
         public async Task<IActionResult> Index()
         {
-            string viewModel = "Connected successfuly to MariaDB!";
-            try
-            {
-                await using var conn = new MySqlConnection(_connectionString);
-                await conn.OpenAsync();
-                return View("Index", viewModel);
-            }
-            catch (Exception ex)
-            {
-                return Content("Failed to connect to MariaDB: " + ex.Message);
-            }
+            return View();
         }
 
         //public IActionResult Index()
