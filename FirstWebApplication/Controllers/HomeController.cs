@@ -21,8 +21,6 @@ namespace FirstWebApplication.Controllers
             _connectionString = config.GetConnectionString("DefaultConnection");
             _logger = logger;
         }
-
-
      
 
        public IActionResult Index()
