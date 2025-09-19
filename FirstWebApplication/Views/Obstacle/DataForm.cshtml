@@ -36,8 +36,8 @@
                     <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-800 mb-1">
                         Obstacle Description
                     </label>
-                    <textarea asp-for="ObstacleDescription" rows="4" 
-                    class="block w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2" 
+                    <textarea asp-for="ObstacleDescription" rows="5" 
+                    class="block w-full rounded-xl border-gray-300 focus:border-indigo-300 focus:ring-indigo-600 px-4 py-3 resize-none shadow-sm" 
                     placeholder="Describe the obstacle, materials, location, etc."></textarea>
                     <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
                 </div>
@@ -45,8 +45,8 @@
 
             <div
                 class="pt-2">
-                <button type="submit" 
-                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                <button type="Submit" 
+                    class="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-900 px-6 py-3 text-white font-semibold shadow-lg hover:from-indigo-600 hover:to-indigo-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-600 transition-all duration-200">
                     Submit Data
                 </button>
             </div>

@@ -15,39 +15,36 @@ namespace FirstWebApplication.Controllers
         // { 
         // _logger = logger;
         // }
-        
+
         public HomeController(IConfiguration config, ILogger<HomeController> logger)
         {
             _connectionString = config.GetConnectionString("DefaultConnection");
             _logger = logger;
         }
+     
 
-        
-        public async Task<IActionResult> Index()
+       public IActionResult Index()
         {
+            //Dynamisk innhold basert p√• tid
+            var hour = DateTime.Now.Hour;
+            string greeting;
+            
+            if (hour < 12)
+                greeting = "Good Morning!";
+            else if (hour < 18)
+                greeting = "Good Afternoon!";
+            else 
+                greeting = "Good Evening!";
+                
+            // Legger hilsen i ViewBag s√• view kan bruke det
+            ViewBag.Greeting = greeting;
+            
             return View();
         }
 
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
-
-        // Blir kalt etter at vi trykker pÂ "Register Obstacle" knappen
-
-        [HttpGet]
-        public IActionResult Dataform()
-        {
-            return View();
-        }
+      
 
 
-        // Blir kalt etter at vi trykker pÂ "Submit" knappen pÂ Dataform viewwt
-        [HttpPost]
-        public IActionResult Dataform(ObstacleData obstacledata)
-        {
-            return View("Overview", obstacledata);
-        }
 
 
         public IActionResult Privacy()
@@ -60,5 +57,7 @@ namespace FirstWebApplication.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
     }
+       
 }
