@@ -26,6 +26,20 @@ namespace FirstWebApplication.Controllers
 
        public IActionResult Index()
         {
+            //Dynamisk innhold basert på tid
+            var hour = DateTime.Now.Hour;
+            string greeting;
+            
+            if (hour < 12)
+                greeting = "Good Morning!";
+            else if (hour < 18)
+                greeting = "Good Afternoon!";
+            else 
+                greeting = "Good Evening!";
+                
+            // Legger hilsen i ViewBag så view kan bruke det
+            ViewBag.Greeting = greeting;
+            
             return View();
         }
 
