@@ -21,6 +21,7 @@ namespace FirstWebApplication.Controllers
             _connectionString = config.GetConnectionString("DefaultConnection");
             _logger = logger;
         }
+
      
 
        public IActionResult Index()
@@ -42,9 +43,10 @@ namespace FirstWebApplication.Controllers
             return View();
         }
 
-      
-
-
+        public IActionResult ThankForm()
+        {
+           return View();
+        }
 
 
         public IActionResult Privacy()

@@ -5,6 +5,7 @@ namespace FirstWebApplication.Controllers
 {
     public class AdviceController : Controller
     {
+
         [HttpGet]
         public IActionResult FeedbackForm()
         {
@@ -12,13 +13,27 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpPost]
-        public IActionResult Advice(Advice Feedback)
+        public IActionResult FeedbackForm(Advice feedback)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(Feedback);
+                return RedirectToAction("ThankForm", feedback);
             }
-            return View("Thank you", Feedback);
+            return BadRequest("Feil i nettsiden");
+        }
+
+        [HttpGet]
+        public IActionResult ThankForm(Advice adviceForm)
+        {
+            return View(adviceForm);
+        }
+
+        
+
+        [HttpPost]
+        public async Task<IActionResult> Advice(Advice Feedback)
+        {
+            return View();
         }
     }
 
