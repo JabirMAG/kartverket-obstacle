@@ -1,1 +1,61 @@
-﻿
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Test</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+
+    <style>
+        /* No space; use colons and semicolons properly */
+        #map {
+            width: 100%;
+            height: 80vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Leaflet JS (keep scripts inside the body or use `defer` in the head) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script>
+        // Map initialization
+        const map = L.map('map').setView([59.9139, 10.7522], 7);
+
+        // OSM layer
+        const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        // Case sensitive: addTo(map)
+        osm.addTo(map);
+
+        const singleMarker = L.marker([59.9139, 10.7522], { draggable: true }).addTo(map);
+
+        // Update popup on move
+        singleMarker.on('move', () => {
+          const geojson = JSON.stringify(singleMarker.toGeoJSON(6), null, 2);
+          singleMarker.bindPopup(`<pre>${geojson}</pre>`).openPopup();
+        });
+
+        // Initial popup
+        singleMarker.bindPopup(
+          `<pre>${JSON.stringify(singleMarker.toGeoJSON(6), null, 2)}</pre>`
+        ).openPopup();
+
+
+        console.log(singleMarker.toGeoJSON())
+
+    </script>
+</body>
+</html>
