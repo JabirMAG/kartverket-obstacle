@@ -1,0 +1,36 @@
+﻿@model FirstWebApplication.Models.Advice
+@{
+    // Setter tittelen på siden
+    ViewData["Title"] = "Takk for tilbakemeldingen!";
+}
+
+<!-- Sentralisert innhold med litt margin fra toppen -->
+<div style="text-align:center; margin-top:50px;">
+
+    <!-- Hovedoverskrift -->
+    <h2>Tusen takk for din tilbakemelding!</h2>
+
+    <!-- Viser data fra modellen som ble sendt fra controlleren -->
+    <p> @Model.adviceID  </p>
+    <p> @Model.Email </p>
+    <p> @Model.adviceMessage </p>
+
+    <!-- En kort melding som takker brukeren -->
+    <p>Vi setter stor pris på at du tok deg tid til å gi oss dine innspill.</p>
+
+    <!-- Form som sender brukeren tilbake til Home/Index når knappen trykkes -->
+    <form method="get" asp-controller="Home" asp-action="Index">
+        <button type="submit" style="
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            background-color:#007BFF;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        ">
+            Tilbake til Hjem
+        </button>
+    </form>
+</div>
