@@ -1,6 +1,5 @@
 ﻿using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace FirstWebApplication.Controllers
 {
@@ -9,24 +8,28 @@ namespace FirstWebApplication.Controllers
 
     public class ObstacleController : Controller
     {
-
-        // Viser skjemaet (Dataform) der brukeren kan fylle inn data
-        [HttpGet]
-        public IActionResult Dataform()
+        // Return the partial form for AJAX or direct rendering
+        public IActionResult DataFormPartial()
         {
-            return View();
+            return PartialView("_ObstacleFormPartial", new ObstacleData());
         }
 
-        // Blir kalt etter at vi trykker på "Submit" knappen på Dataform viewwt
+        // Handle the form submission from the partial form
         [HttpPost]
-        public IActionResult Dataform(ObstacleData obstacledata)
+        public IActionResult SubmitObstacle(ObstacleData obstacledata)
         {
-            // Validerer dataene, og hvis gyldige, sendes brukeren videre til "Overview"-siden.
-            if (!ModelState.IsValid)
-            {
-                return View(obstacledata);
-            }
+
+
+            //if (!ModelState.IsValid)
+            //{
+            //    return PartialView("_ObstacleFormPartial", obstacledata);
+            //}
+
             return View("Overview", obstacledata);
         }
+
+
+
     }
 }
+

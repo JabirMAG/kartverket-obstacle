@@ -1,0 +1,147 @@
+﻿@model FirstWebApplication.Models.ObstacleData
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Map Test</title>
+
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+    <style>
+        #map {
+            width: 100%;
+            height: 80vh;
+        }
+
+        .obstacle-overlay {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            max-width: 90%;
+            display: none;
+        }
+    </style>
+
+
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Hidden field for the GeoJSON data produced from map -->
+    <input type="hidden" id="GeometryGeoJsonMap" />
+
+    <!-- Placeholder for obstacle form -->
+    <div id="form-container"></div>
+
+    <!-- Button to trigger form -->
+    <div class="container-fluid text-center mt-3">
+        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-center">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <button id="show-obstacle-form" class="btn btn-primary">
+                        Register Obstacle
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Leaflet and dependencies -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <!-- jQuery + validation scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- Leaflet.draw -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const map = L.map('map').setView([59.9139, 10.7522], 7);
+
+            const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+            osm.addTo(map);
+
+            const drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
+
+            const drawControl = new L.Control.Draw({
+                draw: {
+                    polygon: false,
+                    polyline: true,
+                    marker: true,
+                    circle: false,
+                    rectangle: true
+                },
+                edit: {
+                    featureGroup: drawnItems
+                }
+            });
+            map.addControl(drawControl);
+
+            // Store last drawn layer's GeoJSON
+            let lastGeoJsonString = "";
+
+            map.on(L.Draw.Event.CREATED, function (e) {
+                const layer = e.layer;
+                drawnItems.addLayer(layer);
+
+                const geoJsonData = layer.toGeoJSON();
+                lastGeoJsonString = JSON.stringify(geoJsonData);
+
+                const geoInput = document.getElementById('GeometryGeoJsonMap');
+                if (geoInput) {
+                    geoInput.value = lastGeoJsonString;
+                }
+            });
+
+            document.getElementById("show-obstacle-form").addEventListener("click", function () {
+                const geoJsonValue = document.getElementById("GeometryGeoJsonMap").value;
+
+                if (!geoJsonValue) {
+                    alert("Please click on the map to select obstacle location before registering.");
+                    return;
+                }
+
+                fetch('/Obstacle/DataFormPartial')
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById("form-container").innerHTML = html;
+
+                        const formElem = document.getElementById("obstacle-form");
+                        if (formElem) {
+                            // Copy GeoJSON into the hidden field inside the form
+                            const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
+                            if (formGeoInput) {
+                                formGeoInput.value = geoJsonValue;
+                            }
+
+                            formElem.style.display = "block";
+                            $.validator.unobtrusive.parse(formElem);
+                        }
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

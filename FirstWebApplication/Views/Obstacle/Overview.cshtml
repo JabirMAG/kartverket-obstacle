@@ -1,9 +1,5 @@
 ﻿@model FirstWebApplication.Models.ObstacleData
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-    
 
-*@
 @{
     // Setter tittelen på siden
     ViewData["Title"] = "Overview";
@@ -11,42 +7,87 @@
 
 <!-- Seksjon som sentrerer innholdet og setter maksimal bredde -->
 <section class="mx-auto max-w-2xl">
-  <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 space-y-4">
+    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 space-y-4">
+        <header>
+            <h1 class="text-2xl font-semibold">Overview</h1>
+            <p class="text-gray-600 mt-1">Thank you for registering an obstacle:</p>
+        </header>
 
-     <!-- Header med overskrift og kort tekst -->
-      <header>
-      <h1 class="text-2xl font-semibold">Overview</h1>
-      <p class="text-gray-600 mt-1">Thank you for registering an obstacle:</p>
-    </header>
+        <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-600">Obstacle Name</dt>
+                <dd class="mt-1 text-base text-gray-900 break-words">@Model.ObstacleName</dd>
+            </div>
 
-     <!-- Bruker definisjon-list (<dl>) for å vise data fra modellen -->
-     <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-600">Height (m)</dt>
+                <dd class="mt-1 text-base text-gray-900">@Model.ObstacleHeight</dd>
+            </div>
 
-      <!-- Viser hindringens navn -->
-      <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-600">Obstacle Name</dt>
-        <dd class="mt-1 text-base text-gray-900 break-words">@Model.ObstacleName</dd>
-      </div>
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-600">Description</dt>
+                <dd class="mt-1 text-base text-gray-900 break-words">@Model.ObstacleDescription</dd>
+            </div>
 
-      <!-- Viser hindringens høyde -->
-      <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-600">Height (m)</dt>
-        <dd class="mt-1 text-base text-gray-900">@Model.ObstacleHeight</dd>
-      </div>
+            <div class="space-y-3 sm:col-span-3">
+                <label class="block text-sm font-medium text-gray-800">Geometry (map)</label>
+                <div id="overview-map" style="height: 420px; border-radius: 0.75rem; overflow: hidden; border: 1px solid #e5e7eb;"></div>
+            </div>
 
-      <!-- Viser hindringens beskrivelse -->
-      <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-600">Description</dt>
-        <dd class="mt-1 text-base text-gray-900 break-words">@Model.ObstacleDescription</dd>
-      </div>
-    </dl>
+            <div class="space-y-2 sm:col-span-3">
+                <label for="OverviewCoordinates" class="block text-sm font-medium text-gray-800">Geometry (raw GeoJSON)</label>
+                <textarea id="OverviewCoordinates" class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" rows="8" readonly>@Model.GeometryGeoJson</textarea>
+            </div>
 
-    <!-- Knapp / lenke tilbake til Hjem-siden -->
-    <div class="pt-2">
-      <a asp-controller="Home" asp-action="Index" 
-      class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
-        Back to Home
-      </a>
+            <div class="pt-2 sm:col-span-3">
+                <a asp-controller="Home" asp-action="Index"
+                   class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-gray-300 hover:bg-gray-50">
+                    Back to Home
+                </a>
+            </div>
+        </dl>
+
     </div>
-  </div>
 </section>
+
+@section Scripts {
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script>
+        (function () {
+            var map = L.map('overview-map').setView([20, 0], 2);
+            map.scrollWheelZoom.disable(); // Optional: prevent scroll from zooming
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            var jsontext = document.getElementById('OverviewCoordinates').value;
+
+            try {
+                var geojson = JSON.parse(jsontext);
+                var layer = L.geoJSON(geojson, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.marker(latlng);
+                    }
+                }).addTo(map);
+
+                if (layer.getBounds && layer.getBounds().isValid()) {
+                    map.fitBounds(layer.getBounds());
+                }
+            } catch (err) {
+                console.error("Invalid GeoJSON:", err);
+                alert("Could not render geometry on map.");
+            }
+        })();
+    </script>
+}
