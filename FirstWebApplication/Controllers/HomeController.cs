@@ -27,9 +27,6 @@ namespace FirstWebApplication.Controllers
      
 
        public IActionResult Index()
-
-        [HttpGet]
-        public ActionResult DataForm()
         {
             //Dynamisk innhold basert på tid
             var hour = DateTime.Now.Hour;
@@ -50,13 +47,6 @@ namespace FirstWebApplication.Controllers
 
 
         // Viser Privacy-siden (personvern)
-        [HttpPost]
-        public ActionResult DataForm(ObstacleData obstacledata)
-        {
-            return View("Overview", obstacledata);
-        }
-
-
         public IActionResult Privacy()
         {
             return View();

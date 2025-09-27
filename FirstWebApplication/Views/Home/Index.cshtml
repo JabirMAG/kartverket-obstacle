@@ -1,126 +1,40 @@
 ﻿@model string
 
 @{
-    ViewData["Title"] = "Home Page";
+    // NYTT: Endret tittelen til å passe oppgaven
+    ViewData["Title"] = "Hindringsregister"; 
 }
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <title>Nasjonalt register over luftfartshindre</title>
-    <style>
-        .main-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: flex-start;
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-            gap: 3rem;
+
+<section class="mx-auto max-w-3xl">
+    <div class="text-center space-y-4">
+        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">Welcome</h1>
+
+        <!--Viser dynamisk hilsen basert på tid fra Controller-->
+        @if(ViewBag.Greeting != null)
+        {
+            <h2 class="text-xl text-indigo-700">@ViewBag.Greeting</h2>
         }
 
-        .content-section {
-            flex: 1 1 450px;
-            min-width: 300px;
-            max-width: 500px;
-        }
+        <!-- DENNE DELEN ER FJERNET: Microsoft-template-linken -->
+        @* 
+        <p class="text-base sm:text-lg text-gray-700">
+            Learn about
+            <a class="text-indigo-700 hover:underline" href="https://learn.microsoft.com/aspnet/core">
+                building Web apps with ASP.NET Core
+            </a>
+        </p>
+        *@
 
-        .login-section {
-            flex: 1 1 300px;
-            min-width: 250px;
-            display: flex;
-            justify-content: flex-end;
+        
+        @if (!string.IsNullOrWhiteSpace(Model))
+        {
+            <p class="text-gray-800">@Model</p>
+            <div class="pt-4">
+                <a asp-action="DataForm" asp-controller="Obstacle"
+                   class="inline-flex items-center rounded-lg px-4 py-2 ring-1 ring-indigo-600 text-indigo-700 hover:bg-indigo-50">
+                    Register Obstacle
+                </a>
+            </div>
         }
-
-        .login-button {
-            background-color: #1976d2;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            min-width: 200px;
-            box-sizing: border-box;
-        }
-
-            .login-button::after {
-                content: '>';
-                margin-left: 10px;
-            }
-
-        .read-more-link {
-            color: #1976d2;
-            text-decoration: none;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-            margin-bottom: 2rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="main-content">
-        <div class="content-section">
-            <h1>Nasjonalt register over luftfartshindre</h1>
-            <p>
-                Nasjonalt register over luftfartshindre (NRL) er et digitalt register over menneskeskapte objekter
-                som anses å utgjøre en risiko for luftfarten, spesielt ved lavtflyging. Registeret forvaltes av
-                Kartverket og er hjemlet i luftfartshinderforskriften som forvaltes av Luftfartstilsynet. Forskriften
-                pålegger den som eier et luftfartshinder å rapportere til NRL.
-            </p>
-            <p>
-                <a href="#" class="read-more-link">Les mer om Nasjonalt register over luftfartshindre</a>
-            </p>
-        </div>
-        <div class="login-section">
-            <a class="login-button" asp-area="" asp-controller="Map" asp-action="Map" >Logg inn</a> 
-        </div>
     </div>
-
-    <!-- Footer -->
-    <footer style="background-color: #f8f9fa; margin-top: 4rem; padding: 3rem 2rem 2rem 2rem;">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <!-- Kartverket Logo -->
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; font-weight: bold;">
-                <div style="width: 24px; height: 24px; background: linear-gradient(45deg, #2E7D32, #4CAF50); border-radius: 3px;"></div>
-                Kartverket
-            </div>
-
-            <h2 style="margin-bottom: 2rem; font-size: 1.3rem;">Kontaktinformasjon eller andre henvendelser</h2>
-
-            <!-- Three column layout -->
-            <div class="footer-grid">
-                <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Kontakt oss</h3>
-                    <p style="margin-bottom: 0.5rem;">Telefon: <a href="tel:32118000" style="color: #1976d2; text-decoration: none;">32 11 80 00</a></p>
-                    <p>E-post: <a href="mailto:nrl@kartverket.no" style="color: #1976d2; text-decoration: none;">nrl@kartverket.no</a></p>
-                </div>
-
-                <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Postadresse</h3>
-                    <p style="margin-bottom: 0.5rem;">Kartverket</p>
-                    <p style="margin-bottom: 0.5rem;">Nasjonalt register over luftfartshindre</p>
-                    <p style="margin-bottom: 0.5rem;">Postboks 600 sentrum</p>
-                    <p>3507 Hønefoss</p>
-                </div>
-
-                <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Hjelp</h3>
-                    <p><a href="#" style="color: #1976d2; text-decoration: none;">Personvern</a></p>
-                    <p><a href="#" style="color: #1976d2; text-decoration: none;">Tilgjengelighetserklæring</a></p>
-                    <p><a href="#" style="color: #1976d2; text-decoration: none;">Mer informasjon om NRL</a></p>
-                    <p style="color: #666;">Versjon 1.2.41.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-</body>
-</html>
+</section>
