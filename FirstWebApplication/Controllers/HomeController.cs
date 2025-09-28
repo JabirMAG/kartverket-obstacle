@@ -27,6 +27,9 @@ namespace FirstWebApplication.Controllers
      
 
        public IActionResult Index()
+        {
+            return View();
+        }
 
         [HttpGet]
         public ActionResult DataForm()
