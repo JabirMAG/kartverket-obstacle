@@ -27,10 +27,6 @@ Applikasjonen kjøres i Docker for enkel drift og portabilitet.
 Docker-compose kan brukes til å starte både web-applikasjon og database i egne containere.
 -**Web-applikasjon** kjører på'mcr.microsoft.com/dotnet/aspnet:9.0'
 -**Database** kjører i 'mariadb'
--Kommunikasjon skjer via Docker-nettverket
+-Kommunikasjon skjer via Docker-nettverket 
 
-
-
-
-
-
+[![.NET Tests](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml/badge.svg)](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml)

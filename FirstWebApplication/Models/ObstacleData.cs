@@ -24,7 +24,7 @@ namespace FirstWebApplication.Models
         public string ObstacleDescription { get; set; } = string.Empty;
 
         // Geometrisk representasjon av hindringen i GeoJSON-format.
-        // Valgfelt (kan være null).
-        public string? GeomertyGeoJason { get; set; }
+        // Felt som beholder koordinatene til hinderets lokasjon
+        public string? GeometryGeoJson { get; set; }
     }
 }

@@ -3,12 +3,11 @@ using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 
-
 namespace FirstWebApplication.Controllers
 {
     // HomeController styrer standard sider som Index, Privacy og Error
     // Den er også koblet til en database-tilkobling via connection string
-    // 
+    //
     public class HomeController : Controller
     {
         // Logger brukes til å logge informasjon, advarsler og feil
@@ -24,29 +23,38 @@ namespace FirstWebApplication.Controllers
             _logger = logger;
         }
 
-     
+        public IActionResult Index()
+        {
+            return View();
+        }
 
-       public IActionResult Index()
+        [HttpGet]
+        public ActionResult DataForm()
         {
             //Dynamisk innhold basert på tid
             var hour = DateTime.Now.Hour;
             string greeting;
-            
+
             if (hour < 12)
                 greeting = "Good Morning!";
             else if (hour < 18)
                 greeting = "Good Afternoon!";
-            else 
+            else
                 greeting = "Good Evening!";
-                
+
             // Legger hilsen i ViewBag så view kan bruke det
             ViewBag.Greeting = greeting;
-            
+
             return View();
         }
 
-
         // Viser Privacy-siden (personvern)
+        [HttpPost]
+        public ActionResult DataForm(ObstacleData obstacledata)
+        {
+            return View("Overview", obstacledata);
+        }
+
         public IActionResult Privacy()
         {
             return View();
@@ -58,9 +66,12 @@ namespace FirstWebApplication.Controllers
         public IActionResult Error()
         {
             // Oppretter et ErrorViewModel-objekt med RequestId for feilsøking
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(
+                new ErrorViewModel
+                {
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                }
+            );
         }
-
     }
-       
 }

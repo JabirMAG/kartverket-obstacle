@@ -34,5 +34,4 @@ namespace FirstWebApplication.Controllers
             return View(adviceForm);
         }
     }
-
- }
+}

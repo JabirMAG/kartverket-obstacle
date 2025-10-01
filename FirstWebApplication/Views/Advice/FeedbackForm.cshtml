@@ -9,11 +9,7 @@
 <form method="post">
     <!-- Tekstområde for å skrive selve tilbakemeldingen -->
     <textarea asp-for="adviceMessage" placeholder="Skriv her..." rows="6" cols="50"></textarea>
-
-    <!-- Input-felt for e-post, koblet til modellen Advice.Email -->
     <input type="email"  placeholder="Email.." asp-for="Email" />
-
-    <!-- Input-felt for ID, koblet til modellen Advice.adviceID -->
     <input type="number" placeholder="ID" asp-for="adviceID" />
 
     <br />
