@@ -21,7 +21,7 @@ namespace Kartverket.Tests
                 ObstacleName = "Tre",
                 ObstacleHeight = 15,
                 ObstacleDescription = "Et høyt tre nær landingsone",
-                GeomertyGeoJason = "{}",
+                GeometryGeoJson = "{}",
             };
             var isValid = ValidateModel(obstacle, out var results);
 
