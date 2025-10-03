@@ -8,9 +8,9 @@ Applikasjonen følger (Model-View-Controller) mønsteret:
 **Model**
 Domeneklasser og validering (Advice, ObstacleData, errorViewModel).
 **View**
-Razor Views for presentasjon (skjema for hindringer, feedback, oversiktssider).
+Razor Views for presentasjon (skjema for hindringer, feedback, oversiktssider, kart).
 **Controller**
-Forretningslogikk og ruting (HomeController, AdviceController, ObstacleController, FormController.
+Forretningslogikk og ruting (HomeController, AdviceController, ObstacleController, FormController, MapController).
 **Database**
 MySQL/MariaDB, håndtert via Entity Framwork Core (ApplicationDBContext + migrasjoner).
 
@@ -22,7 +22,7 @@ MySQL/MariaDB, håndtert via Entity Framwork Core (ApplicationDBContext + migras
 3. Tilbakemeldinger sendes via adviceController --> FeedbackForm, og lagres i database ( Feedback-tabellen).
 4. Registerfører kan validere og behandle innkomne rapporter (fremtidig utvidelse).
 
-##Drift
+### Drift 
 Applikasjonen kjøres i Docker for enkel drift og portabilitet.
 Docker-compose kan brukes til å starte både web-applikasjon og database i egne containere.
 -**Web-applikasjon** kjører på'mcr.microsoft.com/dotnet/aspnet:9.0'
