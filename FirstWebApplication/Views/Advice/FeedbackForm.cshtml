@@ -1,15 +1,25 @@
 ﻿@model FirstWebApplication.Models.ViewModel.AdviceViewModel
 @{
+    // Setter tittelen på siden
     ViewData["Title"] = "Feedback";
 }
 <h2>Gi oss din feedback</h2>
 
+<!-- Form som sender data til samme action-metode i AdviceController via POST -->
 <form method="post">
+<<<<<<< HEAD
     <textarea asp-for="ViewadviceMessage" placeholder="Skriv her..." rows="6" cols="50"></textarea>
     <input type="email"  placeholder="Email.." asp-for="ViewEmail" />
     <input type="number" placeholder="ID" asp-for="ViewadviceID" />
+=======
+    <!-- Tekstområde for å skrive selve tilbakemeldingen -->
+    <textarea asp-for="adviceMessage" placeholder="Skriv her..." rows="6" cols="50"></textarea>
+    <input type="email"  placeholder="Email.." asp-for="Email" />
+    <input type="number" placeholder="ID" asp-for="adviceID" />
+>>>>>>> 89d0bd0edd7479e738473624755c686f8c39d527
 
     <br />
+    <!-- Submit-knapp som sender inn skjemaet -->
     <button type="submit">Send</button>
 </form>
 

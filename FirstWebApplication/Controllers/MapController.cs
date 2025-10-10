@@ -2,9 +2,10 @@
 
 namespace FirstWebApplication.Controllers
 {
-    public class FormController : Controller
+    public class MapController : Controller
     {
-        public IActionResult Index()
+        [HttpGet]
+        public IActionResult Map()
         {
             return View();
         }

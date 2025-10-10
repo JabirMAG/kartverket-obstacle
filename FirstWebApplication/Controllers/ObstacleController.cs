@@ -1,26 +1,35 @@
 ﻿using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace FirstWebApplication.Controllers
 {
+    // ObstacleController håndterer visning og innsending av data relatert til "ObstacleData"
+    // Den viser et skjema (Dataform) og en oversikt (Overview) når skjemaet er sendt inn
+
     public class ObstacleController : Controller
     {
-        [HttpGet]
-        public IActionResult Dataform()
+        // Return the partial form for AJAX or direct rendering
+        public IActionResult DataFormPartial()
         {
-            return View();
+            return PartialView("_ObstacleFormPartial", new ObstacleData());
         }
 
-        // Blir kalt etter at vi trykker på "Submit" knappen på Dataform viewwt
+        // Handle the form submission from the partial form
         [HttpPost]
-        public IActionResult Dataform(ObstacleData obstacledata)
+        public IActionResult SubmitObstacle(ObstacleData obstacledata)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(obstacledata);
-            }
+
+
+            //if (!ModelState.IsValid)
+            //{
+            //    return PartialView("_ObstacleFormPartial", obstacledata);
+            //}
+
             return View("Overview", obstacledata);
         }
+
+
+
     }
 }
+

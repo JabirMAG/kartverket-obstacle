@@ -1,0 +1,104 @@
+﻿@model FirstWebApplication.Models.ObstacleData
+
+@{
+    ViewData["Title"] = "Register Obstacle";
+}
+
+@* Style CSS *@
+
+<style>
+    /* Precise green sampled from your image: #00973D */
+    .btn-green-custom {
+        background-color: #00973D !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+        transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    }
+
+        .btn-green-custom:hover {
+            background-color: #007a2e !important; /* slightly darker on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.12) !important;
+        }
+
+        .btn-green-custom:active {
+            transform: translateY(0);
+        }
+
+        .btn-green-custom:focus {
+            outline: none !important;
+            box-shadow: 0 0 0 6px rgba(0,151,61,0.12) !important; /* subtle focus ring */
+        }
+
+        /* In case some library applies a disabled-style, keep button readable when not actually disabled */
+        .btn-green-custom[disabled] {
+            opacity: 0.9 !important;
+            cursor: not-allowed !important;
+            filter: grayscale(0) !important;
+        }
+</style>
+
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+    <section class="w-full max-w-md">
+        <div class="rounded-lg shadow-md border border-gray-300 bg-white p-6">
+            <header class="mb-5">
+                <h2 class="text-xl font-semibold text-gray-800">Register an Obstacle</h2>
+                <p class="text-sm text-gray-500">Fill in the obstacle details below.</p>
+            </header>
+            <form asp-controller="Obstacle" asp-action="SubmitObstacle" method="post" class="space-y-4" id="obstacle-form">
+                <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson" />
+
+                <div>
+                    <label asp-for="ObstacleName" class="block text-sm font-medium text-gray-700">Obstacle Name</label>
+                    <input asp-for="ObstacleName"
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                           placeholder="e.g., Wall, Ramp" />
+                    <span asp-validation-for="ObstacleName" class="text-xs text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="ObstacleHeight" class="block text-sm font-medium text-gray-700">Height (meters)</label>
+                    <input asp-for="ObstacleHeight" type="number" step="0.01" min="0"
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                           placeholder="e.g., 2.5" />
+                    <span asp-validation-for="ObstacleHeight" class="text-xs text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea asp-for="ObstacleDescription" rows="3"
+                              class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                              placeholder="Describe the obstacle, materials, location, etc."></textarea>
+                    <span asp-validation-for="ObstacleDescription" class="text-xs text-red-600"></span>
+                </div>
+
+                <div class="text-right pt-2">
+                    <button type="submit"
+                            class="inline-block rounded-md px-4 py-2 text-white text-sm font-semibold shadow-sm btn-green-custom"
+                            id="obstacle-submit-button"
+                            aria-label="Submit obstacle">
+                        Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("obstacle-form");
+
+            if (form) {
+                form.addEventListener("submit", function () {
+                });
+            }
+        });
+    </script>
+
+}

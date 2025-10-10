@@ -3,20 +3,26 @@ using FirstWebApplication.NewFolder;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
+// Oppretter en builder for webapplikasjonen
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Legger til MVC-tjenester (Controllers + Views)
 builder.Services.AddControllersWithViews();
 
+<<<<<<< HEAD
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 
+=======
+// Konfigurerer Entity Framework Core med MySQL
+// Henter connection string fra appsettings.json
+>>>>>>> 89d0bd0edd7479e738473624755c686f8c39d527
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Konfigurerer HTTP-request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -24,17 +30,24 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Tvinger HTTPS
 app.UseHttpsRedirection();
+
+// Aktiverer ruting
 app.UseRouting();
 
+// Aktiverer autorisering
 app.UseAuthorization();
 
+// Mapper statiske filer (CSS, JS, bilder osv.)
 app.MapStaticAssets();
 
+// Setter opp standard routing for controllerne
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 
+// Starter applikasjonen
 app.Run();

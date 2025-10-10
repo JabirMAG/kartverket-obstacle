@@ -5,16 +5,18 @@ using MySqlConnector;
 
 namespace FirstWebApplication.Controllers
 {
+    // HomeController styrer standard sider som Index, Privacy og Error
+    // Den er også koblet til en database-tilkobling via connection string
+    //
     public class HomeController : Controller
     {
+        // Logger brukes til å logge informasjon, advarsler og feil
         private readonly ILogger<HomeController> _logger;
+
+        //Connection string til databasen (hentes fra appsettings.json)
         private readonly string? _connectionString;
 
-        // public HomeController(ILogger<HomeController> logger)
-        // {
-        // _logger = logger;
-        // }
-
+        // Konstruktør som setter connection string og logger via dependency injection
         public HomeController(IConfiguration config, ILogger<HomeController> logger)
         {
             _connectionString = config.GetConnectionString("DefaultConnection");
@@ -22,6 +24,12 @@ namespace FirstWebApplication.Controllers
         }
 
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult DataForm()
         {
             //Dynamisk innhold basert på tid
             var hour = DateTime.Now.Hour;
@@ -40,9 +48,11 @@ namespace FirstWebApplication.Controllers
             return View();
         }
 
-        public IActionResult ThankForm()
+        // Viser Privacy-siden (personvern)
+        [HttpPost]
+        public ActionResult DataForm(ObstacleData obstacledata)
         {
-            return View();
+            return View("Overview", obstacledata);
         }
 
         public IActionResult Privacy()
@@ -50,9 +60,12 @@ namespace FirstWebApplication.Controllers
             return View();
         }
 
+        // Viser en feilmeldingsside dersom applikasjonen krasjer eller får en uventet feil.
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
+            // Oppretter et ErrorViewModel-objekt med RequestId for feilsøking
             return View(
                 new ErrorViewModel
                 {
