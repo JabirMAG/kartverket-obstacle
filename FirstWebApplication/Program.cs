@@ -1,4 +1,5 @@
 using FirstWebApplication.DataContext;
+using FirstWebApplication.NewFolder;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
@@ -6,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),

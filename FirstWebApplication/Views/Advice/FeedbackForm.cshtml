@@ -1,13 +1,13 @@
-﻿@model FirstWebApplication.Models.Advice
+﻿@model FirstWebApplication.Models.ViewModel.AdviceViewModel
 @{
     ViewData["Title"] = "Feedback";
 }
 <h2>Gi oss din feedback</h2>
 
 <form method="post">
-    <textarea asp-for="adviceMessage" placeholder="Skriv her..." rows="6" cols="50"></textarea>
-    <input type="email"  placeholder="Email.." asp-for="Email" />
-    <input type="number" placeholder="ID" asp-for="adviceID" />
+    <textarea asp-for="ViewadviceMessage" placeholder="Skriv her..." rows="6" cols="50"></textarea>
+    <input type="email"  placeholder="Email.." asp-for="ViewEmail" />
+    <input type="number" placeholder="ID" asp-for="ViewadviceID" />
 
     <br />
     <button type="submit">Send</button>

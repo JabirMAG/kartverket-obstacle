@@ -13,6 +13,7 @@ namespace FirstWebApplication.DataContext
         }
 
         public DbSet<Advice> Feedback { get; set; }
+        public DbSet<ObstacleData> ObstaclesData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

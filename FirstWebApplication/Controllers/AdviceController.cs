@@ -1,25 +1,47 @@
 ﻿using FirstWebApplication.Models;
+using FirstWebApplication.Models.ViewModel;
+using FirstWebApplication.NewFolder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
+using System.Reflection;
 
 namespace FirstWebApplication.Controllers
 {
+   
     public class AdviceController : Controller
     {
 
-        [HttpGet]
-        public IActionResult FeedbackForm()
+        private readonly IAdviceRepository _iAdvicerepository;
+
+        public AdviceController (IAdviceRepository _iadviceRepository)
         {
+            _iAdvicerepository = _iadviceRepository;
+        }
+    
+       
+      
+        [HttpGet]
+        public async Task<ActionResult> FeedbackForm(Advice Feedback)
+        {
+            
             return View();
         }
 
         [HttpPost]
-        public IActionResult FeedbackForm(Advice feedback)
+        public async Task<ActionResult> FeedbackForm(AdviceViewModel requestData)
         {
-            if (ModelState.IsValid)
+
+            Advice advice = new Advice
             {
-                return RedirectToAction("ThankForm", feedback);
-            }
-            return BadRequest("Feil i nettsiden");
+
+                adviceMessage = requestData.ViewadviceMessage,
+                Email = requestData.ViewEmail,
+                adviceID = requestData.ViewadviceID
+            };
+
+           await _iAdvicerepository.AddAdvice(advice);
+            return View(advice);
+
         }
 
         [HttpGet]
@@ -36,5 +58,6 @@ namespace FirstWebApplication.Controllers
             return View();
         }
     }
+
 
  }
