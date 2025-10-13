@@ -9,13 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Legger til MVC-tjenester (Controllers + Views)
 builder.Services.AddControllersWithViews();
 
-<<<<<<< HEAD
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 
-=======
-// Konfigurerer Entity Framework Core med MySQL
-// Henter connection string fra appsettings.json
->>>>>>> 89d0bd0edd7479e738473624755c686f8c39d527
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
