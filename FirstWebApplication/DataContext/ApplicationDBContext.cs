@@ -20,6 +20,6 @@ namespace FirstWebApplication.DataContext
             modelBuilder.Entity<Advice>().HasKey(Key => Key.adviceID);
 
         }
-
     }
 }
+
