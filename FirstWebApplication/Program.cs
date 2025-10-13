@@ -1,4 +1,5 @@
 using FirstWebApplication.DataContext;
+using FirstWebApplication.NewFolder;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
@@ -8,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Legger til MVC-tjenester (Controllers + Views)
 builder.Services.AddControllersWithViews();
 
-// Konfigurerer Entity Framework Core med MySQL
-// Henter connection string fra appsettings.json
+builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
+
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));

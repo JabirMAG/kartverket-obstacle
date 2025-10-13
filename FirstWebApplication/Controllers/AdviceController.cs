@@ -1,30 +1,40 @@
 ﻿using FirstWebApplication.Models;
+using FirstWebApplication.Models.ViewModel;
+using FirstWebApplication.NewFolder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
+using System.Reflection;
 
 namespace FirstWebApplication.Controllers
 {
-    // Controller som håndterer tilbakemeldingsskjemaet
     public class AdviceController : Controller
     {
-        // Viser skjemaet der brukeren kan sende tilbakemelding (Get- forespørsel)
+        private readonly IAdviceRepository _adviceRepository;
+        public AdviceController(IAdviceRepository adviceRepository) {
+           
+            _adviceRepository = adviceRepository;
+        }
+
         [HttpGet]
-        public IActionResult FeedbackForm()
+        public async Task<ActionResult> FeedbackForm(Advice Feedback)
         {
+            
             return View();
         }
 
         // Behandler skjemaet når det sendes inn av brukeren (Post- forespørsel)
         [HttpPost]
-        public IActionResult FeedbackForm(Advice feedback)
+        public async Task<ActionResult> FeedbackForm(AdviceViewModel requestData)
         {
-            // Sjekker om modellen er gyldig (at alle kravene er oppfylt)
-            if (ModelState.IsValid)
+            Advice advice = new Advice
             {
-                // Sender brukeren til en takk-side med de innsendte dataene
-                return RedirectToAction("ThankForm", feedback);
-            }
-            // Retunerer feilmelding hvis noe er galt med skjemaet
-            return BadRequest("Feil i nettsiden");
+                adviceMessage = requestData.ViewadviceMessage,
+                Email = requestData.ViewEmail,
+            };
+
+            await _adviceRepository.AddAdvice(advice);
+            return View();
+
         }
 
         // Viser en takk-side etter at tilbakemeldingen er sendt inn
@@ -34,4 +44,5 @@ namespace FirstWebApplication.Controllers
             return View(adviceForm);
         }
     }
-}
+
+ }
