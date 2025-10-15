@@ -29,7 +29,7 @@ namespace Kartverket.Tests.Controllers
                 .Build();
 
             var controller = new HomeController(config, logger.Object);
-            controller.DataForm();
+            controller.Index();
             var greetings = new[] { "Good Morning!", "Good Afternoon!", "Good Evening!" };
             var controllerGreeting = controller.ViewBag.Greeting;
 
