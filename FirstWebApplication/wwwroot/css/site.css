@@ -56,10 +56,12 @@ body {
 }
 
 .footer-logo {
-    width: 24px; 
-    height: 24px; 
-    background: linear-gradient(45deg, #2E7D32, #4CAF50); 
-    border-radius: 3px;
+    .logo {
+        width: 150px;
+        height: 150px;
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
 }
 
 .footer-logo-title {
