@@ -62,7 +62,7 @@ body {
     border-radius: 3px;
 }
 
-.footer-title-logo {
+.footer-logo-title {
     display: flex; 
     align-items: center; 
     gap: 0.5rem; 
@@ -70,7 +70,7 @@ body {
     font-weight: bold;
 }
 
-.footer-title-contact {
+.footer-contact-title {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -91,7 +91,7 @@ body {
 }
 
 
-.footer-title-adress {
+.footer-adress-title {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -100,7 +100,7 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.footer-title-help{
+.footer-help-title{
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 1rem;
