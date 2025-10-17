@@ -1,0 +1,49 @@
+.main-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+    gap: 3rem;
+}
+
+.content-section {
+    flex: 1 1 450px;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.login-section {
+    flex: 1 1 300px;
+    min-width: 250px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.login-button {
+    background-color: #1976d2;
+    color: white;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 200px;
+    box-sizing: border-box;
+}
+
+.login-button::after {
+    content: '>';
+    margin-left: 10px;
+}
+
+.read-more-link {
+    color: #1976d2;
+    text-decoration: none;
+}
+
