@@ -18,6 +18,7 @@ namespace FirstWebApplication.DataContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Advice>().HasKey(Key => Key.adviceID);
+            modelBuilder.Entity<ObstacleData>().HasKey(pri => pri.ObstacleId);
 
         }
     }
