@@ -9,16 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Legger til MVC-tjenester (Controllers + Views)
 builder.Services.AddControllersWithViews();
 
-<<<<<<< HEAD
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 
-=======
-builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
-
->>>>>>> 89d0bd0edd7479e738473624755c686f8c39d527
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
-    new MySqlServerVersion(new Version(11, 8, 3))));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DatabaseConnection"),
+        new MySqlServerVersion(new Version(11, 8, 3))
+    )
+);
 
 var app = builder.Build();
 
@@ -43,11 +41,8 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 // Setter opp standard routing for controllerne
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 // Starter applikasjonen
 app.Run();
