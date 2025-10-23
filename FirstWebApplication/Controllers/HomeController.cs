@@ -23,13 +23,10 @@ namespace FirstWebApplication.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        
 
-        [HttpGet]
-        public ActionResult DataForm()
+        
+        public IActionResult Index()
         {
             //Dynamisk innhold basert på tid
             var hour = DateTime.Now.Hour;
@@ -45,6 +42,12 @@ namespace FirstWebApplication.Controllers
             // Legger hilsen i ViewBag så view kan bruke det
             ViewBag.Greeting = greeting;
 
+            return View();
+        }
+        
+        [HttpGet]
+        public IActionResult DataForm()
+        {
             return View();
         }
 
