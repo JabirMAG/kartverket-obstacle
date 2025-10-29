@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using FirstWebApplication.Models;
+using FirstWebApplication.Models.ViewModel;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
-using FirstWebApplication.Models;
 
 namespace Kartverket.Tests
 {
@@ -32,11 +33,11 @@ namespace Kartverket.Tests
         [Fact]
         public void ObsacleData_ShouldFail_WhenRequiredFieldMissing()
         {
-            var obstacle = new ObstacleData
+            var obstacle = new ObstacleDataViewModel
             {
-                ObstacleName = "", // må fylle inn navn på hindring, tomt felt skal ikke være lov
-                ObstacleHeight = 50,
-                ObstacleDescription = "", // må fylle inn beskrivelse, altså tomt felt skal feile
+                ViewObstacleName = "", // må fylle inn navn på hindring, tomt felt skal ikke være lov
+                ViewObstacleHeight = 50,
+                ViewObstacleDescription = "", // må fylle inn beskrivelse, altså tomt felt skal feile
             };
             var isValid = ValidateModel(obstacle, out var results);
 
@@ -49,11 +50,11 @@ namespace Kartverket.Tests
         [Fact]
         public void ObstacleData_ShouldFail_WhenHeightOutOfRange()
         {
-            var obstacle = new ObstacleData
+            var obstacle = new ObstacleDataViewModel
             {
-                ObstacleName = "Stolpe",
-                ObstacleHeight = 500, //
-                ObstacleDescription = "en enorm stolpe",
+                ViewObstacleName = "Stolpe",
+                ViewObstacleHeight = 500, //
+                ViewObstacleDescription = "en enorm stolpe",
             };
 
             var isValid = ValidateModel(obstacle, out var results);
@@ -63,7 +64,7 @@ namespace Kartverket.Tests
             //sjekker at feilmelding kommer når stolpen er 500 som er over maxverdi (200)
             Assert.Contains(
                 results,
-                r => r.ErrorMessage.Contains("The field ObstacleHeight must be between 0 and 200.")
+                r => r.ErrorMessage.Contains("The field ViewObstacleHeight must be between 0 and 200.")
             );
         }
     }
