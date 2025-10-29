@@ -23,8 +23,12 @@ namespace FirstWebApplication.Models
         public string ObstacleDescription { get; set; } = string.Empty;
 
         // Geometrisk representasjon av hindringen i GeoJSON-format.
+<<<<<<< HEAD
         // Felt som beholder koordinatene til hinderets lokasjon
         [Required(ErrorMessage = "Geometry (GeoJSON) is required.")]
+=======
+        // Felt som beholder koordinatene til hinderets 
+>>>>>>> 58412b5 (Fikset testene)
         public string? GeometryGeoJson { get; set; }
 
 
