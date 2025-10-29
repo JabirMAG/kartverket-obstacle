@@ -1,4 +1,6 @@
 ﻿using FirstWebApplication.Models;
+using FirstWebApplication.Models.ViewModel;
+using FirstWebApplication.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
@@ -9,9 +11,24 @@ namespace FirstWebApplication.Controllers
     public class ObstacleController : Controller
     {
         // Return the partial form for AJAX or direct rendering
+
+        [HttpGet]
         public IActionResult DataFormPartial()
         {
-            return PartialView("_ObstacleFormPartial", new ObstacleData());
+           return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> DataForm(ObstacleDataViewModel obstacleDataViewModel)
+        {
+            ObstacleData obstacleDataDto = new ObstacleData
+            {
+                ObstacleDescription = obstacleDataViewModel.ViewObstacleDescription, 
+                ObstacleHeight = obstacleDataViewModel.ViewObstacleHeight,
+                ObstacleName = obstacleDataViewModel.ViewObstacleName
+            };
+
+            await _obstacleRepository.AddObstacleData(obstacleDataDto);
+            return View();
         }
 
         // Handle the form submission from the partial form

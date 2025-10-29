@@ -1,4 +1,4 @@
-﻿@model FirstWebApplication.Models.ObstacleData
+﻿@model FirstWebApplication.Models.ViewModel.ObstacleDataViewModel
 
 @{
     ViewData["Title"] = "Register Obstacle";
@@ -7,7 +7,7 @@
 @* Style CSS *@
 
 <style>
-    /* Precise green sampled from your image: #00973D */
+    
     .btn-green-custom {
         background-color: #00973D !important;
         color: #ffffff !important;
@@ -46,31 +46,31 @@
                 <h2 class="text-xl font-semibold text-gray-800">Register an Obstacle</h2>
                 <p class="text-sm text-gray-500">Fill in the obstacle details below.</p>
             </header>
-            <form asp-controller="Obstacle" asp-action="SubmitObstacle" method="post" class="space-y-4" id="obstacle-form">
-                <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson" />
+            <form class="space-y-4" id="obstacle-form">
+                <input type="hidden" asp-for="ViewGeometryGeoJson" id="GeometryGeoJson" />
 
                 <div>
-                    <label asp-for="ObstacleName" class="block text-sm font-medium text-gray-700">Obstacle Name</label>
-                    <input asp-for="ObstacleName"
+                    <label asp-for="ViewObstacleName" class="block text-sm font-medium text-gray-700">Obstacle Name</label>
+                    <input asp-for="ViewObstacleName"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                            placeholder="e.g., Wall, Ramp" />
-                    <span asp-validation-for="ObstacleName" class="text-xs text-red-600"></span>
+                    <span asp-validation-for="ViewObstacleName" class="text-xs text-red-600"></span>
                 </div>
 
                 <div>
-                    <label asp-for="ObstacleHeight" class="block text-sm font-medium text-gray-700">Height (meters)</label>
-                    <input asp-for="ObstacleHeight" type="number" step="0.01" min="0"
+                    <label asp-for="ViewObstacleHeight" class="block text-sm font-medium text-gray-700">Height (meters)</label>
+                    <input asp-for="ViewObstacleHeight" type="number" step="0.01" min="0"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                            placeholder="e.g., 2.5" />
-                    <span asp-validation-for="ObstacleHeight" class="text-xs text-red-600"></span>
+                    <span asp-validation-for="ViewObstacleHeight" class="text-xs text-red-600"></span>
                 </div>
 
                 <div>
-                    <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea asp-for="ObstacleDescription" rows="3"
+                    <label asp-for="ViewObstacleDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea asp-for="ViewObstacleDescription" rows="3"
                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                               placeholder="Describe the obstacle, materials, location, etc."></textarea>
-                    <span asp-validation-for="ObstacleDescription" class="text-xs text-red-600"></span>
+                    <span asp-validation-for="ViewObstacleDescription" class="text-xs text-red-600"></span>
                 </div>
 
                 <div class="text-right pt-2">
@@ -102,3 +102,5 @@
     </script>
 
 }
+
+                    */

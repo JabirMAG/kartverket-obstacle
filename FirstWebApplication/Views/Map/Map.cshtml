@@ -142,6 +142,49 @@
                     });
             });
         });
+         "Use My Current Location" knapp - bruker GPS
+        document.getElementById('useMyLocation').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                const originalText = this.innerHTML;
+                this.innerHTML = 'Getting location...';
+                this.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // Fjern tegnede objekter når GPS settes
+                        drawnItems.clearLayers();
+                        document.getElementById('geometryHidden').value = '';
+                        updateCoordinates(position.coords.latitude, position.coords.longitude);
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                    },
+                    (error) => {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        alert('Could not get your location. Please check your browser permissions.');
+                        console.error(error);
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
+        });
+
+        document.getElementById('clearLocation').addEventListener('click', function() {
+            document.getElementById('latitudeHidden').value = '';
+            document.getElementById('longitudeHidden').value = '';
+            document.getElementById('latitudeManual').value = '';
+            document.getElementById('longitudeManual').value = '';
+            document.getElementById('geometryHidden').value = '';
+            document.getElementById('coordsDisplay').innerHTML = 'Click on the map or use your location';
+
+            if (marker) {
+                map.removeLayer(marker);
+                marker = null;
+            }
+            drawnItems.clearLayers();
+        });
+
     </script>
 </body>
 </html>
