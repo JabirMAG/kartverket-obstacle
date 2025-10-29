@@ -17,20 +17,9 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public IActionResult DataFormPartial()
         {
-           return View();
-        }
-        [HttpPost]
-        public async Task<IActionResult> DataForm(ObstacleDataViewModel obstacleDataViewModel)
-        {
-            ObstacleData obstacleDataDto = new ObstacleData
-            {
-                ObstacleDescription = obstacleDataViewModel.ViewObstacleDescription, 
-                ObstacleHeight = obstacleDataViewModel.ViewObstacleHeight,
-                ObstacleName = obstacleDataViewModel.ViewObstacleName
-            };
+            return PartialView("_ObstacleFormPartial", new ObstacleData());
 
-            await _obstacleRepository.AddObstacleData(obstacleDataDto);
-            return View();
+
         }
 
 
