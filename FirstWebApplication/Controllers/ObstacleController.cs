@@ -8,6 +8,8 @@ namespace FirstWebApplication.Controllers
     // ObstacleController håndterer visning og innsending av data relatert til "ObstacleData"
     // Den viser et skjema (Dataform) og en oversikt (Overview) når skjemaet er sendt inn
 
+    
+
     public class ObstacleController : Controller
     {
         // Return the partial form for AJAX or direct rendering
@@ -31,16 +33,16 @@ namespace FirstWebApplication.Controllers
             return View();
         }
 
+
         // Handle the form submission from the partial form
         [HttpPost]
         public IActionResult SubmitObstacle(ObstacleData obstacledata)
         {
 
-
-            //if (!ModelState.IsValid)
-            //{
-            //    return PartialView("_ObstacleFormPartial", obstacledata);
-            //}
+            if (!ModelState.IsValid)
+            {
+                return PartialView("_ObstacleFormPartial", obstacledata);
+            }
 
             return View("Overview", obstacledata);
         }

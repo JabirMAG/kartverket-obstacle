@@ -1,4 +1,4 @@
-﻿@model FirstWebApplication.Models.ObstacleData
+﻿@model FirstWebApplication.Models.ViewModel.ObstacleDataViewModel
 
 @{
     // Setter tittelen på siden
@@ -20,34 +20,34 @@
 
         <!-- Obstacle Name -->
         <div class="sm:col-span-2">
-          <label asp-for="ObstacleName" class="block text-sm font-medium text-gray-800 mb-1">Obstacle Name</label>
-          <input asp-for="ObstacleName" 
+          <label asp-for="ViewObstacleName" class="block text-sm font-medium text-gray-800 mb-1">Obstacle Name</label>
+          <input asp-for="ViewObstacleName" 
                     class="block w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2" 
                     placeholder="e.g., Wall, Ramp" />
                     <!-- Viser valideringsfeil for ObstacleName -->
-          <span asp-validation-for="ObstacleName" class="text-sm text-red-600"></span>
+          <span asp-validation-for="ViewObstacleName" class="text-sm text-red-600"></span>
         </div>
         <!-- Height -->
         <div>
-                    <label asp-for="ObstacleHeight" class="block text-sm font-medium text-gray-800 mb-1">
+                    <label asp-for="ViewObstacleHeight" class="block text-sm font-medium text-gray-800 mb-1">
                     Obstacle Height (meters)
                     </label>
-                    <input asp-for="ObstacleHeight" type="number" step="0.01" min="0" 
+                    <input asp-for="ViewObstacleHeight" type="number" step="0.01" min="0" 
                     class="block w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 px-3 py-2" 
                     placeholder="e.g., 2.5" />
                     <!-- Viser valideringsfeil for ObstacleHeight -->
-                    <span asp-validation-for="ObstacleHeight" class="text-sm text-red-600"></span>
+                    <span asp-validation-for="ViewObstacleHeight" class="text-sm text-red-600"></span>
                 </div>
          <!-- Description -->
          <div class="sm:col-span-2">
-                    <label asp-for="ObstacleDescription" class="block text-sm font-medium text-gray-800 mb-1">
+                    <label asp-for="ViewObstacleDescription" class="block text-sm font-medium text-gray-800 mb-1">
                         Obstacle Description
                     </label>
-                    <textarea asp-for="ObstacleDescription" rows="5" 
+                    <textarea asp-for="ViewObstacleDescription" rows="5" 
                     class="block w-full rounded-xl border-gray-300 focus:border-indigo-300 focus:ring-indigo-600 px-4 py-3 resize-none shadow-sm" 
                     placeholder="Describe the obstacle, materials, location, etc."></textarea>
                     <!-- Viser valideringsfeil for ObstacleDescription -->
-                    <span asp-validation-for="ObstacleDescription" class="text-sm text-red-600"></span>
+                    <span asp-validation-for="ViewObstacleDescription" class="text-sm text-red-600"></span>
                 </div>
             </div>
 
