@@ -27,12 +27,9 @@ namespace FirstWebApplication.Controllers
             {
                 return PartialView("_ObstacleFormPartial", obstacledata);
             }
-
+            ObstacleRepository.AddObstacle(obstacledata);
             return View("Overview", obstacledata);
         }
-
-
-
     }
 }
 
