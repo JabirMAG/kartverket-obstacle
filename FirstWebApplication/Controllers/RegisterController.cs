@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FirstWebApplication.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
 {
@@ -6,7 +7,17 @@ namespace FirstWebApplication.Controllers
     {
         public IActionResult Register()
         {
-            return View();
+            var obstacles = ObstacleRepository.GetAllObstacles();
+            return View(obstacles);
+
+        }
+
+
+        // Handle the form submission from the partial form
+        [HttpPost]
+        public IActionResult ShowObstacle(ObstacleData obstacledata)
+        {
+            return View("Register", obstacledata);
         }
     }
 }

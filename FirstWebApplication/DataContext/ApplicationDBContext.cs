@@ -1,8 +1,5 @@
 ﻿using FirstWebApplication.Models;
 using Microsoft.EntityFrameworkCore;    
-
-
-
 namespace FirstWebApplication.DataContext
 {
     public class ApplicationDBContext : DbContext
@@ -19,7 +16,6 @@ namespace FirstWebApplication.DataContext
         {
             modelBuilder.Entity<Advice>().HasKey(Key => Key.adviceID);
             modelBuilder.Entity<ObstacleData>().HasKey(pri => pri.ObstacleId);
-
         }
     }
 }
