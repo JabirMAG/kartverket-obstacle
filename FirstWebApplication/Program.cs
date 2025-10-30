@@ -1,6 +1,7 @@
 using FirstWebApplication.DataContext;
 using FirstWebApplication.NewFolder;
 using Microsoft.EntityFrameworkCore;
+//using Microsoft.AspNetCore.Identity;  vet ikke om den trengs
 using MySqlConnector;
 
 // Oppretter en builder for webapplikasjonen

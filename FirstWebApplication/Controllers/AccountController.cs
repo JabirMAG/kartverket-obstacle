@@ -42,7 +42,7 @@ namespace FirstWebApplication.Controllers
                 if (roleIdentityResult.Succeeded)
                 {
                     //show success notification
-                    return RedirectToAction("Register");
+                    return RedirectToAction("Register"); 
                 }
             }
             //show error notification
