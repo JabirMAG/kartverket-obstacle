@@ -20,9 +20,9 @@ namespace FirstWebApplication.DataContext
 
             // Seed Roles (Pilot, Registerfører, Admin)
 
-            var PilotRoleId = "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75";
-            var AdminRoleId = "2de8d9c9-988c-400b-ac7d-7b45c59b6251";
-            var RegisterførerRoleId = "27a609d2-154c-41bb-8257-45314e8065f2";
+            var PilotRoleId = "1";
+            var AdminRoleId = "2";
+            var CaseHandlerId = "3";
 
             var roles = new List<IdentityRole>
 
@@ -30,22 +30,22 @@ namespace FirstWebApplication.DataContext
                 new IdentityRole
                 {
                         Name = "Pilot",
-                        NormalizedName = "Pilot",
+                        NormalizedName = "PILOT",
                         Id = PilotRoleId,
                         ConcurrencyStamp = PilotRoleId
                 },
                  new IdentityRole
                 {
-                    Name = "Registerfører",
-                    NormalizedName = "Registerfører",
-                    Id = RegisterførerRoleId,
-                    ConcurrencyStamp = RegisterførerRoleId
+                    Name = "CaseHandler",
+                    NormalizedName = "CASEHANDLER",
+                    Id = CaseHandlerId,
+                    ConcurrencyStamp = CaseHandlerId
 
                 },
                 new IdentityRole
                 {
                     Name = "Admin",
-                    NormalizedName = "Admin",
+                    NormalizedName = "ADMIN",
                     Id = AdminRoleId,
                     ConcurrencyStamp = AdminRoleId
                 }
@@ -55,7 +55,7 @@ namespace FirstWebApplication.DataContext
 
 
             // Seed AdminUser 
-            var AdminId = "d01a810e-9587-4732-90dd-208175e61b60";
+            var AdminId = "2";
             var AdminUser = new IdentityUser
             {
                 UserName = "admin@kartverket.no",
@@ -85,7 +85,7 @@ namespace FirstWebApplication.DataContext
                 },
                 new IdentityUserRole<string>
                 {
-                    RoleId = RegisterførerRoleId,
+                    RoleId = CaseHandlerId,
                     UserId = AdminId
                 }
             };
