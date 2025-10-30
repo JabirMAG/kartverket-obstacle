@@ -24,6 +24,7 @@ namespace FirstWebApplication.Models
 
         // Geometrisk representasjon av hindringen i GeoJSON-format.
         // Felt som beholder koordinatene til hinderets lokasjon
+        [Required(ErrorMessage = "Geometry (GeoJSON) is required.")]
         public string? GeometryGeoJson { get; set; }
     }
 }
