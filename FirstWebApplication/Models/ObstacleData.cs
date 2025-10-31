@@ -1,10 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 namespace FirstWebApplication.Models
 {
     // ObstacleData representerer data om en hindring som registreres i systemet.
     // Brukes sammen med skjemaet i ObstacleController
     public class ObstacleData
     {
+        [Key]
+        public Guid ObstacleDataId { get; set; }
+
         // Navnet på hindringen.
         // Må fylles ut og kan maks være 100 tegn.
         [Required(ErrorMessage = "Field is required")]
@@ -13,8 +17,8 @@ namespace FirstWebApplication.Models
 
         // Høyden på hindringen i meter.
         // Må fylles ut og må være mellom 0 og 200.
-        [Required(ErrorMessage ="Field is required")]
-        [Range (0, 200)]
+        [Required(ErrorMessage = "Field is required")]
+        [Range(0, 200)]
         public double ObstacleHeight { get; set; }
 
         // En beskrivelse av hindringen.
