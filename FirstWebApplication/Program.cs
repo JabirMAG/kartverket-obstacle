@@ -47,6 +47,8 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 var app = builder.Build();
 
+
+
 // Konfigurerer HTTP-request pipeline
 if (!app.Environment.IsDevelopment())
 {

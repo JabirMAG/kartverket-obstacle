@@ -203,24 +203,24 @@ namespace FirstWebApplication.Migrations.AuthDb
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "27a609d2-154c-41bb-8257-45314e8065f2", "27a609d2-154c-41bb-8257-45314e8065f2", "Registerfører", "Registerfører" },
-                    { "2de8d9c9-988c-400b-ac7d-7b45c59b6251", "2de8d9c9-988c-400b-ac7d-7b45c59b6251", "Admin", "Admin" },
-                    { "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75", "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75", "Pilot", "Pilot" }
+                    { "1", "1", "Pilot", "PILOT" },
+                    { "2", "2", "Admin", "ADMIN" },
+                    { "3", "3", "CaseHandler", "CASEHANDLER" }
                 });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "d01a810e-9587-4732-90dd-208175e61b60", 0, "e66b3f37-02c6-4057-992f-26c2af8eb365", "admin@kartverket.com", false, false, null, "ADMIN@KARTVERKET.NO", "ADMIN@KARTVERKET.NO", "AQAAAAIAAYagAAAAEBKCd/K4xKyiSXsNAooCyoxvaNYNy5u39p5Vvvwzv+XVyV10+LxhTHtG5qJK9up/pg==", null, false, "38439d99-f00c-474a-a727-e479a80e8d83", false, "admin@kartverket.no" });
+                values: new object[] { "2", 0, "e4ae631e-d025-49e3-b508-852168eae165", "admin@kartverket.com", false, false, null, "ADMIN@KARTVERKET.NO", "ADMIN@KARTVERKET.NO", "AQAAAAIAAYagAAAAEFRdfQ3mK8eQnj53V4eFi2v81BElFQlb8R106yhy4SqkKMm3nuZlqUyCoagi4ZnZeg==", null, false, "44568144-879f-4d1d-b7ee-e20b3229314c", false, "admin@kartverket.no" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
                 columns: new[] { "RoleId", "UserId" },
                 values: new object[,]
                 {
-                    { "27a609d2-154c-41bb-8257-45314e8065f2", "d01a810e-9587-4732-90dd-208175e61b60" },
-                    { "2de8d9c9-988c-400b-ac7d-7b45c59b6251", "d01a810e-9587-4732-90dd-208175e61b60" },
-                    { "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75", "d01a810e-9587-4732-90dd-208175e61b60" }
+                    { "1", "2" },
+                    { "2", "2" },
+                    { "3", "2" }
                 });
 
             migrationBuilder.CreateIndex(

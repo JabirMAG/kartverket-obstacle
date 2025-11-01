@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FirstWebApplication.Migrations.AuthDb
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20251030133705_Creating Auth Db")]
+    [Migration("20251101140006_Creating Auth Db")]
     partial class CreatingAuthDb
     {
         /// <inheritdoc />
@@ -53,24 +53,24 @@ namespace FirstWebApplication.Migrations.AuthDb
                     b.HasData(
                         new
                         {
-                            Id = "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75",
-                            ConcurrencyStamp = "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75",
+                            Id = "1",
+                            ConcurrencyStamp = "1",
                             Name = "Pilot",
-                            NormalizedName = "Pilot"
+                            NormalizedName = "PILOT"
                         },
                         new
                         {
-                            Id = "27a609d2-154c-41bb-8257-45314e8065f2",
-                            ConcurrencyStamp = "27a609d2-154c-41bb-8257-45314e8065f2",
-                            Name = "Registerfører",
-                            NormalizedName = "Registerfører"
+                            Id = "3",
+                            ConcurrencyStamp = "3",
+                            Name = "CaseHandler",
+                            NormalizedName = "CASEHANDLER"
                         },
                         new
                         {
-                            Id = "2de8d9c9-988c-400b-ac7d-7b45c59b6251",
-                            ConcurrencyStamp = "2de8d9c9-988c-400b-ac7d-7b45c59b6251",
+                            Id = "2",
+                            ConcurrencyStamp = "2",
                             Name = "Admin",
-                            NormalizedName = "Admin"
+                            NormalizedName = "ADMIN"
                         });
                 });
 
@@ -165,17 +165,17 @@ namespace FirstWebApplication.Migrations.AuthDb
                     b.HasData(
                         new
                         {
-                            Id = "d01a810e-9587-4732-90dd-208175e61b60",
+                            Id = "2",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "e66b3f37-02c6-4057-992f-26c2af8eb365",
+                            ConcurrencyStamp = "e4ae631e-d025-49e3-b508-852168eae165",
                             Email = "admin@kartverket.com",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@KARTVERKET.NO",
                             NormalizedUserName = "ADMIN@KARTVERKET.NO",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBKCd/K4xKyiSXsNAooCyoxvaNYNy5u39p5Vvvwzv+XVyV10+LxhTHtG5qJK9up/pg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFRdfQ3mK8eQnj53V4eFi2v81BElFQlb8R106yhy4SqkKMm3nuZlqUyCoagi4ZnZeg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "38439d99-f00c-474a-a727-e479a80e8d83",
+                            SecurityStamp = "44568144-879f-4d1d-b7ee-e20b3229314c",
                             TwoFactorEnabled = false,
                             UserName = "admin@kartverket.no"
                         });
@@ -245,18 +245,18 @@ namespace FirstWebApplication.Migrations.AuthDb
                     b.HasData(
                         new
                         {
-                            UserId = "d01a810e-9587-4732-90dd-208175e61b60",
-                            RoleId = "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75"
+                            UserId = "2",
+                            RoleId = "1"
                         },
                         new
                         {
-                            UserId = "d01a810e-9587-4732-90dd-208175e61b60",
-                            RoleId = "2de8d9c9-988c-400b-ac7d-7b45c59b6251"
+                            UserId = "2",
+                            RoleId = "2"
                         },
                         new
                         {
-                            UserId = "d01a810e-9587-4732-90dd-208175e61b60",
-                            RoleId = "27a609d2-154c-41bb-8257-45314e8065f2"
+                            UserId = "2",
+                            RoleId = "3"
                         });
                 });
 
