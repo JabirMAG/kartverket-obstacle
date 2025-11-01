@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using FirstWebApplication.Models;
 
 namespace FirstWebApplication.Controllers
 {
@@ -7,7 +8,9 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public IActionResult Map()
         {
-            return View();
+            // Optional: send empty model or default data
+            var obstacleData = new ObstacleData();
+            return View(obstacleData);
         }
     }
 }

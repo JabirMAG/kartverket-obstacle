@@ -1,12 +1,10 @@
-using FirstWebApplication.DataContext;
+﻿using FirstWebApplication.DataContext;
 using FirstWebApplication.NewFolder;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
-// Oppretter en builder for webapplikasjonen
 var builder = WebApplication.CreateBuilder(args);
 
-// Legger til MVC-tjenester (Controllers + Views)
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
@@ -15,34 +13,32 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
-// Konfigurerer HTTP-request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-// Tvinger HTTPS
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-// Aktiverer ruting
 app.UseRouting();
-
-// Aktiverer autorisering
+app.UseSession();
 app.UseAuthorization();
 
-// Mapper statiske filer (CSS, JS, bilder osv.)
-app.MapStaticAssets();
-
-// Setter opp standard routing for controllerne
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
-// Starter applikasjonen
 app.Run();
