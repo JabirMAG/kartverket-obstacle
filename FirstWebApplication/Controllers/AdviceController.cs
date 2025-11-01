@@ -16,9 +16,8 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> FeedbackForm(Advice Feedback)
+        public async Task<IActionResult> FeedbackForm(Advice Feedback)
         {
-            
             return View();
         }
 

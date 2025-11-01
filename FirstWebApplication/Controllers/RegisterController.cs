@@ -1,4 +1,5 @@
 ﻿using FirstWebApplication.Models;
+using FirstWebApplication.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers

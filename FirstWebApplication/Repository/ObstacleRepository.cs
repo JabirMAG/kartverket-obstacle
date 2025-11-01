@@ -1,6 +1,7 @@
 using FirstWebApplication.DataContext;
 using FirstWebApplication.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace FirstWebApplication.Repository;
 
@@ -20,10 +21,10 @@ public class ObstacleRepository : IObstacleRepository
         return obstacleData;
     }
     
-    /*
+    
     public async Task<ObstacleData> GetElementById(int id)
     {
-        var findById = await _context.ObstaclesData.Where(x => x.ObstacleDataID == id).FirstOrDefaultAsync();
+        var findById = await _context.ObstaclesData.Where(x => x.ObstacleId == id).FirstOrDefaultAsync();
         if (findById != null)
         {
             return findById;
@@ -33,7 +34,7 @@ public class ObstacleRepository : IObstacleRepository
             return null;
         }
     } 
-    */
+    
     
     public async Task<ObstacleData> DeleteById(int id)
     {
@@ -61,5 +62,10 @@ public class ObstacleRepository : IObstacleRepository
         _context.ObstaclesData.Update(obstacleData);
         await _context.SaveChangesAsync();
         return obstacleData;
+    }
+
+    public static string? GetAllObstacles()
+    {
+        return null;
     }
 }
