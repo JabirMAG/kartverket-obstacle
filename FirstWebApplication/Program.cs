@@ -1,5 +1,6 @@
 using FirstWebApplication.DataContext;
 using FirstWebApplication.NewFolder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 //using Microsoft.AspNetCore.Identity;  vet ikke om den trengs
 using MySqlConnector;
@@ -16,6 +17,11 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
+//legger til identity tjeneste:
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDBContext>()
+    .AddDefaultTokenProviders();
+
 var app = builder.Build();
 
 // Konfigurerer HTTP-request pipeline
@@ -29,10 +35,9 @@ if (!app.Environment.IsDevelopment())
 // Tvinger HTTPS
 app.UseHttpsRedirection();
 
-// Aktiverer ruting
+// Legg til autentisering og autorisering i riktig rekkefølge
 app.UseRouting();
-
-// Aktiverer autorisering
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Mapper statiske filer (CSS, JS, bilder osv.)
