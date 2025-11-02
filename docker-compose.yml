@@ -1,4 +1,4 @@
-version: '3.4' 
+version: '3.4'
 
 services:
   firstwebapplication:
@@ -7,15 +7,25 @@ services:
       context: .
       dockerfile: FirstWebApplication/Dockerfile
     ports:
-      - "5000:8080"
- 
+      - "5000:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=development
-      - ConnectionStrings__DefaultConnection=server=mariadbcontainer;port=3306;database=mysql;user=root;password=haterPassord00;
-            
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=mariadbcontainer;Port=3306;Database=DB;User=root;Password=Mammaerbest1;
     networks:
       - appnet
+
+  mariadbcontainer:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: Mammaerbest1
+      MYSQL_DATABASE: KartverketDB
+    ports:
+      - "3306:3306"
+    networks:
+      - appnet
+
+
 networks:
-     appnet:
-      external: true
-      name: appnet
+  appnet:
+    external: true
+    name: appnet
