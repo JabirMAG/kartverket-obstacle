@@ -1,10 +1,12 @@
 ﻿using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
 namespace FirstWebApplication.Controllers
 {
+    [Authorize(Roles = "Registerfører")]
     public class RegisterController : Controller
     {
         private readonly IObstacleRepository _obstacleRepository;
