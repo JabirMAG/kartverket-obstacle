@@ -5,7 +5,7 @@ namespace FirstWebApplication.Models
     // Brukes sammen med skjemaet i ObstacleController
     public class ObstacleData
     {
-        public  int  ObstacleId { get; set; }
+        public int ObstacleId { get; set; }
 
         // Navnet på hindringen.
         // Må fylles ut og kan maks være 100 tegn.

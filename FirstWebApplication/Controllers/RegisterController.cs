@@ -1,8 +1,10 @@
 ﻿using FirstWebApplication.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
 {
+    [Authorize(Roles = "Registerfører")]
     public class RegisterController : Controller
     {
         public IActionResult Register()

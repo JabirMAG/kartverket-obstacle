@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FirstWebApplication.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20251010130839_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20251030131230_InitialUpdate")]
+    partial class InitialUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,6 +43,36 @@ namespace FirstWebApplication.Migrations
                     b.HasKey("adviceID");
 
                     b.ToTable("Feedback");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
+                {
+                    b.Property<int>("ObstacleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ObstacleId"));
+
+                    b.Property<string>("GeometryGeoJson")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ObstacleDescription")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<double>("ObstacleHeight")
+                        .HasColumnType("double");
+
+                    b.Property<string>("ObstacleName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("ObstacleId");
+
+                    b.ToTable("ObstaclesData");
                 });
 #pragma warning restore 612, 618
         }

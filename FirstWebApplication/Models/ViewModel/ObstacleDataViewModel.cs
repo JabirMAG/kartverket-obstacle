@@ -4,7 +4,8 @@ namespace FirstWebApplication.Models.ViewModel
 {
     public class ObstacleDataViewModel
     {
-        public Guid ViewObstacleId { get; set; }
+        [Key]
+        public int ViewObstacleId { get; set; }
 
         // Navnet på hindringen.
         // Må fylles ut og kan maks være 100 tegn.
