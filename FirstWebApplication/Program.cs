@@ -15,7 +15,7 @@ builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
 builder.Services.AddDbContext<AuthDbContext>(options =>

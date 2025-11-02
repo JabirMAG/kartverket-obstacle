@@ -1,5 +1,6 @@
 ﻿using FirstWebApplication.Models;
 using FirstWebApplication.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
