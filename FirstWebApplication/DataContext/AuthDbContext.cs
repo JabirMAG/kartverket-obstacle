@@ -7,7 +7,7 @@ namespace FirstWebApplication.DataContext
 {
     public class AuthDbContext : IdentityDbContext //Arver fra innebygd databasekontekst for brukere    
     {
-        public AuthDbContext(DbContextOptions options) : base(options) // Mottar databaseinnstillinger (connectionstring, provider osv.) fra Program.cs via dependency injection
+        public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) // Mottar databaseinnstillinger (connectionstring, provider osv.) fra Program.cs via dependency injection
         {
         }
 

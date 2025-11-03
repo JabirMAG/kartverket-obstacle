@@ -19,9 +19,10 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 
 //legger til identity tjeneste:
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDBContext>()
-    .AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<AuthDbContext>()
 
+//----builder.Services.Configure<IdentityOptions>(options)
+    
 var app = builder.Build();
 
 // Konfigurerer HTTP-request pipeline
