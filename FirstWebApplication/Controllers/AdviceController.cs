@@ -16,34 +16,34 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> FeedbackForm(Advice Feedback)
+        public IActionResult FeedbackForm(Advice Feedback)
         {
             return View();
         }
 
         // Behandler skjemaet når det sendes inn av brukeren (Post- forespørsel)
         [HttpPost]
-        public async Task<ActionResult> FeedbackForm(AdviceViewModel requestData)
+        public async Task<IActionResult> FeedbackForm(AdviceViewModel requestData)
         {
             if (!ModelState.IsValid)
             {
                 return View(requestData);
             }
             
-            Advice advice = new Advice
+            var advice = new Advice
             {
                 adviceMessage = requestData.ViewadviceMessage,
                 Email = requestData.ViewEmail,
             };
 
             await _adviceRepository.AddAdvice(advice);
-            return RedirectToAction("ThankForm", new { advice.Email });
+            return View("ThankForm", advice);
 
         }
 
         // Viser en takk-side etter at tilbakemeldingen er sendt inn
         [HttpGet]
-        public IActionResult ThankForm(Advice adviceForm)
+        public async Task<IActionResult> ThankForm(Advice adviceForm)
         {
             ViewBag.adviceMessage = adviceForm.adviceMessage;
             return View(adviceForm);
