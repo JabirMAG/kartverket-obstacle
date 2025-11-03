@@ -17,9 +17,14 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
-//legger til identity tjeneste:
+builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
+        new MySqlServerVersion(new Version(11, 8, 3))));
+
+// ✅ Legg til Identity + token providers
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AuthDbContext>()
+    .AddDefaultTokenProviders(); // <-- denne er viktig!
 
 //----builder.Services.Configure<IdentityOptions>(options)
     
