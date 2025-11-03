@@ -1,4 +1,4 @@
-using FirstWebApplication.DataContext;
+﻿using FirstWebApplication.DataContext;
 using FirstWebApplication.NewFolder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -27,23 +27,29 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddDefaultTokenProviders(); // <-- denne er viktig!
 
 //----builder.Services.Configure<IdentityOptions>(options)
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
     
 var app = builder.Build();
 
-// Konfigurerer HTTP-request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-// Tvinger HTTPS
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-// Legg til autentisering og autorisering i riktig rekkefølge
 app.UseRouting();
-app.UseAuthentication();
+app.UseSession();
+app.UseAuthentication(); //todo: hva gjør usesession!!
 app.UseAuthorization();
 
 // Mapper statiske filer (CSS, JS, bilder osv.)
@@ -55,6 +61,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
-// Starter applikasjonen
 app.Run();

@@ -1,4 +1,4 @@
-﻿using FirstWebApplication.Models;
+using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.NewFolder;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +19,12 @@ namespace FirstWebApplication.Controllers
         
         [HttpGet]
         public IActionResult Register()
+        {
+            return View();
+        }
+        
+        [HttpGet]
+        public IActionResult Login()
         {
             return View();
         }
@@ -48,9 +54,18 @@ namespace FirstWebApplication.Controllers
             //show error notification
             return View();
         }
+        
+        [HttpPost]
+        public IActionResult Login(LoginViewModel model)
+        {
+            // Skip all user/session checks and always redirect to Map page
+            return RedirectToAction("Map", "Map");
+        }
+
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
     }
 }
-
-
-
-
