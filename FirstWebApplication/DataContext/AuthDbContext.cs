@@ -20,7 +20,7 @@ namespace FirstWebApplication.DataContext
 
             // Seed Roles (Pilot, Registerfører, Admin)
 
-            var PilotRoleId = "b4b5065b - e9dc - 40d4 - a49d - f00d9c720e75";
+            var PilotRoleId = "b4b5065b-e9dc-40d4-a49d-f00d9c720e75";
             var AdminRoleId = "2de8d9c9-988c-400b-ac7d-7b45c59b6251";
             var RegisterførerRoleId = "27a609d2-154c-41bb-8257-45314e8065f2";
 
