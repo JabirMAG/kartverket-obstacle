@@ -38,7 +38,7 @@ namespace FirstWebApplication.Controllers
             };
 
             await _adviceRepository.AddAdvice(advice);
-            return RedirectToAction("ThankForm", new { advice.Email });
+            return RedirectToAction("ThankForm", new { advice.Email, advice.adviceMessage });
 
         }
 

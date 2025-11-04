@@ -35,8 +35,14 @@ namespace FirstWebApplication.NewFolder
             }
         }
 
+        public async Task<IEnumerable<Advice>> GetAllAdvice(Advice advice)
+        {
+            var getAllData = await _context.Feedback.Take(50).ToListAsync();
+            return getAllData;
+        }
+ 
 
-            public async Task<Advice> DeleteById (int id)
+        public async Task<Advice> DeleteById (int id)
         {
             var elementById = await _context.Feedback.FindAsync(id);
             if (elementById != null)
@@ -61,7 +67,7 @@ namespace FirstWebApplication.NewFolder
 
         }
 
-        public async Task<IEnumerable<Advice>> GetAllAdvice (Advice advice)
+        public async Task<IEnumerable<Advice>> GetAllAdvice ()
         {
             var getAllData = await _context.Feedback.Take(50).ToListAsync();
             return getAllData;
