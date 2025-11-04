@@ -39,7 +39,7 @@ namespace FirstWebApplication.Controllers
                 Email = registerViewModel.Email,
             };
             
-           
+            
 
             var identityResult = await userManager.CreateAsync(identityUser, registerViewModel.Password); //lager bruker
 
