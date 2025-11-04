@@ -40,7 +40,7 @@ namespace FirstWebApplication.NewFolder
             var getAllData = await _context.Feedback.Take(50).ToListAsync();
             return getAllData;
         }
-
+ 
 
         public async Task<Advice> DeleteById (int id)
         {

@@ -2,20 +2,20 @@
 @{
     ViewData["Title"] = "Feedback";
 }
-
+ 
 <h2>Gi oss din feedback</h2>
-
+ 
 <form asp-controller="Advice" asp-action="FeedbackForm" method="post" style="max-width:500px; margin:auto;">
     <div style="margin-bottom:15px;">
         <label asp-for="ViewEmail" style="display:block; margin-bottom:5px;">E-post</label>
         <input type="email" asp-for="ViewEmail" placeholder="Skriv inn e-post" class="form-control" style="width:100%; padding:8px;" />
     </div>
-
+ 
     <div style="margin-bottom:15px;">
         <label asp-for="ViewadviceMessage" style="display:block; margin-bottom:5px;">Tilbakemelding</label>
         <textarea asp-for="ViewadviceMessage" placeholder="Skriv her..." rows="6" class="form-control" style="width:100%; padding:8px;"></textarea>
     </div>
-
+ 
     <button type="submit" style="padding:10px 20px; font-size:16px; border:none; border-radius:5px; background-color:#007BFF; color:white; cursor:pointer;">
         Send
     </button>

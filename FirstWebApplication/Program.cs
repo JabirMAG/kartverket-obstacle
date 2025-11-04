@@ -7,7 +7,7 @@ using MySqlConnector;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-
+ 
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 
