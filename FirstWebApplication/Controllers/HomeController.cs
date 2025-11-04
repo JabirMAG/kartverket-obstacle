@@ -22,11 +22,11 @@ namespace FirstWebApplication.Controllers
             string greeting;
 
             if (hour < 12)
-                greeting = "Good Morning!";
+                greeting = "God morgen!";
             else if (hour < 18)
-                greeting = "Good Afternoon!";
+                greeting = "God ettermiddag!";
             else
-                greeting = "Good Evening!";
+                greeting = "Good kveld!";
 
             ViewBag.Greeting = greeting;
             return View();

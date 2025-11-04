@@ -32,11 +32,14 @@ namespace FirstWebApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
+            //lager new user
             var identityUser = new IdentityUser
             {
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
             };
+            
+           
 
             var identityResult = await userManager.CreateAsync(identityUser, registerViewModel.Password); //lager bruker
 

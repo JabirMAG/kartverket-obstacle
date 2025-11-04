@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 //using Microsoft.AspNetCore.Identity;  vet ikke om den trengs
 using MySqlConnector;
 
-// Oppretter en builder for webapplikasjonen
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Legger til MVC-tjenester (Controllers + Views)
+//Add services to the container
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
@@ -26,7 +26,17 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddDefaultTokenProviders(); // <-- denne er viktig!
 
-//----builder.Services.Configure<IdentityOptions>(options)
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    //Default settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequiredUniqueChars = 1;
+    
+});
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
