@@ -2,6 +2,7 @@
 using FirstWebApplication.Models;
 using Microsoft.EntityFrameworkCore;
 
+/*
 public static class ObstacleRepository
 {
     private static List<ObstacleData> _obstacles = new List<ObstacleData>();
@@ -16,3 +17,4 @@ public static class ObstacleRepository
         _obstacles.Add(obstacle);
     }
 }
+*/

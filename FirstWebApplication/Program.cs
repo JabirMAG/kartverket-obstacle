@@ -1,30 +1,30 @@
 ﻿using FirstWebApplication.DataContext;
+using FirstWebApplication.DataContext.Seeders;
+using FirstWebApplication.Models;
 using FirstWebApplication.NewFolder;
-using Microsoft.AspNetCore.Identity;
+using FirstWebApplication.Repository;
+using Microsoft.AspNetCore.Identity;    
 using Microsoft.EntityFrameworkCore;
-//using Microsoft.AspNetCore.Identity;  vet ikke om den trengs
 using MySqlConnector;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Add services to the container
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
+builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
-        new MySqlServerVersion(new Version(11, 8, 3))));
+    options.UseMySql(builder.Configuration.GetConnectionString("AuthConnection"),
+    new MySqlServerVersion(new Version(11, 8, 3))));
 
-// ✅ Legg til Identity + token providers
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<AuthDbContext>()
-    .AddDefaultTokenProviders(); // <-- denne er viktig!
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -35,8 +35,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireUppercase = true;
     options.Password.RequiredLength = 8;
     options.Password.RequiredUniqueChars = 1;
-    
-});
+
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -45,8 +44,15 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-    
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AuthDbContext>();
+    AuthDbSeeder.Seed(context);
+}
 
 if (!app.Environment.IsDevelopment())
 {

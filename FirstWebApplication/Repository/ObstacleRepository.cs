@@ -20,46 +20,57 @@ public class ObstacleRepository : IObstacleRepository
         return obstacleData;
     }
     
-    /*
+
+
+    
+   
+
     public async Task<ObstacleData> GetElementById(int id)
-    {
-        var findById = await _context.ObstaclesData.Where(x => x.ObstacleDataID == id).FirstOrDefaultAsync();
-        if (findById != null)
         {
-            return findById;
+            var findById = await _context.ObstaclesData.Where(x => x.ObstacleId == id).FirstOrDefaultAsync();
+
+            if (findById != null)
+            {
+                return findById;
+            }
+            else
+            {
+                return null;
+            }
         }
-        else
+
+
+        public async Task<ObstacleData> DeleteById(int id)
         {
-            return null;
+            var elementById = await _context.Feedback.FindAsync(id);
+            if (elementById != null)
+            {
+                _context.Feedback.Remove(elementById);
+                await _context.SaveChangesAsync();
+                return (ObstacleData)(object)elementById; // Note: This cast may need review
+            }
+            else
+            {
+                return null;
+            }
         }
-    } 
-    */
-    
-    public async Task<ObstacleData> DeleteById(int id)
-    {
-        var elementById = await _context.Feedback.FindAsync(id);
-        if (elementById != null)
+
+        public async Task<IEnumerable<ObstacleData>> GetAllAdvice(ObstacleData obstacleData)
         {
-            _context.Feedback.Remove(elementById);
+            var getAllData = await _context.ObstaclesData.Take(50).ToListAsync();
+            return getAllData;
+        }
+
+        public async Task<ObstacleData> UpdateAdvice(ObstacleData obstacleData)
+        {
+            _context.ObstaclesData.Update(obstacleData);
             await _context.SaveChangesAsync();
-            return (ObstacleData)(object)elementById; // Note: This cast may need review
+            return obstacleData;
         }
-        else
+
+
+        public static string? GetAllObstacles()
         {
-            return null;
+            throw new NotImplementedException();
         }
-    }
-    
-    public async Task<IEnumerable<ObstacleData>> GetAllAdvice(ObstacleData obstacleData)
-    {
-        var getAllData = await _context.ObstaclesData.Take(50).ToListAsync();
-        return getAllData;
-    }
-    
-    public async Task<ObstacleData> UpdateAdvice(ObstacleData obstacleData)
-    {
-        _context.ObstaclesData.Update(obstacleData);
-        await _context.SaveChangesAsync();
-        return obstacleData;
-    }
 }

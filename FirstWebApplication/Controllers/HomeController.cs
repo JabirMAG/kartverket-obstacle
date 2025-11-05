@@ -26,7 +26,8 @@ namespace FirstWebApplication.Controllers
             else if (hour < 18)
                 greeting = "God ettermiddag!";
             else
-                greeting = "Good kveld!";
+            
+                greeting = "God kveld!";
 
             ViewBag.Greeting = greeting;
             return View();
