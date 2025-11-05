@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FirstWebApplication.Migrations.AuthDb
 {
     /// <inheritdoc />
-    public partial class CreatinAuthDb : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,6 +41,8 @@ namespace FirstWebApplication.Migrations.AuthDb
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FullName = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -210,8 +212,8 @@ namespace FirstWebApplication.Migrations.AuthDb
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "d01a810e-9587-4732-90dd-208175e61b60", 0, "5bd78144-c8df-4e6c-9651-fef0cb743ba4", "admin@kartverket.com", false, false, null, "ADMIN@KARTVERKET.NO", "ADMIN@KARTVERKET.NO", "AQAAAAIAAYagAAAAECXz1LtPQwpLYyjgUoiixNGM7VbWS6ugDqCm7STpJQBYy0jJrHuSXY2tzyiWxJIrbA==", null, false, "3eb20f37-c398-495e-a4dd-104ea75cf3dc", false, "admin@kartverket.no" });
+                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
+                values: new object[] { "d01a810e-9587-4732-90dd-208175e61b60", 0, "951f2472-d989-4f10-8f40-2e6cca5e7fd3", "admin@kartverket.com", false, null, false, null, "ADMIN@KARTVERKET.NO", "ADMIN@KARTVERKET.NO", "AQAAAAIAAYagAAAAEOBovHKIDrXLSmsxsdjlpuO3xSsmEqRi9aM680XUZiCgKWV7d0oiiTZdZb7WSJWHgg==", null, false, "996e3c4c-3da0-4c92-ade0-1b1a49266754", false, "admin@kartverket.no" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
