@@ -1,49 +1,77 @@
-﻿@{
+﻿@model string
+
+@{
     ViewData["Title"] = "Home Page";
 }
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Nasjonalt register over luftfartshindre</title>
+    <link rel="stylesheet" href="~/css/Index.css">
+</head>
+<body>
+    <div class="main-content">
+        <div class="content-section">
+            <h1>Nasjonalt register over luftfartshindre</h1>
+            <h2>@ViewBag.Greeting</h2>
 
-<h2>@ViewBag.Greeting</h2>
-
-<p>
-    Nasjonalt register over luftfartshindre (NRL) er et digitalt register over menneskeskapte objekter
-    som anses å utgjøre en risiko for luftfarten, spesielt ved lavtflyging. Registeret forvaltes av
-    Kartverket og er hjemlet i luftfartshinderforskriften som forvaltes av Luftfartstilsynet. Forskriften
-    pålegger den som eier et luftfartshinder å rapportere til NRL.
-</p>
-<p>
-    <a href="https://www.kartverket.no/geodataarbeid/nrl" class="read-more-link">Les mer om Nasjonalt register over luftfartshindre</a>
-</p>
-
-<div class="login-section" style="margin-top:2rem;">
-    <a class="btn btn-primary" asp-controller="Account" asp-action="Login">
-        Logg inn
-    </a>
-</div>
-
-
-<footer style="background-color:#f8f9fa; margin-top:4rem; padding:3rem 2rem;">
-    <div style="max-width:1200px; margin:0 auto;">
-        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:2rem; font-weight:bold;">
-            <div style="width:24px; height:24px; background:linear-gradient(45deg,#2E7D32,#4CAF50); border-radius:3px;"></div>
-            Kartverket
+            
+            <p>
+                Nasjonalt register over luftfartshindre (NRL) er et digitalt register over menneskeskapte objekter
+                som anses å utgjøre en risiko for luftfarten, spesielt ved lavtflyging. Registeret forvaltes av
+                Kartverket og er hjemlet i luftfartshinderforskriften som forvaltes av Luftfartstilsynet. Forskriften
+                pålegger den som eier et luftfartshinder å rapportere til NRL.
+            </p>
+            <p>
+                <a href="#" class="read-more-link">Les mer om Nasjonalt register over luftfartshindre</a>
+            </p>
         </div>
+        <div class="login-and-register-section">
+            <a class="login-button" asp-area="" asp-controller="Account" asp-action="Login" >Logg inn</a> 
+            <a class="register-button" asp-area="" asp-controller="Account" asp-action="Register" >Registrer deg</a> 
+        </div>
+        
+    </div>  <!-- 🔹 Denne manglet! -->
 
-        <h2 style="margin-bottom:2rem; font-size:1.3rem;">Kontaktinformasjon eller andre henvendelser</h2>
-
-        <div class="footer-grid">
-            <div>
-                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:1rem;">Kontakt oss</h3>
-                <p>Telefon: <a href="tel:32118000" style="color:#1976d2;">32 11 80 00</a></p>
-                <p>E-post: <a href="mailto:nrl@kartverket.no" style="color:#1976d2;">nrl@kartverket.no</a></p>
+    <!-- Footer -->
+    <footer class="footer-background">
+        <div class="footer-container">
+            <!-- Kartverket Logo -->
+            <div class="footer-logo-title">
+                <img class="footer-logo" src="/images/kartverket-logo.png" alt="Kartverket-logo" />
+                Kartverket
             </div>
 
-            <div>
-                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:1rem;">Postadresse</h3>
-                <p>Kartverket</p>
-                <p>Nasjonalt register over luftfartshindre</p>
-                <p>Postboks 600 sentrum</p>
-                <p>3507 Hønefoss</p>
+            <h2 class="footer-title">Kontaktinformasjon eller andre henvendelser</h2>
+
+            <!-- Three column layout -->
+            <div class="footer-grid">
+                <div>
+                    <h3 class="footer-contact-title">Kontakt oss</h3>
+                    <p class="footer-contact-phone-nr">Telefon: 
+                        <a href="tel:32118000" class="footer-contact-phone-nr-line">32 11 80 00</a></p>
+                    <p>E-post: <a href="mailto:nrl@kartverket.no" class="footer-contact-email">nrl@kartverket.no</a></p>
+                </div>
+
+                <div>
+                    <h3 class="footer-adress-title">Postadresse</h3>
+                    <p class="footer-adress">Kartverket</p>
+                    <p class="footer-adress">Nasjonalt register over luftfartshindre</p>
+                    <p class="footer-adress">Postboks 600 sentrum</p>
+                    <p>3507 Hønefoss</p>
+                </div>
+                
+                
+                <div>
+                    <h3 class="footer-help-title">Hjelp</h3>
+                    <p><a href="#" class="footer-help">Personvern</a></p>
+                    <p><a href="#" class="footer-help">Tilgjengelighetserklæring</a></p>
+                    <p><a href="#" class="footer-help">Mer informasjon om NRL</a></p>
+                    <p class="footer-version">Versjon 1.2.41.</p>
+                </div>
             </div>
         </div>
-    </div>
-</footer>
+    </footer>
+</body>
+</html>
