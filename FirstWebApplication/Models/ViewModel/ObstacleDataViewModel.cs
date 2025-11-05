@@ -27,7 +27,9 @@ namespace FirstWebApplication.Models.ViewModel
 
         // Geometrisk representasjon av hindringen i GeoJSON-format.
         // Felt som beholder koordinatene til hinderets lokasjon
-        public string? ViewGeometryGeoJson { get; set; }
+        public string ViewGeometryGeoJson { get; set; }
+
+        public int ViewObstacleStatus { get; set; }
 
     }
 }

@@ -25,8 +25,10 @@ namespace FirstWebApplication.Models
         // Geometrisk representasjon av hindringen i GeoJSON-format.
         // Felt som beholder koordinatene til hinderets lokasjon
         [Required(ErrorMessage = "Geometry (GeoJSON) is required.")]
-        public string? GeometryGeoJson { get; set; }
+        public string GeometryGeoJson { get; set; }
 
-
+        [Range(1,3)]
+        // Status for hindringen (1=Pending, 2=Approved, 3=Rejected).
+        public int ObstacleStatus { get; set;} = 1; // Default til "Pending"
     }
 }

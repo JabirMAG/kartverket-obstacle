@@ -1,9 +1,8 @@
 ﻿using FirstWebApplication.DataContext;
 using FirstWebApplication.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
 
-namespace FirstWebApplication.NewFolder
+namespace FirstWebApplication.Repositories
 {
     public class AdviceRepository : IAdviceRepository
     {
@@ -69,16 +68,12 @@ namespace FirstWebApplication.NewFolder
 
         public async Task<IEnumerable<Advice>> GetAllAdvice ()
         {
-            var getAllData = await _context.Feedback.Take(50).ToListAsync();
-            return getAllData;
+            return await _context.Feedback
+                .OrderByDescending(x => x.adviceID)
+                .Take(50)
+                .ToListAsync();
         }
-
-
-
-
-
-        }
-
 
     }
+}
 

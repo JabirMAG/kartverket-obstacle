@@ -42,6 +42,7 @@
 
     <!-- Hidden field for the GeoJSON data produced from map -->
     <input type="hidden" id="GeometryGeoJsonMap" />
+    <input type="hidden" id="GeometryGeoJsonCoordinates" />
 
     <!-- Placeholder for obstacle form -->
     <div id="form-container"></div>
@@ -73,18 +74,23 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Initialize the map
             const map = L.map('map').setView([59.9139, 10.7522], 7);
 
+            // Add OSM tile layer
             const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             });
             osm.addTo(map);
 
+            // Feature group to store drawn layers
             const drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
 
+            // Leaflet.draw control
             const drawControl = new L.Control.Draw({
                 draw: {
                     polygon: false,
@@ -103,49 +109,62 @@
             // Store last drawn layer's GeoJSON
             let lastGeoJsonString = "";
 
+            // Event when a new shape is drawn
             map.on(L.Draw.Event.CREATED, function (e) {
                 const layer = e.layer;
                 drawnItems.addLayer(layer);
 
                 const geoJsonData = layer.toGeoJSON();
+                const coordinatesOnly = geoJsonData.geometry.coordinates;
                 lastGeoJsonString = JSON.stringify(geoJsonData);
 
+                // Update hidden inputs
                 const geoInput = document.getElementById('GeometryGeoJsonMap');
-                if (geoInput) {
-                    geoInput.value = lastGeoJsonString;
-                }
+                const coordsInput = document.getElementById('GeometryGeoJsonCoordinates');
+
+                if (geoInput) geoInput.value = lastGeoJsonString;
+                if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly); 
             });
 
+            // Event when user clicks "Register Obstacle"
             document.getElementById("show-obstacle-form").addEventListener("click", function () {
-                const geoJsonValue = document.getElementById("GeometryGeoJsonMap").value;
+                const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
+                const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
+                const formContainer = document.getElementById("form-container");
+
+                const geoJsonValue = geoJsonInput.value;
+                const geoJsonCoordinates = coordinatesInput.value;
 
                 if (!geoJsonValue) {
                     alert("Please click on the map to select obstacle location before registering.");
                     return;
                 }
 
+                // Load the partial form
                 fetch('/Obstacle/DataFormPartial')
                     .then(response => response.text())
                     .then(html => {
-                        document.getElementById("form-container").innerHTML = html;
+                        formContainer.innerHTML = html;
 
                         const formElem = document.getElementById("obstacle-form");
                         if (formElem) {
-                            // Copy GeoJSON into the hidden field inside the form
+                            // Copy values into hidden fields in the form
                             const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
-                            if (formGeoInput) {
-                                formGeoInput.value = geoJsonValue;
-                            }
+                            const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
 
+                            if (formGeoInput) formGeoInput.value = geoJsonValue;
+                            if (formGeoInputCoordinates) formGeoInputCoordinates.value = geoJsonCoordinates;
+
+                            // Show the form
                             formElem.style.display = "block";
+
+                            // Reparse for unobtrusive validation
                             $.validator.unobtrusive.parse(formElem);
                         }
                     });
             });
-
-            
-
         });
     </script>
+
 </body>
 </html>

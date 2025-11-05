@@ -2,32 +2,29 @@ using FirstWebApplication.DataContext;
 using FirstWebApplication.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace FirstWebApplication.Repository;
-
-public class ObstacleRepository : IObstacleRepository
+namespace FirstWebApplication.Repositories
 {
-    private readonly ApplicationDBContext _context;
-    
-    public ObstacleRepository(ApplicationDBContext context)
+    public class ObstacleRepository : IObstacleRepository
     {
-        _context = context;
-    }
-    
-    public async Task<ObstacleData> AddObstacleData(ObstacleData obstacleData)
-    {
-        await _context.ObstaclesData.AddAsync(obstacleData);
-        await _context.SaveChangesAsync();
-        return obstacleData;
-    }
-    
+        private readonly ApplicationDBContext _context;
 
-
-    
-   
-
-    public async Task<ObstacleData> GetElementById(int id)
+        public ObstacleRepository(ApplicationDBContext context)
         {
-            var findById = await _context.ObstaclesData.Where(x => x.ObstacleId == id).FirstOrDefaultAsync();
+            _context = context;
+        }
+
+        public async Task<ObstacleData> AddObstacle(ObstacleData obstacle)
+        {
+            await _context.ObstaclesData.AddAsync(obstacle);
+            await _context.SaveChangesAsync();
+            return obstacle;
+        }
+
+        public async Task<ObstacleData> GetElementById(int id)
+        {
+            var findById = await _context.ObstaclesData
+                .Where(x => x.ObstacleId == id)
+                .FirstOrDefaultAsync();
 
             if (findById != null)
             {
@@ -39,15 +36,30 @@ public class ObstacleRepository : IObstacleRepository
             }
         }
 
+        public async Task DeleteObstacle()
+        {
+            var elementToDelete = await (
+                from o in _context.ObstaclesData
+                where o.ObstacleStatus == 3
+                select o
+            ).ToListAsync();
+
+            if (elementToDelete != null)
+            {
+                _context.ObstaclesData.RemoveRange(elementToDelete);
+                await _context.SaveChangesAsync();
+            }
+        }
 
         public async Task<ObstacleData> DeleteById(int id)
         {
-            var elementById = await _context.Feedback.FindAsync(id);
+            var elementById = await _context.ObstaclesData.FindAsync(id);
+
             if (elementById != null)
             {
-                _context.Feedback.Remove(elementById);
+                _context.ObstaclesData.Remove(elementById);
                 await _context.SaveChangesAsync();
-                return (ObstacleData)(object)elementById; // Note: This cast may need review
+                return elementById;
             }
             else
             {
@@ -55,22 +67,23 @@ public class ObstacleRepository : IObstacleRepository
             }
         }
 
-        public async Task<IEnumerable<ObstacleData>> GetAllAdvice(ObstacleData obstacleData)
+        public async Task<ObstacleData> UpdateObstacles(ObstacleData obstacle)
         {
-            var getAllData = await _context.ObstaclesData.Take(50).ToListAsync();
-            return getAllData;
-        }
-
-        public async Task<ObstacleData> UpdateAdvice(ObstacleData obstacleData)
-        {
-            _context.ObstaclesData.Update(obstacleData);
+            if (obstacle.ObstacleStatus == 3)
+            {
+                _context.ObstaclesData.Remove(obstacle);
+            }
+            _context.ObstaclesData.Update(obstacle);
             await _context.SaveChangesAsync();
-            return obstacleData;
+            return obstacle;
         }
 
-
-        public static string? GetAllObstacles()
+        public async Task<IEnumerable<ObstacleData>> GetAllObstacles()
         {
-            throw new NotImplementedException();
+            return await _context.ObstaclesData
+                .OrderByDescending(x => x.ObstacleId)
+                .Take(50)
+                .ToListAsync();
         }
+    }
 }
