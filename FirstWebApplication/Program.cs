@@ -1,6 +1,9 @@
 ﻿using FirstWebApplication.DataContext;
+using FirstWebApplication.DataContext.Seeders;
+using FirstWebApplication.Models;
 using FirstWebApplication.NewFolder;
 using FirstWebApplication.Repository;
+using Microsoft.AspNetCore.Identity;    
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
@@ -15,6 +18,16 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
+builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("AuthConnection"),
+    new MySqlServerVersion(new Version(11, 8, 3))));
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
+
+
+
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -24,6 +37,13 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AuthDbContext>();
+    AuthDbSeeder.Seed(context);
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -36,6 +56,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.UseSession();
+
+app.UseAuthentication();    
 app.UseAuthorization();
 
 app.MapControllerRoute(
