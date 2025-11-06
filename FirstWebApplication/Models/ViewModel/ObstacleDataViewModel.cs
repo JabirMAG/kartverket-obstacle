@@ -4,7 +4,6 @@ namespace FirstWebApplication.Models.ViewModel
 {
     public class ObstacleDataViewModel
     {
-        [Key]
         public int ViewObstacleId { get; set; }
 
         // Navnet på hindringen.

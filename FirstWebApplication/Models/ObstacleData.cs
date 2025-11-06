@@ -5,6 +5,7 @@ namespace FirstWebApplication.Models
     // Brukes sammen med skjemaet i ObstacleController
     public class ObstacleData
     {
+        [Key]
         public int ObstacleId { get; set; }
 
         // Navnet på hindringen.
@@ -30,5 +31,7 @@ namespace FirstWebApplication.Models
         [Range(1,3)]
         // Status for hindringen (1=Pending, 2=Approved, 3=Rejected).
         public int ObstacleStatus { get; set;} = 1; // Default til "Pending"
+
+        public ICollection<RapportData> Rapports { get; set; } = new List<RapportData>();
     }
 }

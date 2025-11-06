@@ -36,42 +36,14 @@ namespace FirstWebApplication.Repositories
             }
         }
 
-        public async Task DeleteObstacle()
-        {
-            var elementToDelete = await (
-                from o in _context.ObstaclesData
-                where o.ObstacleStatus == 3
-                select o
-            ).ToListAsync();
-
-            if (elementToDelete != null)
-            {
-                _context.ObstaclesData.RemoveRange(elementToDelete);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<ObstacleData> DeleteById(int id)
-        {
-            var elementById = await _context.ObstaclesData.FindAsync(id);
-
-            if (elementById != null)
-            {
-                _context.ObstaclesData.Remove(elementById);
-                await _context.SaveChangesAsync();
-                return elementById;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public async Task<ObstacleData> UpdateObstacles(ObstacleData obstacle)
         {
             if (obstacle.ObstacleStatus == 3)
             {
+                // Status 3 betyr slett hindring
                 _context.ObstaclesData.Remove(obstacle);
+                await _context.SaveChangesAsync();
+                return obstacle;
             }
             _context.ObstaclesData.Update(obstacle);
             await _context.SaveChangesAsync();

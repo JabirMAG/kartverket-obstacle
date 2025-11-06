@@ -2,6 +2,7 @@
 using FirstWebApplication.DataContext.Seeders;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
+using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
@@ -9,9 +10,12 @@ using MySqlConnector;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
  
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
+builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
+
 
 
 
@@ -56,8 +60,8 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("AuthConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
+//builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+//    .AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
 
 
 

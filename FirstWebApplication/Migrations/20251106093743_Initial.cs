@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FirstWebApplication.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialUpdate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -43,13 +43,42 @@ namespace FirstWebApplication.Migrations
                     ObstacleDescription = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     GeometryGeoJson = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ObstacleStatus = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ObstaclesData", x => x.ObstacleId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Rapports",
+                columns: table => new
+                {
+                    RapportID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ObstacleId = table.Column<int>(type: "int", nullable: false),
+                    RapportComment = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RapportStatus = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rapports", x => x.RapportID);
+                    table.ForeignKey(
+                        name: "FK_Rapports_ObstaclesData_ObstacleId",
+                        column: x => x.ObstacleId,
+                        principalTable: "ObstaclesData",
+                        principalColumn: "ObstacleId",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rapports_ObstacleId",
+                table: "Rapports",
+                column: "ObstacleId");
         }
 
         /// <inheritdoc />
@@ -57,6 +86,9 @@ namespace FirstWebApplication.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Feedback");
+
+            migrationBuilder.DropTable(
+                name: "Rapports");
 
             migrationBuilder.DropTable(
                 name: "ObstaclesData");

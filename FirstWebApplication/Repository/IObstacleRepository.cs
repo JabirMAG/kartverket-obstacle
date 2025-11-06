@@ -7,8 +7,6 @@ namespace FirstWebApplication.Repositories
         Task<ObstacleData> AddObstacle(ObstacleData obstacles);
         Task<ObstacleData> GetElementById(int Obstacleid);
         Task<IEnumerable<ObstacleData>> GetAllObstacles();
-        Task<ObstacleData> DeleteById(int Obstacleid);
-        Task DeleteObstacle();
         Task<ObstacleData> UpdateObstacles(ObstacleData obstacles);
     }
 }

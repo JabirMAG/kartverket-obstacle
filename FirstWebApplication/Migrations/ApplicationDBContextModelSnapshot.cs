@@ -3,7 +3,6 @@ using FirstWebApplication.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,11 +10,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FirstWebApplication.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20251104083247_AddObstacleStatusColumn")]
-    partial class AddObstacleStatusColumn
+    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,6 +73,48 @@ namespace FirstWebApplication.Migrations
                     b.HasKey("ObstacleId");
 
                     b.ToTable("ObstaclesData");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
+                {
+                    b.Property<int>("RapportID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RapportID"));
+
+                    b.Property<int>("ObstacleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RapportComment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<int>("RapportStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("RapportID");
+
+                    b.HasIndex("ObstacleId");
+
+                    b.ToTable("Rapports");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
+                {
+                    b.HasOne("FirstWebApplication.Models.ObstacleData", "Obstacle")
+                        .WithMany("Rapports")
+                        .HasForeignKey("ObstacleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Obstacle");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
+                {
+                    b.Navigation("Rapports");
                 });
 #pragma warning restore 612, 618
         }
