@@ -5,7 +5,8 @@ namespace FirstWebApplication.Models
     // Brukes sammen med skjemaet i ObstacleController
     public class ObstacleData
     {
-        public  int  ObstacleId { get; set; }
+        [Key]
+        public int ObstacleId { get; set; }
 
         // Navnet på hindringen.
         // Må fylles ut og kan maks være 100 tegn.
@@ -25,8 +26,12 @@ namespace FirstWebApplication.Models
         // Geometrisk representasjon av hindringen i GeoJSON-format.
         // Felt som beholder koordinatene til hinderets lokasjon
         [Required(ErrorMessage = "Geometry (GeoJSON) is required.")]
-        public string? GeometryGeoJson { get; set; }
+        public string GeometryGeoJson { get; set; }
 
+        [Range(1,3)]
+        // Status for hindringen (1=Pending, 2=Approved, 3=Rejected).
+        public int ObstacleStatus { get; set;} = 1; // Default til "Pending"
 
+        public ICollection<RapportData> Rapports { get; set; } = new List<RapportData>();
     }
 }

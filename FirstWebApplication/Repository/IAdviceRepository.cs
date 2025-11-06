@@ -1,6 +1,6 @@
 ﻿using FirstWebApplication.Models;
 
-namespace FirstWebApplication.NewFolder
+namespace FirstWebApplication.Repositories
 {
     public interface IAdviceRepository
     {

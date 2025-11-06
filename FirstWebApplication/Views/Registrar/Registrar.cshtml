@@ -1,0 +1,67 @@
+﻿@model IEnumerable<FirstWebApplication.Models.ObstacleData>
+
+@{
+    ViewData["Title"] = "Obstacle Register";
+}
+
+<div class="mx-auto max-w-6xl overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 border">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">ID</th>
+                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Name</th>
+                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Height (m)</th>
+                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Description</th>
+                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Coordinates</th>
+                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            @foreach (var obstacle in Model)
+            {
+                var mapId = $"Register-map-{obstacle.ObstacleId}";
+                var coordsId = $"RegisterCoordinates-{obstacle.ObstacleId}";
+                var Status = obstacle.ObstacleStatus.ToString();
+                if (Status == "1")
+                {
+                    Status = "Pending";
+                }
+                else if (Status == "2")
+                {
+                    Status = "Approved";
+                }
+                else if (Status == "3")
+                {
+                    Status = "Rejected";
+                }
+
+                <tr>
+                    <td class="px-4 py-2">@obstacle.ObstacleId</td>
+                    <td class="px-4 py-2">@obstacle.ObstacleName</td>
+                    <td class="px-4 py-2">@obstacle.ObstacleHeight</td>
+                    <td class="px-4 py-2 break-words">@obstacle.ObstacleDescription</td>
+                    <td class="px-4 py-2">
+                        <textarea id="@coordsId" class="w-full h-20">@obstacle.GeometryGeoJson</textarea>
+                    </td>
+                    <td class="px-4 py-2">
+                        <select name="Status" id="Status-@Status">
+                            <option value="1">Pending</option>
+                            <option value="2">Accept</option>
+                            <option value="3">Reject</option>
+                        </select>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    OstacleStatus;
+    function setStatus(){
+      month = document.getElementById('Status').value;
+      alert(month);
+    }
+</script>
