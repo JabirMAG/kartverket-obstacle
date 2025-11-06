@@ -12,6 +12,8 @@
             <!--elements for the username, email, password-->
             
             <form asp-action="Register" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                
                 <div class="mb-3">
                     <label class="form-label">Username</label>
                     <input type="text" id="username" class="form-control" asp-for="Username"/>
@@ -31,7 +33,7 @@
             
                 <div class="register-button-2">
                     <button type="submit" class="btn btn-primary">Registrer deg</button>
-                    <a class="register-button" asp-area="" asp-controller="Map" asp-action="Map">lag ny bruker</a>
+                    
                 </div> 
             </form>
         </div>

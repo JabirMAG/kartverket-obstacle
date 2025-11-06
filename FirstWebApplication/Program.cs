@@ -42,15 +42,7 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(30),
             errorNumbersToAdd: null)));
 
-// Add Identity (this configures default authentication schemes)
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-    {
-        options.Password.RequireDigit = false;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 6;
-    })
-    .AddEntityFrameworkStores<AuthDbContext>()
-    .AddDefaultTokenProviders();
+
 
 // Optional: configure cookie settings
 builder.Services.ConfigureApplicationCookie(options =>

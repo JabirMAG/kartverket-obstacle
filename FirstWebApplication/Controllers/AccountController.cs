@@ -46,6 +46,17 @@ namespace FirstWebApplication.Controllers
                 await _signInManager.SignInAsync(applicationUser, isPersistent: false);
                 return RedirectToAction("Map", "Map"); 
             }
+            else
+            {
+                foreach (var error in identityResult.Errors) 
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+    
+                // returner viewet på nytt slik at feilmeldingene vises
+                return View(registerViewModel);
+            }
+
 /*
             foreach (var error in Results.Error) //todo: fikse error for identityresult
             {
