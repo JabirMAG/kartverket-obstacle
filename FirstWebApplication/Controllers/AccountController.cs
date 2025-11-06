@@ -1,6 +1,6 @@
 using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
-using FirstWebApplication.NewFolder;
+//using FirstWebApplication.NewFolder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using System.Reflection;
@@ -47,7 +47,7 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction("Map", "Map"); 
             }
 /*
-            foreach (var error in Results.Error) //to do: fikse error for identityresult
+            foreach (var error in Results.Error) //todo: fikse error for identityresult
             {
                 ModelState.AddModelError("", error.Description);
             }
