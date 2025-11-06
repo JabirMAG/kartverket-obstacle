@@ -10,11 +10,12 @@ namespace FirstWebApplication.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> userManager;
-        
-        public AccountController(UserManager<IdentityUser> userManager)
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
-            this.userManager = userManager;    
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
         
         [HttpGet]
@@ -23,30 +24,41 @@ namespace FirstWebApplication.Controllers
             return View();
         }
         
-        [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
+            if (!ModelState.IsValid)
+                return View(registerViewModel);
+            
             //lager new user
-            var identityUser = new IdentityUser
+            var applicationUser = new ApplicationUser
             {
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
+                
             };
             
-            
-
-            var identityResult = await userManager.CreateAsync(identityUser, registerViewModel.Password); //lager bruker
+            var identityResult = await _userManager.CreateAsync(applicationUser, registerViewModel.Password);
 
             if (identityResult.Succeeded)
             {
+                await _signInManager.SignInAsync(applicationUser, isPersistent: false);
+                return RedirectToAction("Map", "Map"); 
+            }
+/*
+            foreach (var error in Results.Error) //to do: fikse error for identityresult
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+        */
+/*
+            //lager bruker
+
+         
+            {
                 //assign this user the "User" role
-                var roleIdentityResult = await userManager.AddToRoleAsync(identityUser, "User");
+                var roleIdentityResult = await _userManager.AddToRoleAsync(identityUser, "User");
 
                 if (roleIdentityResult.Succeeded)
                 {
@@ -55,6 +67,13 @@ namespace FirstWebApplication.Controllers
                 }
             }
             //show error notification
+            */
+            return View();
+        }
+        
+        [HttpGet]
+        public IActionResult Login()
+        {
             return View();
         }
         
