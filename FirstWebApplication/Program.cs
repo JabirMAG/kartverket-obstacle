@@ -22,6 +22,9 @@ var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
 var serverVersion = new MySqlServerVersion(new Version(11, 8, 3));
 
 // Application DB with transient-failure retry policy
+// >>> ADD: Bruker-repo for AdminController
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
@@ -58,10 +61,17 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     new MySqlServerVersion(new Version(11, 8, 3))));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<AuthDbContext>()
+    .AddDefaultTokenProviders();
 
+// >>> (Valgfritt) legg på en Admin-policy hvis du vil bruke [Authorize(Policy="AdminOnly")]
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+});
 
-builder.Services.Configure<IdentityOptions>(options =>
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
 {
     //Default settings
     options.Password.RequireDigit = true;
@@ -109,11 +119,21 @@ app.Use(async (context, next) =>
 
     app.UseRouting();
     app.UseSession();
-    app.UseAuthentication(); //todo: hva gjør usesession!!
-    app.UseAuthorization();
-
 // Mapper statiske filer (CSS, JS, bilder osv.)
     app.MapStaticAssets();
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+// >>> (Valgfritt) egen rute til Admin (da blir /admin kortvei til Dashboard)
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Dashboard}/{id?}",
+    defaults: new { controller = "Admin" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
 
 // Setter opp standard routing for controllerne
     app.MapControllerRoute(

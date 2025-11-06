@@ -29,17 +29,28 @@ namespace FirstWebApplication.DataContext.Seeders
                 context.SaveChanges();
             }
 
-            // Seed Admin User
-            if (!context.Users.Any())
+            // Seed Admin User (ensure exists and has only the Admin role)
+            var defaultAdminEmail = "admin@kartverket.com";
+            var adminRole = context.Roles.SingleOrDefault(r => r.Name == "Admin");
+            if (adminRole == null)
+            {
+                // Shouldn't happen because we seeded roles above, but guard anyway
+                adminRole = new IdentityRole { Id = Guid.NewGuid().ToString(), Name = "Admin", NormalizedName = "ADMIN" };
+                context.Roles.Add(adminRole);
+                context.SaveChanges();
+            }
+
+            var existingAdmin = context.Users.SingleOrDefault(u => u.Email == defaultAdminEmail);
+            if (existingAdmin == null)
             {
                 var adminId = "d01a810e-9587-4732-90dd-208175e61b60";
                 var adminUser = new ApplicationUser
                 {
                     Id = adminId,
-                    UserName = "admin@kartverket.no",
-                    Email = "admin@kartverket.com",
-                    NormalizedUserName = "ADMIN@KARTVERKET.NO",
-                    NormalizedEmail = "ADMIN@KARTVERKET.NO"
+                    UserName = defaultAdminEmail,
+                    Email = defaultAdminEmail,
+                    NormalizedUserName = defaultAdminEmail.ToUpperInvariant(),
+                    NormalizedEmail = defaultAdminEmail.ToUpperInvariant()
                 };
 
                 adminUser.PasswordHash = new PasswordHasher<ApplicationUser>()
@@ -48,16 +59,32 @@ namespace FirstWebApplication.DataContext.Seeders
                 context.Users.Add(adminUser);
                 context.SaveChanges();
 
-                // Assign roles to admin
-                var adminRoles = new List<IdentityUserRole<string>>
-                {
-                    new IdentityUserRole<string> { UserId = adminId, RoleId = "b4b5065b-e9dc-40d4-a49d-f00d9c720e75" },
-                    new IdentityUserRole<string> { UserId = adminId, RoleId = "2de8d9c9-988c-400b-ac7d-7b45c59b6251" },
-                    new IdentityUserRole<string> { UserId = adminId, RoleId = "27a609d2-154c-41bb-8257-45314e8065f2" }
-                };
-
-                context.UserRoles.AddRange(adminRoles);
+                // Ensure only Admin role is assigned to the admin account
+                var adminUserRole = new IdentityUserRole<string> { UserId = adminId, RoleId = adminRole.Id };
+                context.UserRoles.Add(adminUserRole);
                 context.SaveChanges();
+            }
+            else
+            {
+                // If admin exists, ensure they have Admin role and remove any extra roles
+                var adminId = existingAdmin.Id;
+                var userRoles = context.UserRoles.Where(ur => ur.UserId == adminId).ToList();
+
+                // Remove roles that are not the Admin role
+                var toRemove = userRoles.Where(ur => ur.RoleId != adminRole.Id).ToList();
+                if (toRemove.Any())
+                {
+                    context.UserRoles.RemoveRange(toRemove);
+                    context.SaveChanges();
+                }
+
+                // Ensure admin has the Admin role
+                var hasAdmin = userRoles.Any(ur => ur.RoleId == adminRole.Id);
+                if (!hasAdmin)
+                {
+                    context.UserRoles.Add(new IdentityUserRole<string> { UserId = adminId, RoleId = adminRole.Id });
+                    context.SaveChanges();
+                }
             }
         }
     }
