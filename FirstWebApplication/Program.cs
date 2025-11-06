@@ -2,7 +2,6 @@
 using FirstWebApplication.DataContext.Seeders;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
