@@ -1,17 +1,12 @@
-using FirstWebApplication.Models;
+﻿using FirstWebApplication.Models;
 
-namespace FirstWebApplication.Repository;
-
-public interface IObstacleRepository
+namespace FirstWebApplication.Repositories
 {
-    Task<ObstacleData> AddObstacleData(ObstacleData obstacleData);
-
-    // Task<ObstacleData> GetElementById(int id);
-    
-    
-    Task<IEnumerable<ObstacleData>> GetAllAdvice(ObstacleData obstacleData);
-
-    // Task<ObstacleData> DeleteById(int id);
-
-    Task<ObstacleData> UpdateAdvice(ObstacleData obsatcleData);
+    public interface IObstacleRepository
+    {
+        Task<ObstacleData> AddObstacle(ObstacleData obstacles);
+        Task<ObstacleData> GetElementById(int Obstacleid);
+        Task<IEnumerable<ObstacleData>> GetAllObstacles();
+        Task<ObstacleData> UpdateObstacles(ObstacleData obstacles);
+    }
 }

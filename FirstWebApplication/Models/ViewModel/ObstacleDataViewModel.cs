@@ -4,7 +4,7 @@ namespace FirstWebApplication.Models.ViewModel
 {
     public class ObstacleDataViewModel
     {
-        public Guid ViewObstacleId { get; set; }
+        public int ViewObstacleId { get; set; }
 
         // Navnet på hindringen.
         // Må fylles ut og kan maks være 100 tegn.
@@ -26,7 +26,9 @@ namespace FirstWebApplication.Models.ViewModel
 
         // Geometrisk representasjon av hindringen i GeoJSON-format.
         // Felt som beholder koordinatene til hinderets lokasjon
-        public string? ViewGeometryGeoJson { get; set; }
+        public string ViewGeometryGeoJson { get; set; }
+
+        public int ViewObstacleStatus { get; set; }
 
     }
 }
