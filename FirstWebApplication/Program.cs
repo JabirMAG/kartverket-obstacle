@@ -16,12 +16,13 @@ builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
 
 
-
-
 var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
 var serverVersion = new MySqlServerVersion(new Version(11, 8, 3));
 
 // Application DB with transient-failure retry policy
+// >>> ADD: Bruker-repo for AdminController
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
@@ -57,28 +58,32 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("AuthConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
-
-
-builder.Services.Configure<IdentityOptions>(options =>
+// Configure Identity and password policy in AddIdentity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    //Default settings
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequireUppercase = true;
     options.Password.RequiredLength = 8;
     options.Password.RequiredUniqueChars = 1;
+})
+.AddEntityFrameworkStores<AuthDbContext>()
+.AddDefaultTokenProviders();
+
+// >>> (Valgfritt) legg på en Admin-policy hvis du vil bruke [Authorize(Policy="AdminOnly")]
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
 });
 
 builder.Services.AddDistributedMemoryCache();
-    builder.Services.AddSession(options =>
-    {
-        options.IdleTimeout = TimeSpan.FromMinutes(30);
-        options.Cookie.HttpOnly = true;
-        options.Cookie.IsEssential = true;
-    });
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
     var app = builder.Build();
 
@@ -109,11 +114,21 @@ app.Use(async (context, next) =>
 
     app.UseRouting();
     app.UseSession();
-    app.UseAuthentication(); //todo: hva gjør usesession!!
-    app.UseAuthorization();
-
 // Mapper statiske filer (CSS, JS, bilder osv.)
     app.MapStaticAssets();
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+// >>> (Valgfritt) egen rute til Admin (da blir /admin kortvei til Dashboard)
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Dashboard}/{id?}",
+    defaults: new { controller = "Admin" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
 
 // Setter opp standard routing for controllerne
     app.MapControllerRoute(
