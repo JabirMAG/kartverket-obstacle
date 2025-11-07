@@ -13,7 +13,7 @@ using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-namespace FirstWebApplication.Areas.Identity.Pages.Account
+namespace FirstWebApplication.Views.Account
 {
     public class LoginWith2faModel : PageModel
     {

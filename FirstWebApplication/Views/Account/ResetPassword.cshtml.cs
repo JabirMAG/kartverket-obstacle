@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace FirstWebApplication.Areas.Identity.Pages.Account
+namespace FirstWebApplication.Views.Account
 {
     public class ResetPasswordModel : PageModel
     {

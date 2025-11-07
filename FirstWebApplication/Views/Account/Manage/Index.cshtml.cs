@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace FirstWebApplication.Areas.Identity.Pages.Account.Manage
+namespace FirstWebApplication.Views.Account.Manage
 {
     public class IndexModel : PageModel
     {

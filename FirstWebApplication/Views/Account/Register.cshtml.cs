@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 
-namespace FirstWebApplication.Areas.Identity.Pages.Account
+namespace FirstWebApplication.Views.Account
 {
     public class RegisterModel : PageModel
     {
@@ -165,7 +165,7 @@ namespace FirstWebApplication.Areas.Identity.Pages.Account
             {
                 throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
                     $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
+                    $"override the register page in /Views/Account/Register.cshtml");
             }
         }
 

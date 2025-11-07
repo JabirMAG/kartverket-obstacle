@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace FirstWebApplication.Areas.Identity.Pages.Account.Manage
+namespace FirstWebApplication.Views.Account.Manage
 {
     public class EmailModel : PageModel
     {
