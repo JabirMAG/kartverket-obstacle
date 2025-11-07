@@ -1,6 +1,5 @@
 ﻿using FirstWebApplication.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 
 namespace FirstWebApplication.DataContext
 {
