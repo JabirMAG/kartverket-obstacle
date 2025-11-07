@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Innlogging feilet";
+}
+
+<header>
+    <h1>@ViewData["Title"]</h1>
+    <p class="text-danger">Innlogging med ekstern tjeneste mislyktes.</p>
+    <p>
+        <a asp-controller="Account" asp-action="Login" class="btn btn-primary">
+            Gå tilbake til innlogging
+        </a>
+    </p>
+</header>
