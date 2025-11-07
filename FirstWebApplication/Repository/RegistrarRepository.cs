@@ -9,9 +9,9 @@ namespace FirstWebApplication.Repositories
 {
     public class RegistrarRepository : IRegistrarRepository
     {
-        private readonly ApplicationDBContext _context;
+        private readonly ApplicationContext _context;
 
-        public RegistrarRepository(ApplicationDBContext context)
+        public RegistrarRepository(ApplicationContext context)
         {
             _context = context;
         }

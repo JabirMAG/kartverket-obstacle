@@ -23,12 +23,12 @@ var serverVersion = new MySqlServerVersion(new Version(11, 8, 3));
 // >>> ADD: Bruker-repo for AdminController
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-builder.Services.AddDbContext<ApplicationDBContext>(options =>
+builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
 // Application DB with transient-failure retry policy
-builder.Services.AddDbContext<ApplicationDBContext>(options =>
+builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseMySql(conn, serverVersion, mySqlOptions =>
         mySqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,                       // number of retries
@@ -36,7 +36,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
             errorNumbersToAdd: null)));             // additional MySQL error codes
 
 // Auth DB for Identity with the same retry policy
-builder.Services.AddDbContext<AuthDbContext>(options =>
+builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseMySql(conn, serverVersion, mySqlOptions =>
         mySqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,
@@ -54,7 +54,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 
-builder.Services.AddDbContext<AuthDbContext>(options =>
+builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("AuthConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
@@ -68,7 +68,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequiredLength = 8;
     options.Password.RequiredUniqueChars = 1;
 })
-.AddEntityFrameworkStores<AuthDbContext>()
+.AddEntityFrameworkStores<ApplicationContext>()
 .AddDefaultTokenProviders();
 
 // >>> (Valgfritt) legg på en Admin-policy hvis du vil bruke [Authorize(Policy="AdminOnly")]
@@ -90,7 +90,7 @@ builder.Services.AddSession(options =>
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AuthDbContext>();
+    var context = services.GetRequiredService<ApplicationContext>();
     AuthDbSeeder.Seed(context);
 }
 app.Use(async (context, next) =>

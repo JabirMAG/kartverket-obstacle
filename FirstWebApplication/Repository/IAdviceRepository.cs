@@ -6,7 +6,7 @@ namespace FirstWebApplication.Repositories
     {
         Task<Advice> AddAdvice(Advice advice);
 
-        Task<Advice> GetElementById(int id);
+        Task<Advice?> GetElementById(int id);
 
         Task<IEnumerable<Advice>> GetAllAdvice();
 

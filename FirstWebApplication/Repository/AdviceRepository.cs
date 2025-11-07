@@ -7,9 +7,9 @@ namespace FirstWebApplication.Repositories
     public class AdviceRepository : IAdviceRepository
     {
 
-        private readonly ApplicationDBContext _context; 
+        private readonly ApplicationContext _context; 
 
-        public AdviceRepository(ApplicationDBContext context)
+        public AdviceRepository(ApplicationContext context)
         {
             _context = context;
         }
@@ -21,7 +21,7 @@ namespace FirstWebApplication.Repositories
             return advice;
         }
 
-        public async Task<Advice> GetElementById(int id)
+        public async Task<Advice?> GetElementById(int id)
         {
             var findById = await _context.Feedback.Where(x => x.adviceID == id).FirstOrDefaultAsync();
             if (findById != null)
@@ -41,12 +41,12 @@ namespace FirstWebApplication.Repositories
         }
  
 
-        public async Task<Advice> DeleteById (int id)
+        public async Task<Advice?> DeleteById (int id)
         {
             var elementById = await _context.Feedback.FindAsync(id);
             if (elementById != null)
             {
-                _context.Feedback .Remove(elementById);
+                _context.Feedback.Remove(elementById);
                 await _context.SaveChangesAsync();
                 return elementById;
             }

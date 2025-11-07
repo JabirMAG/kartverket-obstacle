@@ -6,9 +6,9 @@ namespace FirstWebApplication.Repositories
 {
     public class ObstacleRepository : IObstacleRepository
     {
-        private readonly ApplicationDBContext _context;
+        private readonly ApplicationContext _context;
 
-        public ObstacleRepository(ApplicationDBContext context)
+        public ObstacleRepository(ApplicationContext context)
         {
             _context = context;
         }

@@ -6,7 +6,7 @@ namespace FirstWebApplication.DataContext.Seeders
 {
     public static class AuthDbSeeder
     {
-        public static void Seed(AuthDbContext context)
+        public static void Seed(ApplicationContext context)
         {
             // Make sure DB is created
             context.Database.EnsureCreated();
