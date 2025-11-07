@@ -1,0 +1,84 @@
+﻿@model FirstWebApplication.Models.ViewModel.RegistrarViewModel
+
+@{
+    ViewData["Title"] = "Mine rapporter";
+}
+
+<div class="max-w-4xl mx-auto px-6 py-8">
+    <header class="mb-6">
+        <h1 class="text-2xl font-semibold text-slate-900">My Reports</h1>
+        <p class="mt-2 text-sm text-slate-600">A list of reports you've submitted. You can see the registrar's current status for the related obstacle.</p>
+    </header>
+
+    <section class="bg-white shadow-sm rounded-lg border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 table-fixed w-full">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Report #</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Obstacle</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Your report</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+
+                <tbody class="bg-white divide-y divide-slate-100">
+                    @if (Model.Rapports == null || !Model.Rapports.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="px-5 py-6 text-sm text-slate-500">You have not submitted any reports.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Rapports)
+                        {
+                            var obstacle = r.Obstacle;
+                            var statusText = "Unknown";
+                            if (obstacle != null)
+                            {
+                                statusText = obstacle.ObstacleStatus switch
+                                {
+                                    1 => "Pending",
+                                    2 => "Approved",
+                                    3 => "Rejected",
+                                    _ => "Unknown"
+                                };
+                            }
+
+                            <tr class="hover:bg-slate-50 align-top">
+                                <td class="px-5 py-4 text-sm text-slate-700 w-24">@r.RapportID</td>
+                                <td class="px-5 py-4 text-sm text-slate-800 max-w-xs truncate">
+                                    @if (obstacle != null)
+                                    {
+                                        <div class="font-medium">@obstacle.ObstacleName</div>
+                                        <div class="text-xs text-slate-500 truncate">@obstacle.ObstacleDescription</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-sm text-slate-500">Related obstacle removed</div>
+                                    }
+                                </td>
+                                <td class="px-5 py-4 text-sm text-slate-700 max-w-md break-words whitespace-normal">
+                                    @if (!string.IsNullOrWhiteSpace(r.RapportComment))
+                                    {
+                                        <div class="text-sm text-slate-700">@r.RapportComment</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-sm text-slate-500">No comment provided</div>
+                                    }
+                                </td>
+                                <td class="px-5 py-4 text-sm text-slate-700 w-32">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium @(statusText == "Approved" ? "bg-green-100 text-green-800" : statusText == "Rejected" ? "bg-rose-100 text-rose-800" : "bg-yellow-100 text-yellow-800")">
+                                        @statusText
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
