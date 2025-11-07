@@ -1,8 +1,8 @@
 ﻿using FirstWebApplication.Models;
+using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.Repositories;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FirstWebApplication.Controllers
@@ -18,10 +18,50 @@ namespace FirstWebApplication.Controllers
             _registrarRepository = registrarRepository;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Registrar()
         {
             var obstacles = await _obstacleRepository.GetAllObstacles();
-            return View(obstacles);
+            var rapports = await _registrarRepository.GetAllRapports();
+
+            var vm = new RegistrarViewModel
+            {
+                Obstacles = obstacles,
+                Rapports = rapports
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status)
+        {
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            if (obstacle == null)
+                return NotFound();
+
+            obstacle.ObstacleStatus = status;
+            await _obstacleRepository.UpdateObstacles(obstacle);
+
+            return RedirectToAction(nameof(Registrar));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddRapport(int obstacleId, string rapportComment)
+        {
+            if (string.IsNullOrWhiteSpace(rapportComment))
+                return RedirectToAction(nameof(Registrar));
+
+            var rapport = new RapportData
+            {
+                ObstacleId = obstacleId,
+                RapportComment = rapportComment
+            };
+
+            await _registrarRepository.AddRapport(rapport);
+            return RedirectToAction(nameof(Registrar));
         }
 
         [HttpPost]
@@ -29,12 +69,5 @@ namespace FirstWebApplication.Controllers
         {
             return View("Registrar", obstacledata);
         }
-
-
-
-        //public async Task<IActionResult> ObstacleUpdate()
-        //{
-        //    await _obstacleRepository.UpdateObstacles();
-        //}
     }
 }

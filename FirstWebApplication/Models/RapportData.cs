@@ -17,8 +17,5 @@ namespace FirstWebApplication.Models
 
         [MaxLength(1000)]
         public string RapportComment { get; set; } = string.Empty;
-
-        [Range(1, 3)]
-        public int RapportStatus { get; set; } = 1;
     }
 }

@@ -34,18 +34,9 @@ namespace FirstWebApplication.Repositories
 
         public async Task<RapportData> UpdateRapport(RapportData rapport)
         {
-            if (rapport.RapportStatus == 3)
-            {
-                // Status 3 betyr slett rapport
-                _context.Rapports.Remove(rapport);
-                await _context.SaveChangesAsync();
-                return rapport;
-            }
             _context.Rapports.Update(rapport);
             await _context.SaveChangesAsync();
             return rapport;
         }
-
-
     }
 }
