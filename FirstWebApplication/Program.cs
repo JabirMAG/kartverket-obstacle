@@ -69,6 +69,49 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+// === RUN MIGRATIONS ===
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDBContext>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    
+    // Retry logic to wait for database to be ready
+    var maxRetries = 30;
+    var retryDelay = TimeSpan.FromSeconds(2);
+    var retryCount = 0;
+    var migrationSucceeded = false;
+    
+    while (retryCount < maxRetries && !migrationSucceeded)
+    {
+        try
+        {
+            logger.LogInformation("Attempting to connect to database (attempt {Attempt}/{MaxAttempts})...", retryCount + 1, maxRetries);
+            
+            // Test database connection
+            await context.Database.CanConnectAsync();
+            
+            logger.LogInformation("Database connection successful. Running migrations...");
+            await context.Database.MigrateAsync();
+            
+            migrationSucceeded = true;
+            logger.LogInformation("Migrations completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            retryCount++;
+            if (retryCount >= maxRetries)
+            {
+                logger.LogError(ex, "Failed to connect to database after {MaxRetries} attempts. Application will start but may not function correctly.", maxRetries);
+                throw;
+            }
+            
+            logger.LogWarning(ex, "Database connection failed. Retrying in {Delay} seconds... (attempt {Attempt}/{MaxAttempts})", retryDelay.TotalSeconds, retryCount, maxRetries);
+            await Task.Delay(retryDelay);
+        }
+    }
+}
+
 // === SEED DATABASE ===
 using (var scope = app.Services.CreateScope())
 {
