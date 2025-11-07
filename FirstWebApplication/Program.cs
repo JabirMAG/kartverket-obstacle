@@ -20,12 +20,12 @@ builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
 
 var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
 var serverVersion = new MySqlServerVersion(new Version(11, 8, 3));
-
+/*
 // Application DB with transient-failure retry policy
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DatabaseConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
-
+*/
 // Application DB with transient-failure retry policy
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseMySql(conn, serverVersion, mySqlOptions =>
@@ -52,11 +52,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 });
 
-
+/*
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("AuthConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
-
+*/
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
 

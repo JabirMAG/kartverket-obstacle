@@ -56,29 +56,6 @@ namespace FirstWebApplication.Controllers
                 // returner viewet på nytt slik at feilmeldingene vises
                 return View(registerViewModel);
             }
-
-/*
-            foreach (var error in Results.Error) //todo: fikse error for identityresult
-            {
-                ModelState.AddModelError("", error.Description);
-            }
-        */
-/*
-            //lager bruker
-
-         
-            {
-                //assign this user the "User" role
-                var roleIdentityResult = await _userManager.AddToRoleAsync(identityUser, "User");
-
-                if (roleIdentityResult.Succeeded)
-                {
-                    //show success notification
-                    return RedirectToAction("Register"); 
-                }
-            }
-            //show error notification
-            */
             return View();
         }
         
