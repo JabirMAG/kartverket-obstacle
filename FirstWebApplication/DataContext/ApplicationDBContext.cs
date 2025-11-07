@@ -24,10 +24,10 @@ namespace FirstWebApplication.DataContext
             modelBuilder.Entity<RapportData>().HasKey(r => r.RapportID);
 
             modelBuilder.Entity<RapportData>()
-                .HasOne(r => r.Obstacle)
-                .WithMany(o => o.Rapports)
-                .HasForeignKey(r => r.ObstacleId)
-                .OnDelete(DeleteBehavior.Restrict);
+                           .HasOne(r => r.Obstacle)
+                           .WithMany(o => o.Rapports)
+                           .HasForeignKey(r => r.ObstacleId)
+                           .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
