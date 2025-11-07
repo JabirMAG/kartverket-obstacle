@@ -23,7 +23,7 @@ namespace FirstWebApplication.DataContext
                            .HasOne(r => r.Obstacle)
                            .WithMany(o => o.Rapports)
                            .HasForeignKey(r => r.ObstacleId)
-                           .OnDelete(DeleteBehavior.Restrict);
+                           .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

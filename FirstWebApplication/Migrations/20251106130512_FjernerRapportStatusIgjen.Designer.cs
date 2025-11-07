@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FirstWebApplication.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20251106093743_Initial")]
-    partial class Initial
+    [Migration("20251106130512_FjernerRapportStatusIgjen")]
+    partial class FjernerRapportStatusIgjen
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,9 +94,6 @@ namespace FirstWebApplication.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<int>("RapportStatus")
-                        .HasColumnType("int");
-
                     b.HasKey("RapportID");
 
                     b.HasIndex("ObstacleId");
@@ -109,7 +106,7 @@ namespace FirstWebApplication.Migrations
                     b.HasOne("FirstWebApplication.Models.ObstacleData", "Obstacle")
                         .WithMany("Rapports")
                         .HasForeignKey("ObstacleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Obstacle");
