@@ -1,0 +1,66 @@
+﻿@model FirstWebApplication.Models.AdminViewModels.CreateUserVm
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Opprett ny bruker";
+    var roles = (string[])ViewBag.AssignableRoles;
+    var pwReqs = ViewBag.PasswordRequirements as IEnumerable<string>;
+    var pwPolicy = ViewBag.PasswordPolicy;
+    var pwPolicyJson = pwPolicy != null ? JsonSerializer.Serialize(pwPolicy) : "{}";
+}
+<h1 class="display-6">Opprett ny bruker</h1>
+
+<form asp-action="CreateUser" method="post" class="mt-3" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" id="Email" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" class="form-control" type="password" id="Password" autocomplete="new-password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+
+        @* Adaptive password requirements UI *@
+        <div id="pw-reqs-container" class="form-text text-muted mt-1" data-policy='@Html.Raw(pwPolicyJson)'>
+            <strong>Krav til passord:</strong>
+            <ul id="pw-reqs" class="mb-0">
+                @if (pwReqs != null && pwReqs.Any())
+                {
+                    var idx = 0;
+                    foreach (var r in pwReqs)
+                    {
+                        <li data-req-index="@idx" class="pw-req-item text-muted">
+                            <span class="pw-req-icon">◻</span> <span class="pw-req-text">@r</span>
+                        </li>
+                        idx++;
+                    }
+                }
+                else
+                {
+                    <li class="pw-req-item text-muted">Standard passordkrav gjelder.</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Role" class="form-label">Rolle</label>
+        <select asp-for="Role" class="form-select" id="Role">
+            @foreach (var r in roles)
+            {
+                <option value="@r">@r</option>
+            }
+        </select>
+        <span asp-validation-for="Role" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Opprett</button>
+    <a asp-action="ManageUsers" class="btn btn-secondary ms-2">Tilbake</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/site.js"></script>
+}

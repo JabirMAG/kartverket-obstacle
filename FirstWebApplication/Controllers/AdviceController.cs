@@ -1,6 +1,6 @@
 ﻿using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
-using FirstWebApplication.NewFolder;
+using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using System.Reflection;
@@ -17,8 +17,7 @@ namespace FirstWebApplication.Controllers
 
         [HttpGet]
         public async Task<ActionResult> FeedbackForm(Advice Feedback)
-        {
-            
+        {   
             return View();
         }
 
@@ -26,6 +25,11 @@ namespace FirstWebApplication.Controllers
         [HttpPost]
         public async Task<ActionResult> FeedbackForm(AdviceViewModel requestData)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(requestData);
+            }
+            
             Advice advice = new Advice
             {
                 adviceMessage = requestData.ViewadviceMessage,
@@ -33,7 +37,7 @@ namespace FirstWebApplication.Controllers
             };
 
             await _adviceRepository.AddAdvice(advice);
-            return View();
+            return RedirectToAction("ThankForm", new { advice.Email, advice.adviceMessage });
 
         }
 
@@ -41,6 +45,7 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public IActionResult ThankForm(Advice adviceForm)
         {
+            ViewBag.adviceMessage = adviceForm.adviceMessage;
             return View(adviceForm);
         }
     }

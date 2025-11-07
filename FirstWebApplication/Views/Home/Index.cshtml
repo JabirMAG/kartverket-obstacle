@@ -8,63 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Nasjonalt register over luftfartshindre</title>
-    <style>
-        .main-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: flex-start;
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-            gap: 3rem;
-        }
-
-        .content-section {
-            flex: 1 1 450px;
-            min-width: 300px;
-            max-width: 500px;
-        }
-
-        .login-section {
-            flex: 1 1 300px;
-            min-width: 250px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .login-button {
-            background-color: #1976d2;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            min-width: 200px;
-            box-sizing: border-box;
-        }
-
-            .login-button::after {
-                content: '>';
-                margin-left: 10px;
-            }
-
-        .read-more-link {
-            color: #1976d2;
-            text-decoration: none;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-            margin-bottom: 2rem;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/Index.css">
 </head>
 <body>
     <div class="main-content">
@@ -83,44 +27,48 @@
                 <a href="#" class="read-more-link">Les mer om Nasjonalt register over luftfartshindre</a>
             </p>
         </div>
-        <div class="login-section">
-            <a class="login-button" asp-area="" asp-controller="Map" asp-action="Map" >Logg inn</a> 
+        <div class="login-and-register-section">
+            <a class="login-button" asp-area="" asp-controller="Account" asp-action="Login" >Logg inn</a> 
+            <a class="register-button" asp-area="" asp-controller="Account" asp-action="Register" >Registrer deg</a> 
         </div>
-    </div>
+        
+    </div>  <!-- 🔹 Denne manglet! -->
 
     <!-- Footer -->
-    <footer style="background-color: #f8f9fa; margin-top: 4rem; padding: 3rem 2rem 2rem 2rem;">
-        <div style="max-width: 1200px; margin: 0 auto;">
+    <footer class="footer-background">
+        <div class="footer-container">
             <!-- Kartverket Logo -->
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; font-weight: bold;">
-                <div style="width: 24px; height: 24px; background: linear-gradient(45deg, #2E7D32, #4CAF50); border-radius: 3px;"></div>
+            <div class="footer-logo-title">
+                <img class="footer-logo" src="/images/kartverket-logo.png" alt="Kartverket-logo" />
                 Kartverket
             </div>
 
-            <h2 style="margin-bottom: 2rem; font-size: 1.3rem;">Kontaktinformasjon eller andre henvendelser</h2>
+            <h2 class="footer-title">Kontaktinformasjon eller andre henvendelser</h2>
 
             <!-- Three column layout -->
             <div class="footer-grid">
                 <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Kontakt oss</h3>
-                    <p style="margin-bottom: 0.5rem;">Telefon: <a href="tel:32118000" style="color: #1976d2; text-decoration: none;">32 11 80 00</a></p>
-                    <p>E-post: <a href="mailto:nrl@kartverket.no" style="color: #1976d2; text-decoration: none;">nrl@kartverket.no</a></p>
+                    <h3 class="footer-contact-title">Kontakt oss</h3>
+                    <p class="footer-contact-phone-nr">Telefon: 
+                        <a href="tel:32118000" class="footer-contact-phone-nr-line">32 11 80 00</a></p>
+                    <p>E-post: <a href="mailto:nrl@kartverket.no" class="footer-contact-email">nrl@kartverket.no</a></p>
                 </div>
 
                 <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Postadresse</h3>
-                    <p style="margin-bottom: 0.5rem;">Kartverket</p>
-                    <p style="margin-bottom: 0.5rem;">Nasjonalt register over luftfartshindre</p>
-                    <p style="margin-bottom: 0.5rem;">Postboks 600 sentrum</p>
+                    <h3 class="footer-adress-title">Postadresse</h3>
+                    <p class="footer-adress">Kartverket</p>
+                    <p class="footer-adress">Nasjonalt register over luftfartshindre</p>
+                    <p class="footer-adress">Postboks 600 sentrum</p>
                     <p>3507 Hønefoss</p>
                 </div>
-
+                
+                
                 <div>
-                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Hjelp</h3>
-                    <p><a href="#" style="color: #1976d2; text-decoration: none;">Personvern</a></p>
-                    <p><a href="#" style="color: #1976d2; text-decoration: none;">Tilgjengelighetserklæring</a></p>
-                    <p><a href="#" style="color: #1976d2; text-decoration: none;">Mer informasjon om NRL</a></p>
-                    <p style="color: #666;">Versjon 1.2.41.</p>
+                    <h3 class="footer-help-title">Hjelp</h3>
+                    <p><a href="#" class="footer-help">Personvern</a></p>
+                    <p><a href="#" class="footer-help">Tilgjengelighetserklæring</a></p>
+                    <p><a href="#" class="footer-help">Mer informasjon om NRL</a></p>
+                    <p class="footer-version">Versjon 1.2.41.</p>
                 </div>
             </div>
         </div>

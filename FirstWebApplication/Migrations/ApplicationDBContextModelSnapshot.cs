@@ -45,11 +45,14 @@ namespace FirstWebApplication.Migrations
 
             modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
                 {
-                    b.Property<Guid>("ObstacleDataId")
+                    b.Property<int>("ObstacleId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ObstacleId"));
 
                     b.Property<string>("GeometryGeoJson")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("ObstacleDescription")
@@ -65,9 +68,51 @@ namespace FirstWebApplication.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.HasKey("ObstacleDataId");
+                    b.Property<int>("ObstacleStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("ObstacleId");
 
                     b.ToTable("ObstaclesData");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
+                {
+                    b.Property<int>("RapportID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RapportID"));
+
+                    b.Property<int>("ObstacleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RapportComment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.HasKey("RapportID");
+
+                    b.HasIndex("ObstacleId");
+
+                    b.ToTable("Rapports");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
+                {
+                    b.HasOne("FirstWebApplication.Models.ObstacleData", "Obstacle")
+                        .WithMany("Rapports")
+                        .HasForeignKey("ObstacleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Obstacle");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
+                {
+                    b.Navigation("Rapports");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,6 +1,6 @@
 ﻿using FirstWebApplication.Models;
 
-namespace FirstWebApplication.NewFolder
+namespace FirstWebApplication.Repositories
 {
     public interface IAdviceRepository
     {
@@ -8,7 +8,7 @@ namespace FirstWebApplication.NewFolder
 
         Task<Advice> GetElementById(int id);
 
-        Task<IEnumerable<Advice>> GetAllAdvice(Advice advice);
+        Task<IEnumerable<Advice>> GetAllAdvice();
 
         Task<Advice> DeleteById(int id);
 

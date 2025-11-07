@@ -47,7 +47,9 @@
                 <p class="text-sm text-gray-500">Fill in the obstacle details below.</p>
             </header>
             <form asp-controller="Obstacle" asp-action="SubmitObstacle" method="post" class="space-y-4" id="obstacle-form">
-                <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson" />
+                <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson"/>
+                <input type="hidden" id="coordinatesOnly" name="GeometryGeoCoordinates" />
+
 
                 <div>
                     <label asp-for="ObstacleName" class="block text-sm font-medium text-gray-700">Obstacle Name</label>

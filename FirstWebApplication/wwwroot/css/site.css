@@ -29,3 +29,93 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/*Hanna-fikser-css*/
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 3rem;
+    margin-bottom: 2rem;
+}
+
+
+.footer-background {
+    background-color: #f8f9fa; 
+    margin-top: 4rem; 
+    padding: 3rem 2rem 2rem 2rem;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-title {
+    margin-bottom: 2rem;
+    font-size: 1.3rem;
+}
+
+.footer-logo {
+    .logo {
+        width: 150px;
+        height: 150px;
+        background-size: contain;
+        background-repeat: no-repeat;
+    }
+    
+}
+
+.footer-logo-title {
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    margin-bottom: 2rem; 
+    font-weight: bold;
+}
+
+.footer-contact-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.footer-contact-phone-nr {
+    margin-bottom: 0.5rem;
+}
+
+.footer-contact-phone-nr-line{
+    color: #1976d2;
+    text-decoration: none;
+}
+
+.footer-contact-email {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+
+.footer-adress-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.footer-adress {
+    margin-bottom: 0.5rem;
+}
+
+.footer-help-title{
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.footer-help{
+    color: #1976d2;
+    text-decoration: none;
+}
+
+.footer-version{
+    color: #666;
+}
+
+

@@ -35,9 +35,14 @@
             </div>
 
             <div class="space-y-2 sm:col-span-3">
-                <label for="OverviewCoordinates" class="block text-sm font-medium text-gray-800">Geometry (raw GeoJSON)</label>
-                <textarea id="OverviewCoordinates" class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm" rows="8" readonly>@Model.GeometryGeoJson</textarea>
+                <textarea id="OverviewCoordinates" style="display:none;">@Model.GeometryGeoJson</textarea>
             </div>
+
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-600">Coordinates</dt>
+                <dd id="geoJsonCoordinates"></dd>
+            </div>
+
 
             <div class="pt-2 sm:col-span-3">
                 <a asp-controller="Home" asp-action="Index"
@@ -62,32 +67,42 @@
             crossorigin=""></script>
 
     <script>
-        (function () {
-            var map = L.map('overview-map').setView([20, 0], 2);
-            map.scrollWheelZoom.disable(); // Optional: prevent scroll from zooming
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-
+        (function() {
             var jsontext = document.getElementById('OverviewCoordinates').value;
+            var coordsElement = document.getElementById('geoJsonCoordinates');
 
             try {
                 var geojson = JSON.parse(jsontext);
-                var layer = L.geoJSON(geojson, {
-                    pointToLayer: function (feature, latlng) {
-                        return L.marker(latlng);
-                    }
+                var coordinates;
+
+                if (geojson.type === "FeatureCollection") {
+                    coordinates = geojson.features.map(f => f.geometry.coordinates);
+                } else if (geojson.type === "Feature") {
+                    coordinates = geojson.geometry.coordinates;
+                } else {
+                    coordinates = geojson.coordinates;
+                }
+
+                coordsElement.textContent = JSON.stringify(coordinates);
+
+                // --- Leaflet map initialization ---
+                var map = L.map('overview-map'); // the div ID
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
 
-                if (layer.getBounds && layer.getBounds().isValid()) {
-                    map.fitBounds(layer.getBounds());
-                }
+                // Add the GeoJSON layer
+                var geojsonLayer = L.geoJSON(geojson).addTo(map);
+
+                // Fit the map view to the GeoJSON bounds
+                map.fitBounds(geojsonLayer.getBounds());
+
             } catch (err) {
                 console.error("Invalid GeoJSON:", err);
-                alert("Could not render geometry on map.");
+                coordsElement.textContent = "Invalid coordinates";
             }
         })();
     </script>
+
+
 }

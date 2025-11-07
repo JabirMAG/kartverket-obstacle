@@ -10,7 +10,7 @@ services:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=mariadbcontainer;Port=3306;Database=KartverketDB;User=root;Password=Mammaerbest1;
+      - ConnectionStrings__DefaultConnection=Server=mariadbcontainer;Port=3306;Database=DB;User=root;Password=Mammaerbest1;
     networks:
       - appnet
 
@@ -29,3 +29,4 @@ networks:
   appnet:
     external: true
     name: appnet
+ 
