@@ -16,8 +16,6 @@ builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
 
 
-
-
 var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
 var serverVersion = new MySqlServerVersion(new Version(11, 8, 3));
 
@@ -60,9 +58,18 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("AuthConnection"),
     new MySqlServerVersion(new Version(11, 8, 3))));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AuthDbContext>()
-    .AddDefaultTokenProviders();
+// Configure Identity and password policy in AddIdentity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequiredUniqueChars = 1;
+})
+.AddEntityFrameworkStores<AuthDbContext>()
+.AddDefaultTokenProviders();
 
 // >>> (Valgfritt) legg på en Admin-policy hvis du vil bruke [Authorize(Policy="AdminOnly")]
 builder.Services.AddAuthorization(options =>
@@ -73,22 +80,10 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    //Default settings
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequiredLength = 8;
-    options.Password.RequiredUniqueChars = 1;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
-
-builder.Services.AddDistributedMemoryCache();
-    builder.Services.AddSession(options =>
-    {
-        options.IdleTimeout = TimeSpan.FromMinutes(30);
-        options.Cookie.HttpOnly = true;
-        options.Cookie.IsEssential = true;
-    });
 
     var app = builder.Build();
 

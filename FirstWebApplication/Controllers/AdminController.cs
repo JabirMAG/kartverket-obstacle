@@ -1,6 +1,6 @@
 ﻿using FirstWebApplication.Models;
 using FirstWebApplication.Models.AdminViewModels;
-using FirstWebApplication.Repository;
+using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

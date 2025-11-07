@@ -1,7 +1,7 @@
 ﻿using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace FirstWebApplication.Repository
+namespace FirstWebApplication.Repositories
 {
     public interface IUserRepository
     {
