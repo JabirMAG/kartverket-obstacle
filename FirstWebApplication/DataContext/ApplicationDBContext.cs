@@ -1,9 +1,10 @@
 ﻿using FirstWebApplication.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FirstWebApplication.DataContext
 {
-    public class ApplicationDBContext : DbContext
+    public class ApplicationDBContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options)
             : base(options) { }

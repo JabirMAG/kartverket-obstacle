@@ -1,4 +1,4 @@
-﻿using FirstWebApplication.DataContext;
+using FirstWebApplication.DataContext;
 using FirstWebApplication.DataContext.Seeders;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
@@ -28,6 +28,8 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
         new MySqlServerVersion(new Version(11, 8, 3))
     )
 );
+
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDBContext>();
 
 // Application DB with transient-failure retry policy
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
@@ -65,13 +67,13 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 });
 
-builder.Services.AddDbContext<AuthDbContext>(options =>
+/*builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("AuthConnection"),
         new MySqlServerVersion(new Version(11, 8, 3))
     )
 );
-
+*/
 // Configure Identity and password policy in AddIdentity
 builder
     .Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
