@@ -309,7 +309,7 @@ namespace FirstWebApplication.Migrations
                     b.HasOne("FirstWebApplication.Models.ObstacleData", "Obstacle")
                         .WithMany("Rapports")
                         .HasForeignKey("ObstacleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Obstacle");
