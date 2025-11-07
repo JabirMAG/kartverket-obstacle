@@ -36,15 +36,18 @@ namespace FirstWebApplication.Controllers
             {
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
-                
+                DesiredRole = registerViewModel.DesiredRole,
+                IaApproved = false
             };
             
             var identityResult = await _userManager.CreateAsync(applicationUser, registerViewModel.Password);
 
             if (identityResult.Succeeded)
             {
-                await _signInManager.SignInAsync(applicationUser, isPersistent: false);
-                return RedirectToAction("Map", "Map"); 
+                TempData["Message"] =
+                    "Takk for registreringen! Du vil motta e-post når en administrator har godkjent kontoen din";
+                return RedirectToAction("RegisterConfirmation");
+               
             }
             else
             {
@@ -56,6 +59,12 @@ namespace FirstWebApplication.Controllers
                 // returner viewet på nytt slik at feilmeldingene vises
                 return View(registerViewModel);
             }
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult RegisterConfirmation()
+        {
             return View();
         }
         
