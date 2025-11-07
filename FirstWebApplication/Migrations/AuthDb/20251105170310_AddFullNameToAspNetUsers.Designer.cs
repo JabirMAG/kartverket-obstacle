@@ -4,16 +4,19 @@ using FirstWebApplication.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace FirstWebApplication.Migrations
+namespace FirstWebApplication.Migrations.AuthDb
 {
-    [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(AuthDbContext))]
+    [Migration("20251105170310_AddFullNameToAspNetUsers")]
+    partial class AddFullNameToAspNetUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,27 +24,6 @@ namespace FirstWebApplication.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("FirstWebApplication.Models.Advice", b =>
-                {
-                    b.Property<int>("adviceID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("adviceID"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("adviceMessage")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("adviceID");
-
-                    b.ToTable("Feedback");
-                });
 
             modelBuilder.Entity("FirstWebApplication.Models.ApplicationUser", b =>
                 {
@@ -55,9 +37,6 @@ namespace FirstWebApplication.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("DesiredRole")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
@@ -67,9 +46,6 @@ namespace FirstWebApplication.Migrations
 
                     b.Property<string>("FullName")
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("IaApproved")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
@@ -114,62 +90,6 @@ namespace FirstWebApplication.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
-                {
-                    b.Property<int>("ObstacleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ObstacleId"));
-
-                    b.Property<string>("GeometryGeoJson")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("ObstacleDescription")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<double>("ObstacleHeight")
-                        .HasColumnType("double");
-
-                    b.Property<string>("ObstacleName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<int>("ObstacleStatus")
-                        .HasColumnType("int");
-
-                    b.HasKey("ObstacleId");
-
-                    b.ToTable("ObstaclesData");
-                });
-
-            modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
-                {
-                    b.Property<int>("RapportID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RapportID"));
-
-                    b.Property<int>("ObstacleId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RapportComment")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.HasKey("RapportID");
-
-                    b.HasIndex("ObstacleId");
-
-                    b.ToTable("Rapports");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -304,17 +224,6 @@ namespace FirstWebApplication.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
-                {
-                    b.HasOne("FirstWebApplication.Models.ObstacleData", "Obstacle")
-                        .WithMany("Rapports")
-                        .HasForeignKey("ObstacleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Obstacle");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -364,11 +273,6 @@ namespace FirstWebApplication.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
-                {
-                    b.Navigation("Rapports");
                 });
 #pragma warning restore 612, 618
         }

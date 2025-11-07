@@ -1,0 +1,68 @@
+﻿@model IEnumerable<FirstWebApplication.Models.AdminViewModels.UserWithRolesVm>
+@using System
+@{
+    ViewData["Title"] = "Brukerhåndtering";
+    var roles = (string[])ViewBag.AssignableRoles;
+    string defaultAdmin = "admin@kartverket.com";
+}
+<h1 class="display-6">Brukerhåndtering</h1>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="mb-3">
+    <a class="btn btn-success" asp-action="CreateUser">Opprett ny bruker</a>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>E-post</th>
+            <th>Roller</th>
+            <th class="text-end">Handlinger</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            var hasRole = u.Roles != null && u.Roles.Any();
+            var isDefaultAdmin = !string.IsNullOrEmpty(u.Email) && string.Equals(u.Email, defaultAdmin, StringComparison.OrdinalIgnoreCase);
+
+            <tr>
+                <td>@u.Email</td>
+                <td>
+                    @if (hasRole)
+                    {
+                        @string.Join(", ", u.Roles)
+                    }
+                    else
+                    {
+                        <span class="text-muted">Ingen roller</span>
+                    }
+                </td>
+                <td class="text-end">
+                    @if (!isDefaultAdmin)
+                    {
+                        @* Delete user form: deletes the user (server-side protected against default admin) *@
+                        <form asp-action="DeleteUser" method="post" class="d-inline ms-2" onsubmit="return confirm('Er du sikker på at du vil slette denne brukeren? Denne handlingen kan ikke angres.');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="UserId" value="@u.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Slett bruker</button>
+                        </form>
+                    }
+                    else
+                    {
+                        @* For clarity, show that admin cannot be changed or deleted *@
+                        <span class="badge bg-info ms-2">Standard administrator (kan ikke endres eller slettes)</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
