@@ -7,7 +7,9 @@
 <div class="max-w-7xl mx-auto px-6 py-8">
     <header class="mb-6">
         <h1 class="text-3xl font-semibold text-slate-900">Obstacle Register</h1>
-        <p class="mt-2 text-sm text-slate-600">A list of registered obstacles. Use the status selector to update an obstacle's status; add reports below each item.</p>
+        <p class="mt-2 text-sm text-slate-600">
+            A list of registered obstacles. Use the status selector to update an obstacle's status; add reports below each item.
+        </p>
     </header>
 
     <section class="bg-white shadow-sm rounded-lg overflow-hidden border border-slate-100">
@@ -22,6 +24,7 @@
                         <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Coordinates (GeoJSON)</th>
                         <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Status</th>
                         <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Reports</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Detail</th>
                     </tr>
                 </thead>
 
@@ -112,6 +115,14 @@
                                     </div>
                                 </div>
                             </td>
+
+                            <!-- Detail button column -->
+                            <td class="px-5 py-4 align-top text-sm text-slate-700 w-24">
+                                <a asp-controller="Obstacle" asp-action="Overview" asp-route-id="@obstacle.ObstacleId"
+                                   class="inline-flex items-center gap-1 rounded bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-sm">
+                                    Detail
+                                </a>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -144,7 +155,6 @@
                         coords = geojson.coordinates;
                     }
 
-                    // format coords for display (avoid showing full GeoJSON)
                     function formatCoords(c) {
                         if (Array.isArray(c) && c.length && typeof c[0] === 'number') return c.join(',');
                         if (Array.isArray(c) && c.length && Array.isArray(c[0])) return c.map(p => p.join(',')).join(' | ');
