@@ -40,11 +40,11 @@
                 <td>
                     @if (hasRole && u.Roles != null)
                     {
-                        @string.Join(", ", u.Roles)
+                        <span>@string.Join(", ", u.Roles)</span>
                     }
                     else if (!string.IsNullOrEmpty(u.DesiredRole))
                     {
-                        <span class="text-muted">Ønsket rolle: <strong>@u.DesiredRole</strong></span>
+                        <span>@u.DesiredRole</span>
                     }
                     else
                     {
