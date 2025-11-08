@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace FirstWebApplication.Controllers
 {
-    [AllowAnonymous] //endre når login er fikset til bare admin
+    [Authorize(Roles = "Admin")]
     [Route("admin")]
     public class AdminController : Controller
     {

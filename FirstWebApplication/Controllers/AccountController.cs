@@ -75,16 +75,50 @@ namespace FirstWebApplication.Controllers
         }
         
         [HttpPost]
-        public IActionResult Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            // Skip all user/session checks and always redirect to Map page
+            if (!ModelState.IsValid)
+                return View(model);
+
+            // Find user by username or email
+            var user = await _userManager.FindByNameAsync(model.Username) 
+                       ?? await _userManager.FindByEmailAsync(model.Username);
+
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
+                return View(model);
+            }
+
+            // Attempt to sign in
+            var result = await _signInManager.PasswordSignInAsync(
+                user.UserName!, 
+                model.Password, 
+                isPersistent: false, 
+                lockoutOnFailure: false);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
+                return View(model);
+            }
+
+            // Check if user is in Admin role and redirect to admin dashboard
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            if (isAdmin)
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
+            // Regular users go to Map page
             return RedirectToAction("Map", "Map");
         }
 
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            await _signInManager.SignOutAsync();
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

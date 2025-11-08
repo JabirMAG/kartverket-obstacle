@@ -1,6 +1,7 @@
 using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace FirstWebApplication.DataContext.Seeders
 {
@@ -24,7 +25,7 @@ namespace FirstWebApplication.DataContext.Seeders
             }
 
             // Seed Admin User
-            var adminEmail = "admin@kartverket.no";
+            var adminEmail = "admin@kartverket.com";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
             if (adminUser == null)
@@ -42,7 +43,23 @@ namespace FirstWebApplication.DataContext.Seeders
 
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRolesAsync(adminUser, roleNames);
+                    // Only assign Admin role to the admin user
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+            }
+            else
+            {
+                // Ensure existing admin user only has Admin role
+                var existingRoles = await userManager.GetRolesAsync(adminUser);
+                if (!existingRoles.Contains("Admin"))
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+                // Remove any non-Admin roles
+                var rolesToRemove = existingRoles.Where(r => r != "Admin").ToList();
+                if (rolesToRemove.Any())
+                {
+                    await userManager.RemoveFromRolesAsync(adminUser, rolesToRemove);
                 }
             }
         }
