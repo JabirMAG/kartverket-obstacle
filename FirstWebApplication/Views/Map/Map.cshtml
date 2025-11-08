@@ -138,6 +138,87 @@
                 if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
             }
 
+            // Function to open the obstacle form (extracted for reuse)
+            function openObstacleForm() {
+                const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
+                const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
+                const formContainer = document.getElementById("form-container");
+
+                // Try to get value from hidden input first
+                let geoJsonValue = geoJsonInput ? geoJsonInput.value : "";
+                let geoJsonCoordinates = coordinatesInput ? coordinatesInput.value : "";
+
+                // If no value in hidden input, try to get from lastGeoJsonString
+                if (!geoJsonValue && lastGeoJsonString) {
+                    geoJsonValue = lastGeoJsonString;
+                    // Try to extract coordinates from lastGeoJsonString
+                    try {
+                        const parsed = JSON.parse(lastGeoJsonString);
+                        if (parsed.geometry && parsed.geometry.coordinates) {
+                            geoJsonCoordinates = JSON.stringify(parsed.geometry.coordinates);
+                        }
+                    } catch (e) {
+                        console.error("Error parsing lastGeoJsonString:", e);
+                    }
+                }
+
+                // If still no value, check if there are any drawn items
+                if (!geoJsonValue && drawnItems.getLayers().length > 0) {
+                    const lastLayer = drawnItems.getLayers()[drawnItems.getLayers().length - 1];
+                    const geoJsonData = lastLayer.toGeoJSON();
+                    geoJsonValue = JSON.stringify(geoJsonData);
+                    const coordinatesOnly = geoJsonData.geometry.coordinates;
+                    geoJsonCoordinates = JSON.stringify(coordinatesOnly);
+                    
+                    // Update hidden inputs for consistency
+                    if (geoJsonInput) geoJsonInput.value = geoJsonValue;
+                    if (coordinatesInput) coordinatesInput.value = geoJsonCoordinates;
+                }
+
+                if (!geoJsonValue) {
+                    alert("Please click on the map to select obstacle location before registering.");
+                    return;
+                }
+
+                // Load the partial form
+                fetch('/Obstacle/DataFormPartial')
+                    .then(response => response.text())
+                    .then(html => {
+                        formContainer.innerHTML = html;
+
+                        const formElem = document.getElementById("obstacle-form");
+                        if (formElem) {
+                            // Copy values into hidden fields in the form
+                            const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
+                            const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
+
+                            if (formGeoInput) {
+                                formGeoInput.value = geoJsonValue;
+                            } else {
+                                console.error("Could not find input[name='GeometryGeoJson'] in form");
+                            }
+                            
+                            if (formGeoInputCoordinates) {
+                                formGeoInputCoordinates.value = geoJsonCoordinates;
+                            } else {
+                                console.error("Could not find input[name='GeometryGeoCoordinates'] in form");
+                            }
+
+                            // Show the form
+                            formElem.style.display = "block";
+
+                            // Reparse for unobtrusive validation
+                            $.validator.unobtrusive.parse(formElem);
+                        } else {
+                            console.error("Could not find obstacle-form element");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error loading form:", error);
+                        alert("An error occurred while loading the form. Please try again.");
+                    });
+            }
+
             // Event when a new shape is drawn
             map.on(L.Draw.Event.CREATED, function (e) {
                 const layer = e.layer;
@@ -172,21 +253,34 @@
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
 
-                        // Remove existing current location marker if any
-                        if (currentLocationMarker) {
-                            drawnItems.removeLayer(currentLocationMarker);
-                        }
+                        // Remove all existing layers first to avoid conflicts
+                        drawnItems.clearLayers();
+                        currentLocationMarker = null;
 
                         // Create and add marker at current location
                         currentLocationMarker = L.marker([lat, lng]);
                         drawnItems.addLayer(currentLocationMarker);
                         map.setView([lat, lng], 15);
 
-                        // Update GeoJSON inputs
+                        // Update GeoJSON inputs - this is critical for the form to work
                         updateGeoJsonInputs(lat, lng);
+                        
+                        // Also update lastGeoJsonString for consistency
+                        const geoJsonData = {
+                            type: "Feature",
+                            geometry: {
+                                type: "Point",
+                                coordinates: [lng, lat]
+                            },
+                            properties: {}
+                        };
+                        lastGeoJsonString = JSON.stringify(geoJsonData);
 
                         button.disabled = false;
                         button.textContent = originalText;
+
+                        // Automatically open the obstacle form after location is set
+                        openObstacleForm();
                     },
                     function (error) {
                         let errorMessage = "Unable to retrieve your location. ";
@@ -218,40 +312,7 @@
 
             // Event when user clicks "Register Obstacle"
             document.getElementById("show-obstacle-form").addEventListener("click", function () {
-                const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
-                const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
-                const formContainer = document.getElementById("form-container");
-
-                const geoJsonValue = geoJsonInput.value;
-                const geoJsonCoordinates = coordinatesInput.value;
-
-                if (!geoJsonValue) {
-                    alert("Please click on the map to select obstacle location before registering.");
-                    return;
-                }
-
-                // Load the partial form
-                fetch('/Obstacle/DataFormPartial')
-                    .then(response => response.text())
-                    .then(html => {
-                        formContainer.innerHTML = html;
-
-                        const formElem = document.getElementById("obstacle-form");
-                        if (formElem) {
-                            // Copy values into hidden fields in the form
-                            const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
-                            const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
-
-                            if (formGeoInput) formGeoInput.value = geoJsonValue;
-                            if (formGeoInputCoordinates) formGeoInputCoordinates.value = geoJsonCoordinates;
-
-                            // Show the form
-                            formElem.style.display = "block";
-
-                            // Reparse for unobtrusive validation
-                            $.validator.unobtrusive.parse(formElem);
-                        }
-                    });
+                openObstacleForm();
             });
         });
     </script>
