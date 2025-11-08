@@ -52,7 +52,9 @@ namespace FirstWebApplication.Controllers
                     Id = u.Id,
                     Email = u.Email!,
                     DisplayName = u.UserName,
-                    Roles = roles
+                    Roles = roles,
+                    IsApproved = u.IaApproved,
+                    DesiredRole = u.DesiredRole
                 });
             }
 
@@ -170,6 +172,114 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(ManageUsers));
         }
 
+        [ValidateAntiForgeryToken]
+        [HttpPost("approve-user")]
+        public async Task<IActionResult> ApproveUser(string UserId)
+        {
+            if (string.IsNullOrEmpty(UserId))
+            {
+                TempData["Error"] = "Ugyldig forespørsel.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            var user = await _userRepository.GetByIdAsync(UserId);
+            if (user == null)
+            {
+                TempData["Error"] = "Fant ikke bruker.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            // Protect default admin account from changes
+            if (!string.IsNullOrEmpty(user.Email) &&
+                string.Equals(user.Email, DefaultAdminEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = $"Kan ikke endre standard administrator ({DefaultAdminEmail}).";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            user.IaApproved = true;
+            var result = await _userRepository.UpdateAsync(user);
+            
+            if (result.Succeeded)
+            {
+                // Reload user from database to ensure we have the latest data
+                user = await _userRepository.GetByIdAsync(UserId);
+                if (user == null)
+                {
+                    TempData["Error"] = "Fant ikke bruker etter oppdatering.";
+                    return RedirectToAction(nameof(ManageUsers));
+                }
+                
+                // Assign the DesiredRole if the user has one and doesn't already have a role
+                if (!string.IsNullOrEmpty(user.DesiredRole))
+                {
+                    var existingRoles = await _userManager.GetRolesAsync(user);
+                    if (!existingRoles.Any())
+                    {
+                        // Check if the desired role is allowed
+                        if (AllowedAssignableRoles.Contains(user.DesiredRole))
+                        {
+                            // Ensure the role exists
+                            if (!await _roleManager.RoleExistsAsync(user.DesiredRole))
+                            {
+                                await _roleManager.CreateAsync(new IdentityRole(user.DesiredRole));
+                            }
+                            
+                            // Assign the role
+                            var roleResult = await _userManager.AddToRoleAsync(user, user.DesiredRole);
+                            if (!roleResult.Succeeded)
+                            {
+                                TempData["Error"] = $"Bruker {user.Email} er godkjent, men kunne ikke tildele rolle: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}.";
+                                return RedirectToAction(nameof(ManageUsers));
+                            }
+                        }
+                    }
+                }
+                
+                TempData["Success"] = $"Bruker {user.Email} er godkjent{(string.IsNullOrEmpty(user.DesiredRole) ? "" : $" og tildelt rolle {user.DesiredRole}")}.";
+            }
+            else
+            {
+                TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
+        [ValidateAntiForgeryToken]
+        [HttpPost("reject-user")]
+        public async Task<IActionResult> RejectUser(string UserId)
+        {
+            if (string.IsNullOrEmpty(UserId))
+            {
+                TempData["Error"] = "Ugyldig forespørsel.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            var user = await _userRepository.GetByIdAsync(UserId);
+            if (user == null)
+            {
+                TempData["Error"] = "Fant ikke bruker.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            // Protect default admin account from changes
+            if (!string.IsNullOrEmpty(user.Email) &&
+                string.Equals(user.Email, DefaultAdminEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = $"Kan ikke endre standard administrator ({DefaultAdminEmail}).";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            user.IaApproved = false;
+            var result = await _userRepository.UpdateAsync(user);
+            TempData[result.Succeeded ? "Success" : "Error"] =
+                result.Succeeded ? $"Bruker {user.Email} er avvist." :
+                string.Join(", ", result.Errors.Select(e => e.Description));
+
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
         [HttpGet("create-user")]
         public IActionResult CreateUser()
         {
@@ -214,7 +324,8 @@ namespace FirstWebApplication.Controllers
             var user = new ApplicationUser
             {
                 UserName = model.Email,
-                Email = model.Email
+                Email = model.Email,
+                IaApproved = true // Admin-created users are automatically approved
             };
 
             var createResult = await _userRepository.CreateAsync(user, model.Password);

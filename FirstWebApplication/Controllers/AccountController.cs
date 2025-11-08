@@ -90,6 +90,13 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
+            // Check if user is approved before allowing login
+            if (!user.IaApproved)
+            {
+                ModelState.AddModelError(string.Empty, "Din konto er ikke godkjent ennå. Vent til en administrator har godkjent kontoen din.");
+                return View(model);
+            }
+
             // Attempt to sign in
             var result = await _signInManager.PasswordSignInAsync(
                 user.UserName!, 
@@ -110,7 +117,7 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction("Dashboard", "Admin");
             }
 
-            // Regular users go to Map page
+            // Approved regular users go to Map page (register obstacle site)
             return RedirectToAction("Map", "Map");
         }
 

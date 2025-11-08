@@ -25,6 +25,7 @@
         <tr>
             <th>E-post</th>
             <th>Roller</th>
+            <th>Godkjent</th>
             <th class="text-end">Handlinger</th>
         </tr>
     </thead>
@@ -37,24 +38,55 @@
             <tr>
                 <td>@u.Email</td>
                 <td>
-                    @if (hasRole)
+                    @if (hasRole && u.Roles != null)
                     {
                         @string.Join(", ", u.Roles)
+                    }
+                    else if (!string.IsNullOrEmpty(u.DesiredRole))
+                    {
+                        <span class="text-muted">Ønsket rolle: <strong>@u.DesiredRole</strong></span>
                     }
                     else
                     {
                         <span class="text-muted">Ingen roller</span>
                     }
                 </td>
+                <td>
+                    @if (u.IsApproved)
+                    {
+                        <span class="badge bg-success">Godkjent</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning">Ikke godkjent</span>
+                    }
+                </td>
                 <td class="text-end">
                     @if (!isDefaultAdmin)
                     {
-                        @* Delete user form: deletes the user (server-side protected against default admin) *@
-                        <form asp-action="DeleteUser" method="post" class="d-inline ms-2" onsubmit="return confirm('Er du sikker på at du vil slette denne brukeren? Denne handlingen kan ikke angres.');">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="UserId" value="@u.Id" />
-                            <button type="submit" class="btn btn-danger btn-sm">Slett bruker</button>
-                        </form>
+                        <div class="d-flex gap-2 justify-content-end">
+                            @if (!u.IsApproved)
+                            {
+                                <form asp-action="ApproveUser" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="UserId" value="@u.Id" />
+                                    <button type="submit" class="btn btn-success btn-sm">Godkjenn</button>
+                                </form>
+                                <form asp-action="RejectUser" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="UserId" value="@u.Id" />
+                                    <button type="submit" class="btn btn-warning btn-sm">Avvis</button>
+                                </form>
+                            }
+                            @if (u.IsApproved)
+                            {
+                                <form asp-action="DeleteUser" method="post" class="d-inline" onsubmit="return confirm('Er du sikker på at du vil slette denne brukeren? Denne handlingen kan ikke angres.');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="UserId" value="@u.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Slett</button>
+                                </form>
+                            }
+                        </div>
                     }
                     else
                     {
