@@ -116,6 +116,71 @@ namespace FirstWebApplication.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("FirstWebApplication.Models.ArchivedRapport", b =>
+                {
+                    b.Property<int>("ArchivedRapportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ArchivedRapportId"));
+
+                    b.Property<int>("ArchivedReportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OriginalRapportId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RapportComment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.HasKey("ArchivedRapportId");
+
+                    b.HasIndex("ArchivedReportId");
+
+                    b.ToTable("ArchivedRapports");
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.ArchivedReport", b =>
+                {
+                    b.Property<int>("ArchivedReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ArchivedReportId"));
+
+                    b.Property<DateTime>("ArchivedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("GeometryGeoJson")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ObstacleDescription")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<double>("ObstacleHeight")
+                        .HasColumnType("double");
+
+                    b.Property<string>("ObstacleName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("ObstacleStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OriginalObstacleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ArchivedReportId");
+
+                    b.ToTable("ArchivedReports");
+                });
+
             modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
                 {
                     b.Property<int>("ObstacleId")
@@ -304,6 +369,17 @@ namespace FirstWebApplication.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FirstWebApplication.Models.ArchivedRapport", b =>
+                {
+                    b.HasOne("FirstWebApplication.Models.ArchivedReport", "ArchivedReport")
+                        .WithMany("ArchivedRapports")
+                        .HasForeignKey("ArchivedReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ArchivedReport");
+                });
+
             modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
                 {
                     b.HasOne("FirstWebApplication.Models.ObstacleData", "Obstacle")
@@ -364,6 +440,11 @@ namespace FirstWebApplication.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.ArchivedReport", b =>
+                {
+                    b.Navigation("ArchivedRapports");
                 });
 
             modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>

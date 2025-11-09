@@ -14,6 +14,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // === DATABASE SETUP ===
 var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
