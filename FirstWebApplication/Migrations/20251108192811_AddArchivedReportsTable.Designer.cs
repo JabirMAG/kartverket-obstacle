@@ -4,6 +4,7 @@ using FirstWebApplication.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FirstWebApplication.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251108192811_AddArchivedReportsTable")]
+    partial class AddArchivedReportsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,32 +117,6 @@ namespace FirstWebApplication.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("FirstWebApplication.Models.ArchivedRapport", b =>
-                {
-                    b.Property<int>("ArchivedRapportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ArchivedRapportId"));
-
-                    b.Property<int>("ArchivedReportId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OriginalRapportId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RapportComment")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.HasKey("ArchivedRapportId");
-
-                    b.HasIndex("ArchivedReportId");
-
-                    b.ToTable("ArchivedRapports");
                 });
 
             modelBuilder.Entity("FirstWebApplication.Models.ArchivedReport", b =>
@@ -369,23 +346,12 @@ namespace FirstWebApplication.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("FirstWebApplication.Models.ArchivedRapport", b =>
-                {
-                    b.HasOne("FirstWebApplication.Models.ArchivedReport", "ArchivedReport")
-                        .WithMany("ArchivedRapports")
-                        .HasForeignKey("ArchivedReportId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ArchivedReport");
-                });
-
             modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
                 {
                     b.HasOne("FirstWebApplication.Models.ObstacleData", "Obstacle")
                         .WithMany("Rapports")
                         .HasForeignKey("ObstacleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Obstacle");
@@ -440,11 +406,6 @@ namespace FirstWebApplication.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("FirstWebApplication.Models.ArchivedReport", b =>
-                {
-                    b.Navigation("ArchivedRapports");
                 });
 
             modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>

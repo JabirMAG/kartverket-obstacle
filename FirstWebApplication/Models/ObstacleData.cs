@@ -10,6 +10,7 @@ namespace FirstWebApplication.Models
 
         // Navnet på hindringen.
         // Må fylles ut og kan maks være 100 tegn.
+        [Required(ErrorMessage = "The ObstacleName field is required.")]
         [MaxLength(100)]
         public string ObstacleName { get; set; } = string.Empty;
 
