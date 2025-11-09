@@ -1,4 +1,5 @@
 ﻿@model FirstWebApplication.Models.ObstacleData
+@using System.Text.Json
 
 <!DOCTYPE html>
 
@@ -16,9 +17,45 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin="" />
     <style>
+        .map-container {
+            position: relative;
+            width: 100%;
+        }
+
         #map {
             width: 100%;
             height: 80vh;
+        }
+
+        .location-button-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+
+        .pending-info-container {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 12px;
+        }
+
+        .pending-marker-example {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #ff9800;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            margin-right: 5px;
+            vertical-align: middle;
         }
 
         .obstacle-overlay {
@@ -40,7 +77,22 @@
 
 </head>
 <body>
-    <div id="map"></div>
+    <div class="map-container">
+        <div id="map"></div>
+        
+        <!-- Button positioned over the map -->
+        <div class="location-button-container">
+            <button id="use-current-location" class="btn btn-secondary">
+                Use current location
+            </button>
+        </div>
+
+        <!-- Info about pending obstacles -->
+        <div class="pending-info-container">
+            <span class="pending-marker-example"></span>
+            <span>Rapporter under behandling</span>
+        </div>
+    </div>
 
     <!-- Hidden field for the GeoJSON data produced from map -->
     <input type="hidden" id="GeometryGeoJsonMap" />
@@ -48,24 +100,6 @@
 
     <!-- Placeholder for obstacle form -->
     <div id="form-container"></div>
-
-    <!-- Button to trigger form -->
-    <div class="container-fluid text-center mt-3">
-        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-center">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <button id="use-current-location" class="btn btn-secondary me-2">
-                        Use current location
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button id="show-obstacle-form" class="btn btn-primary">
-                        Register Obstacle
-                    </button>
-                </li>
-            </ul>
-        </div>
-    </div>
 
     <!-- Leaflet and dependencies -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -83,6 +117,9 @@
 
 
     <script>
+        // Get pending obstacles from server (will be updated when form opens)
+        let pendingObstacles = @Html.Raw(JsonSerializer.Serialize(ViewBag.PendingObstacles ?? new List<FirstWebApplication.Models.ObstacleData>()));
+
         document.addEventListener("DOMContentLoaded", function () {
             // Initialize the map
             const map = L.map('map').setView([59.9139, 10.7522], 7);
@@ -96,6 +133,51 @@
             // Feature group to store drawn layers
             const drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
+
+            // Feature group to store pending obstacle markers
+            const pendingMarkers = new L.FeatureGroup();
+            map.addLayer(pendingMarkers);
+
+            // Add pending obstacles as markers on the map
+            if (pendingObstacles && pendingObstacles.length > 0) {
+                pendingObstacles.forEach(function(obstacle) {
+                    if (obstacle.geometryGeoJson) {
+                        try {
+                            var geoJson = typeof obstacle.geometryGeoJson === 'string' 
+                                ? JSON.parse(obstacle.geometryGeoJson) 
+                                : obstacle.geometryGeoJson;
+                            
+                            if (geoJson && geoJson.geometry) {
+                                var coordinates = geoJson.geometry.coordinates;
+                                
+                                // For Point geometry, coordinates are [lng, lat]
+                                if (geoJson.geometry.type === "Point" && coordinates.length >= 2) {
+                                    var lat = coordinates[1];
+                                    var lng = coordinates[0];
+                                    
+                                    // Create a custom icon for pending obstacles (orange/yellow color)
+                                    var pendingIcon = L.divIcon({
+                                        className: 'pending-obstacle-marker',
+                                        html: '<div style="background-color: #ff9800; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                                        iconSize: [20, 20],
+                                        iconAnchor: [10, 10]
+                                    });
+                                    
+                                    // Create marker with popup
+                                    var marker = L.marker([lat, lng], { icon: pendingIcon })
+                                        .bindPopup('<strong>' + (obstacle.obstacleName || 'Rapport under behandling') + '</strong><br>' +
+                                                  'Høyde: ' + (obstacle.obstacleHeight || 'N/A') + 'm<br>' +
+                                                  '<small>Status: Under behandling</small>');
+                                    
+                                    pendingMarkers.addLayer(marker);
+                                }
+                            }
+                        } catch (err) {
+                            console.error("Error parsing obstacle GeoJSON:", err, obstacle);
+                        }
+                    }
+                });
+            }
 
             // Leaflet.draw control
             const drawControl = new L.Control.Draw({
@@ -136,6 +218,58 @@
 
                 if (geoInput) geoInput.value = lastGeoJsonString;
                 if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
+            }
+
+            // Function to check if there's a pending obstacle at the same coordinates
+            function checkForPendingObstacle(lat, lng) {
+                if (!pendingObstacles || pendingObstacles.length === 0) {
+                    return null;
+                }
+
+                // Tolerance in degrees (approximately 10 meters)
+                const tolerance = 0.0001;
+
+                for (var i = 0; i < pendingObstacles.length; i++) {
+                    var obstacle = pendingObstacles[i];
+                    if (obstacle.geometryGeoJson) {
+                        try {
+                            var geoJson = typeof obstacle.geometryGeoJson === 'string' 
+                                ? JSON.parse(obstacle.geometryGeoJson) 
+                                : obstacle.geometryGeoJson;
+                            
+                            if (geoJson && geoJson.geometry && geoJson.geometry.type === "Point") {
+                                var coords = geoJson.geometry.coordinates;
+                                var obstacleLat = coords[1];
+                                var obstacleLng = coords[0];
+                                
+                                // Check if coordinates are within tolerance
+                                if (Math.abs(obstacleLat - lat) < tolerance && 
+                                    Math.abs(obstacleLng - lng) < tolerance) {
+                                    return obstacle;
+                                }
+                            }
+                        } catch (err) {
+                            console.error("Error parsing obstacle GeoJSON:", err);
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // Function to extract coordinates from GeoJSON
+            function extractCoordinates(geoJsonValue) {
+                try {
+                    const parsed = typeof geoJsonValue === 'string' ? JSON.parse(geoJsonValue) : geoJsonValue;
+                    if (parsed && parsed.geometry) {
+                        const coords = parsed.geometry.coordinates;
+                        if (parsed.geometry.type === "Point" && coords.length >= 2) {
+                            return { lat: coords[1], lng: coords[0] };
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error extracting coordinates:", e);
+                }
+                return null;
             }
 
             // Function to open the obstacle form (extracted for reuse)
@@ -207,16 +341,167 @@
                             // Show the form
                             formElem.style.display = "block";
 
+                            // Fetch the latest pending obstacles from server and check for conflicts
+                            const coords = extractCoordinates(geoJsonValue);
+                            if (coords) {
+                                fetch('/Map/GetPendingObstacles')
+                                    .then(response => response.json())
+                                    .then(latestPendingObstacles => {
+                                        // Update the global pendingObstacles array with latest data
+                                        pendingObstacles = latestPendingObstacles;
+                                        
+                                        // Check for pending obstacle at this location
+                                        const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
+                                        if (existingObstacle) {
+                                            // Show warning in the form
+                                            const warningDiv = formElem.querySelector('#pending-obstacle-warning');
+                                            if (warningDiv) {
+                                                warningDiv.style.display = 'block';
+                                                const warningText = warningDiv.querySelector('.warning-text');
+                                                if (warningText) {
+                                                    warningText.textContent = 
+                                                        'Det er allerede en ubehandlet rapport i denne koordinaten (' + 
+                                                        (existingObstacle.obstacleName || 'Rapport under behandling') + 
+                                                        '). Du er fortsatt velkommen til å rapportere.';
+                                                }
+                                            }
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error("Error fetching pending obstacles:", error);
+                                        // Fallback to using existing pendingObstacles array
+                                        const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
+                                        if (existingObstacle) {
+                                            const warningDiv = formElem.querySelector('#pending-obstacle-warning');
+                                            if (warningDiv) {
+                                                warningDiv.style.display = 'block';
+                                                const warningText = warningDiv.querySelector('.warning-text');
+                                                if (warningText) {
+                                                    warningText.textContent = 
+                                                        'Det er allerede en ubehandlet rapport i denne koordinaten (' + 
+                                                        (existingObstacle.obstacleName || 'Rapport under behandling') + 
+                                                        '). Du er fortsatt velkommen til å rapportere.';
+                                                }
+                                            }
+                                        }
+                                    });
+                            }
+
                             // Reparse for unobtrusive validation
                             $.validator.unobtrusive.parse(formElem);
+
+                            // Handle form submission via AJAX
+                            function handleFormSubmit(e) {
+                                e.preventDefault();
+
+                                const currentForm = e.target;
+                                const formData = new FormData(currentForm);
+                                
+                                fetch('/Obstacle/SubmitObstacle', {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                })
+                                .then(response => {
+                                    const contentType = response.headers.get("content-type");
+                                    if (contentType && contentType.includes("application/json")) {
+                                        // Success - JSON response with redirect URL
+                                        return response.json();
+                                    } else {
+                                        // Validation failed - return HTML
+                                        return response.text().then(html => ({ html: html }));
+                                    }
+                                })
+                                .then(data => {
+                                    if (data.redirectUrl) {
+                                        // Success - redirect to Overview page
+                                        window.location.href = data.redirectUrl;
+                                    } else if (data.html) {
+                                        // Validation failed - update form with errors
+                                        formContainer.innerHTML = data.html;
+                                        const updatedForm = document.getElementById("obstacle-form");
+                                        if (updatedForm) {
+                                            // Copy coordinates back into the form
+                                            const formGeoInput = updatedForm.querySelector('input[name="GeometryGeoJson"]');
+                                            const formGeoInputCoordinates = updatedForm.querySelector('input[name="GeometryGeoCoordinates"]');
+                                            const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
+                                            const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
+                                            
+                                            if (formGeoInput && geoJsonInput) {
+                                                formGeoInput.value = geoJsonInput.value;
+                                            }
+                                            if (formGeoInputCoordinates && coordinatesInput) {
+                                                formGeoInputCoordinates.value = coordinatesInput.value;
+                                            }
+                                            
+                                            updatedForm.style.display = "block";
+                                            
+                                            // Check for pending obstacle again when form is updated
+                                            const coords = extractCoordinates(geoJsonInput ? geoJsonInput.value : "");
+                                            if (coords) {
+                                                // Fetch the latest pending obstacles from server
+                                                fetch('/Map/GetPendingObstacles')
+                                                    .then(response => response.json())
+                                                    .then(latestPendingObstacles => {
+                                                        // Update the global pendingObstacles array with latest data
+                                                        pendingObstacles = latestPendingObstacles;
+                                                        
+                                                        const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
+                                                        if (existingObstacle) {
+                                                            const warningDiv = updatedForm.querySelector('#pending-obstacle-warning');
+                                                            if (warningDiv) {
+                                                                warningDiv.style.display = 'block';
+                                                                const warningText = warningDiv.querySelector('.warning-text');
+                                                                if (warningText) {
+                                                                    warningText.textContent = 
+                                                                        'Det er allerede en ubehandlet rapport i denne koordinaten (' + 
+                                                                        (existingObstacle.obstacleName || 'Pending Obstacle') + 
+                                                                        '). Du er fortsatt velkommen til å rapportere.';
+                                                                }
+                                                            }
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error("Error fetching pending obstacles:", error);
+                                                        // Fallback to using existing pendingObstacles array
+                                                        const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
+                                                        if (existingObstacle) {
+                                                            const warningDiv = updatedForm.querySelector('#pending-obstacle-warning');
+                                                            if (warningDiv) {
+                                                                warningDiv.style.display = 'block';
+                                                                const warningText = warningDiv.querySelector('.warning-text');
+                                                                if (warningText) {
+                                                                    warningText.textContent = 
+                                                                        'Det er allerede en ubehandlet rapport i denne koordinaten (' + 
+                                                                        (existingObstacle.obstacleName || 'Pending Obstacle') + 
+                                                                        '). Du er fortsatt velkommen til å rapportere.';
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                            }
+                                            
+                                            $.validator.unobtrusive.parse(updatedForm);
+                                            
+                                            // Re-attach submit handler to the updated form
+                                            updatedForm.addEventListener("submit", handleFormSubmit);
+                                        }
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error("Error submitting form:", error);
+                                    alert("An error occurred while submitting the form. Please try again.");
+                                });
+                            }
+                            
+                            formElem.addEventListener("submit", handleFormSubmit);
                         } else {
                             console.error("Could not find obstacle-form element");
                         }
                     })
-                    .catch(error => {
-                        console.error("Error loading form:", error);
-                        alert("An error occurred while loading the form. Please try again.");
-                    });
+                    
             }
 
             // Event when a new shape is drawn
@@ -233,7 +518,10 @@
                 const coordsInput = document.getElementById('GeometryGeoJsonCoordinates');
 
                 if (geoInput) geoInput.value = lastGeoJsonString;
-                if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly); 
+                if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
+                
+                // Automatically open the obstacle form after coordinates are set (same as use-current-location)
+                openObstacleForm();
             });
 
             // Event when user clicks "Use current location"
@@ -308,11 +596,6 @@
                         maximumAge: 0
                     }
                 );
-            });
-
-            // Event when user clicks "Register Obstacle"
-            document.getElementById("show-obstacle-form").addEventListener("click", function () {
-                openObstacleForm();
             });
         });
     </script>
