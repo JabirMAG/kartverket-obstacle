@@ -3,6 +3,39 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
+@{
+    // Determine the home page based on user role
+    string homeController = "Home";
+    string homeAction = "Index";
+    bool isAdmin = false;
+    ApplicationUser? currentUser = null;
+    
+    if (SignInManager.IsSignedIn(User))
+    {
+        currentUser = await UserManager.GetUserAsync(User);
+        if (currentUser != null)
+        {
+            isAdmin = await UserManager.IsInRoleAsync(currentUser, "Admin");
+            
+            if (isAdmin)
+            {
+                homeController = "Admin";
+                homeAction = "Dashboard";
+            }
+            else if (await UserManager.IsInRoleAsync(currentUser, "Pilot"))
+            {
+                homeController = "Map";
+                homeAction = "Map";
+            }
+            else if (await UserManager.IsInRoleAsync(currentUser, "Registerfører"))
+            {
+                homeController = "Registrar";
+                homeAction = "Registrar";
+            }
+        }
+    }
+}
+
 <html lang="en">
 <head>
     <link rel="icon" type="image/png" href="~/kartverket-logo.png" />

@@ -110,14 +110,20 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
-            // Check if user is in Admin role and redirect to admin dashboard
+            // Check user role and redirect to appropriate page
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
             if (isAdmin)
             {
                 return RedirectToAction("Dashboard", "Admin");
             }
 
-            // Approved regular users go to Map page (register obstacle site)
+            var isRegisterforer = await _userManager.IsInRoleAsync(user, "Registerfører");
+            if (isRegisterforer)
+            {
+                return RedirectToAction("Registrar", "Registrar");
+            }
+
+            // Pilots and other approved users go to Map page (register obstacle site)
             return RedirectToAction("Map", "Map");
         }
 
