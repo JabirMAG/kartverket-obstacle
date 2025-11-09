@@ -69,13 +69,5 @@ namespace FirstWebApplication.Controllers
             
             return View("Overview", obstacledata);
         }
-        public IActionResult Overview(int id)
-        {
-            var obstacle = _obstacleRepository.GetElementById(id).Result;
-            if (obstacle == null)
-                return NotFound();
-
-            return View(obstacle);
-        }
     }
 }
