@@ -1,0 +1,66 @@
+/* Precise green sampled from your image: #00973D */
+.btn-green-custom {
+    background-color: #00973D !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.btn-green-custom:hover {
+    background-color: #007a2e !important; /* slightly darker on hover */
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.12) !important;
+}
+
+.btn-green-custom:active {
+    transform: translateY(0);
+}
+
+.btn-green-custom:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 6px rgba(0,151,61,0.12) !important; /* subtle focus ring */
+}
+
+.btn-green-custom[disabled] {
+    opacity: 0.9 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(0) !important;
+}
+
+.obstacle-form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.obstacle-form-container {
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#pending-obstacle-warning {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+    font-size: 0.9rem;
+    padding: 12px 16px;
+    border-radius: 4px;
+    border-left: 4px solid #ffc107;
+}
+
+#pending-obstacle-warning .warning-text {
+    display: block;
+    line-height: 1.5;
+}
+
