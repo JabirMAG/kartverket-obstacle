@@ -36,15 +36,18 @@ namespace FirstWebApplication.Controllers
             {
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
-                
+                DesiredRole = registerViewModel.DesiredRole,
+                IaApproved = false
             };
             
             var identityResult = await _userManager.CreateAsync(applicationUser, registerViewModel.Password);
 
             if (identityResult.Succeeded)
             {
-                await _signInManager.SignInAsync(applicationUser, isPersistent: false);
-                return RedirectToAction("Map", "Map"); 
+                TempData["Message"] =
+                    "Takk for registreringen! Du vil motta e-post når en administrator har godkjent kontoen din";
+                return RedirectToAction("RegisterConfirmation");
+               
             }
             else
             {
@@ -56,29 +59,12 @@ namespace FirstWebApplication.Controllers
                 // returner viewet på nytt slik at feilmeldingene vises
                 return View(registerViewModel);
             }
+            return View();
+        }
 
-/*
-            foreach (var error in Results.Error) //todo: fikse error for identityresult
-            {
-                ModelState.AddModelError("", error.Description);
-            }
-        */
-/*
-            //lager bruker
-
-         
-            {
-                //assign this user the "User" role
-                var roleIdentityResult = await _userManager.AddToRoleAsync(identityUser, "User");
-
-                if (roleIdentityResult.Succeeded)
-                {
-                    //show success notification
-                    return RedirectToAction("Register"); 
-                }
-            }
-            //show error notification
-            */
+        [HttpGet]
+        public IActionResult RegisterConfirmation()
+        {
             return View();
         }
         
@@ -89,16 +75,57 @@ namespace FirstWebApplication.Controllers
         }
         
         [HttpPost]
-        public IActionResult Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            // Skip all user/session checks and always redirect to Map page
+            if (!ModelState.IsValid)
+                return View(model);
+
+            // Find user by username or email
+            var user = await _userManager.FindByNameAsync(model.Username) 
+                       ?? await _userManager.FindByEmailAsync(model.Username);
+
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
+                return View(model);
+            }
+
+            // Check if user is approved before allowing login
+            if (!user.IaApproved)
+            {
+                ModelState.AddModelError(string.Empty, "Din konto er ikke godkjent ennå. Vent til en administrator har godkjent kontoen din.");
+                return View(model);
+            }
+
+            // Attempt to sign in
+            var result = await _signInManager.PasswordSignInAsync(
+                user.UserName!, 
+                model.Password, 
+                isPersistent: false, 
+                lockoutOnFailure: false);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
+                return View(model);
+            }
+
+            // Check if user is in Admin role and redirect to admin dashboard
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            if (isAdmin)
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
+            // Approved regular users go to Map page (register obstacle site)
             return RedirectToAction("Map", "Map");
         }
 
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            await _signInManager.SignOutAsync();
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Map Test</title>
 
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <link rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -51,6 +53,11 @@
     <div class="container-fluid text-center mt-3">
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-center">
             <ul class="navbar-nav">
+                <li class="nav-item">
+                    <button id="use-current-location" class="btn btn-secondary me-2">
+                        Use current location
+                    </button>
+                </li>
                 <li class="nav-item">
                     <button id="show-obstacle-form" class="btn btn-primary">
                         Register Obstacle
@@ -108,14 +115,19 @@
 
             // Store last drawn layer's GeoJSON
             let lastGeoJsonString = "";
+            let currentLocationMarker = null;
 
-            // Event when a new shape is drawn
-            map.on(L.Draw.Event.CREATED, function (e) {
-                const layer = e.layer;
-                drawnItems.addLayer(layer);
-
-                const geoJsonData = layer.toGeoJSON();
-                const coordinatesOnly = geoJsonData.geometry.coordinates;
+            // Function to update GeoJSON inputs from coordinates
+            function updateGeoJsonInputs(lat, lng) {
+                const geoJsonData = {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [lng, lat]
+                    },
+                    properties: {}
+                };
+                const coordinatesOnly = [lng, lat];
                 lastGeoJsonString = JSON.stringify(geoJsonData);
 
                 // Update hidden inputs
@@ -123,17 +135,45 @@
                 const coordsInput = document.getElementById('GeometryGeoJsonCoordinates');
 
                 if (geoInput) geoInput.value = lastGeoJsonString;
-                if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly); 
-            });
+                if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
+            }
 
-            // Event when user clicks "Register Obstacle"
-            document.getElementById("show-obstacle-form").addEventListener("click", function () {
+            // Function to open the obstacle form (extracted for reuse)
+            function openObstacleForm() {
                 const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
                 const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
                 const formContainer = document.getElementById("form-container");
 
-                const geoJsonValue = geoJsonInput.value;
-                const geoJsonCoordinates = coordinatesInput.value;
+                // Try to get value from hidden input first
+                let geoJsonValue = geoJsonInput ? geoJsonInput.value : "";
+                let geoJsonCoordinates = coordinatesInput ? coordinatesInput.value : "";
+
+                // If no value in hidden input, try to get from lastGeoJsonString
+                if (!geoJsonValue && lastGeoJsonString) {
+                    geoJsonValue = lastGeoJsonString;
+                    // Try to extract coordinates from lastGeoJsonString
+                    try {
+                        const parsed = JSON.parse(lastGeoJsonString);
+                        if (parsed.geometry && parsed.geometry.coordinates) {
+                            geoJsonCoordinates = JSON.stringify(parsed.geometry.coordinates);
+                        }
+                    } catch (e) {
+                        console.error("Error parsing lastGeoJsonString:", e);
+                    }
+                }
+
+                // If still no value, check if there are any drawn items
+                if (!geoJsonValue && drawnItems.getLayers().length > 0) {
+                    const lastLayer = drawnItems.getLayers()[drawnItems.getLayers().length - 1];
+                    const geoJsonData = lastLayer.toGeoJSON();
+                    geoJsonValue = JSON.stringify(geoJsonData);
+                    const coordinatesOnly = geoJsonData.geometry.coordinates;
+                    geoJsonCoordinates = JSON.stringify(coordinatesOnly);
+                    
+                    // Update hidden inputs for consistency
+                    if (geoJsonInput) geoJsonInput.value = geoJsonValue;
+                    if (coordinatesInput) coordinatesInput.value = geoJsonCoordinates;
+                }
 
                 if (!geoJsonValue) {
                     alert("Please click on the map to select obstacle location before registering.");
@@ -152,16 +192,127 @@
                             const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
                             const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
 
-                            if (formGeoInput) formGeoInput.value = geoJsonValue;
-                            if (formGeoInputCoordinates) formGeoInputCoordinates.value = geoJsonCoordinates;
+                            if (formGeoInput) {
+                                formGeoInput.value = geoJsonValue;
+                            } else {
+                                console.error("Could not find input[name='GeometryGeoJson'] in form");
+                            }
+                            
+                            if (formGeoInputCoordinates) {
+                                formGeoInputCoordinates.value = geoJsonCoordinates;
+                            } else {
+                                console.error("Could not find input[name='GeometryGeoCoordinates'] in form");
+                            }
 
                             // Show the form
                             formElem.style.display = "block";
 
                             // Reparse for unobtrusive validation
                             $.validator.unobtrusive.parse(formElem);
+                        } else {
+                            console.error("Could not find obstacle-form element");
                         }
+                    })
+                    .catch(error => {
+                        console.error("Error loading form:", error);
+                        alert("An error occurred while loading the form. Please try again.");
                     });
+            }
+
+            // Event when a new shape is drawn
+            map.on(L.Draw.Event.CREATED, function (e) {
+                const layer = e.layer;
+                drawnItems.addLayer(layer);
+
+                const geoJsonData = layer.toGeoJSON();
+                const coordinatesOnly = geoJsonData.geometry.coordinates;
+                lastGeoJsonString = JSON.stringify(geoJsonData);
+
+                // Update hidden inputs
+                const geoInput = document.getElementById('GeometryGeoJsonMap');
+                const coordsInput = document.getElementById('GeometryGeoJsonCoordinates');
+
+                if (geoInput) geoInput.value = lastGeoJsonString;
+                if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly); 
+            });
+
+            // Event when user clicks "Use current location"
+            document.getElementById("use-current-location").addEventListener("click", function () {
+                if (!navigator.geolocation) {
+                    alert("Geolocation is not supported by your browser.");
+                    return;
+                }
+
+                const button = this;
+                const originalText = button.textContent;
+                button.disabled = true;
+                button.textContent = "Getting location...";
+
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        // Remove all existing layers first to avoid conflicts
+                        drawnItems.clearLayers();
+                        currentLocationMarker = null;
+
+                        // Create and add marker at current location
+                        currentLocationMarker = L.marker([lat, lng]);
+                        drawnItems.addLayer(currentLocationMarker);
+                        map.setView([lat, lng], 15);
+
+                        // Update GeoJSON inputs - this is critical for the form to work
+                        updateGeoJsonInputs(lat, lng);
+                        
+                        // Also update lastGeoJsonString for consistency
+                        const geoJsonData = {
+                            type: "Feature",
+                            geometry: {
+                                type: "Point",
+                                coordinates: [lng, lat]
+                            },
+                            properties: {}
+                        };
+                        lastGeoJsonString = JSON.stringify(geoJsonData);
+
+                        button.disabled = false;
+                        button.textContent = originalText;
+
+                        // Automatically open the obstacle form after location is set
+                        openObstacleForm();
+                    },
+                    function (error) {
+                        let errorMessage = "Unable to retrieve your location. ";
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage += "Location access denied by user.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage += "Location information unavailable.";
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage += "Location request timed out.";
+                                break;
+                            default:
+                                errorMessage += "An unknown error occurred.";
+                                break;
+                        }
+                        alert(errorMessage);
+                        button.disabled = false;
+                        button.textContent = originalText;
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
+
+            // Event when user clicks "Register Obstacle"
+            document.getElementById("show-obstacle-form").addEventListener("click", function () {
+                openObstacleForm();
             });
         });
     </script>

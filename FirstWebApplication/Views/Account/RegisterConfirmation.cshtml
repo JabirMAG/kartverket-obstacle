@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Registrering mottatt";
+}
+
+<h2>Registrering mottatt</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
