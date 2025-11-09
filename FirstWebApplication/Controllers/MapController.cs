@@ -16,11 +16,11 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> Map()
         {
-            // Get all pending obstacles (status = 1) to display on map
+            // Get all pending (status = 1) and approved (status = 2) obstacles to display on map
             var allObstacles = await _obstacleRepository.GetAllObstacles();
-            var pendingObstacles = allObstacles.Where(o => o.ObstacleStatus == 1).ToList();
+            var reportedObstacles = allObstacles.Where(o => o.ObstacleStatus == 1 || o.ObstacleStatus == 2).ToList();
             
-            ViewBag.PendingObstacles = pendingObstacles;
+            ViewBag.ReportedObstacles = reportedObstacles;
             
             var obstacleData = new ObstacleData();
             return View(obstacleData);
@@ -31,7 +31,16 @@ namespace FirstWebApplication.Controllers
         {
             // Get all pending obstacles (status = 1) for checking
             var allObstacles = await _obstacleRepository.GetAllObstacles();
-            var pendingObstacles = allObstacles.Where(o => o.ObstacleStatus == 1).ToList();
+            var pendingObstacles = allObstacles.Where(o => o.ObstacleStatus == 1)
+                .Select(o => new {
+                    id = o.ObstacleId,
+                    name = o.ObstacleName,
+                    height = o.ObstacleHeight,
+                    description = o.ObstacleDescription,
+                    status = o.ObstacleStatus,
+                    geometryGeoJson = o.GeometryGeoJson
+                })
+                .ToList();
             
             return Json(pendingObstacles);
         }
