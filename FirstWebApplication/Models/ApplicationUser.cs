@@ -9,6 +9,6 @@ public class ApplicationUser : IdentityUser
     public bool IaApproved { get; set; } = false;
     public string? FullName { get; set; }
 
-    public new string? Email { get; set; }
+    public string? Email { get; set; }
 
 }
