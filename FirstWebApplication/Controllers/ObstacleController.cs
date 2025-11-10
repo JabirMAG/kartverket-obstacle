@@ -37,6 +37,66 @@ namespace FirstWebApplication.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuickSaveObstacle(ObstacleData obstacledata)
+        {
+            // Fjern valideringsfeil for de tre feltene som kan hoppes over
+            ModelState.Remove(nameof(ObstacleData.ObstacleName));
+            ModelState.Remove(nameof(ObstacleData.ObstacleHeight));
+            ModelState.Remove(nameof(ObstacleData.ObstacleDescription));
+
+            // Valider kun GeometryGeoJson (påkrevd felt)
+            if (string.IsNullOrEmpty(obstacledata.GeometryGeoJson))
+            {
+                ModelState.AddModelError(nameof(ObstacleData.GeometryGeoJson), "Geometry (GeoJSON) is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Check if this is an AJAX request
+                var request = Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
+                if (request)
+                {
+                    return PartialView("_ObstacleFormPartial", obstacledata);
+                }
+                return PartialView("_ObstacleFormPartial", obstacledata);
+            }
+            
+            // Sett eier av hindringen (innlogget pilot)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                obstacledata.OwnerUserId = currentUser.Id;
+            }
+
+            // Lagre hindringen (med tomme verdier for de tre feltene)
+            var savedObstacle = await _obstacleRepository.AddObstacle(obstacledata);
+            
+            // Opprett automatisk rapport når hindring opprettes
+            var obstacleName = string.IsNullOrEmpty(savedObstacle.ObstacleName) ? "Ikke navngitt" : savedObstacle.ObstacleName;
+            var heightInfo = savedObstacle.ObstacleHeight > 0 ? $"Høyde: {savedObstacle.ObstacleHeight}m. " : "";
+            var descriptionInfo = !string.IsNullOrEmpty(savedObstacle.ObstacleDescription) ? savedObstacle.ObstacleDescription : "";
+            
+            var rapport = new RapportData
+            {
+                ObstacleId = savedObstacle.ObstacleId,
+                RapportComment = $"Hindring '{obstacleName}' ble hurtiglagret. {heightInfo}{descriptionInfo}"
+            };
+            
+            await _registrarRepository.AddRapport(rapport);
+            
+            // Check if this is an AJAX request
+            var isAjaxRequest = Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
+            if (isAjaxRequest)
+            {
+                // For AJAX requests, return a JSON response with redirect URL
+                return Json(new { success = true, redirectUrl = Url.Action("Overview", "Obstacle", new { id = savedObstacle.ObstacleId }) });
+            }
+            
+            return View("Overview", obstacledata);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitObstacle(ObstacleData obstacledata)
         {
             if (!ModelState.IsValid)
