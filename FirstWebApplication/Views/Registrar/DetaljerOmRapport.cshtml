@@ -8,9 +8,9 @@
     var rapports = ViewBag.Rapports as List<FirstWebApplication.Models.RapportData>;
     var statusText = obstacle?.ObstacleStatus switch
     {
-        1 => "Pending",
-        2 => "Approved",
-        3 => "Rejected",
+        1 => "Under behandling",
+        2 => "Godkjent",
+        3 => "Avslått",
         _ => "Ukjent"
     };
 }
@@ -43,7 +43,7 @@ else
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Overview av hindring</h5>
+                    <h5 class="card-title mb-0">Oversikt over hindring</h5>
                 </div>
                 <div class="card-body">
                     <dl class="row">
@@ -60,9 +60,9 @@ else
                                 <input type="hidden" name="obstacleId" value="@obstacle.ObstacleId" />
                                 <input type="hidden" name="returnUrl" value="DetaljerOmRapport" />
                                 <select name="status" onchange="this.form.submit()" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                    <option value="1" selected="@(obstacle.ObstacleStatus == 1)">Pending</option>
-                                    <option value="2" selected="@(obstacle.ObstacleStatus == 2)">Approved</option>
-                                    <option value="3" selected="@(obstacle.ObstacleStatus == 3)">Rejected</option>
+                                    <option value="1" selected="@(obstacle.ObstacleStatus == 1)">Under behandling</option>
+                                    <option value="2" selected="@(obstacle.ObstacleStatus == 2)">Godkjent</option>
+                                    <option value="3" selected="@(obstacle.ObstacleStatus == 3)">Avslått</option>
                                 </select>
                             </form>
                         </dd>
