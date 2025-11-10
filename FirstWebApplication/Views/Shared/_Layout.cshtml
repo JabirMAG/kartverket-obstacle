@@ -8,6 +8,8 @@
     string homeController = "Home";
     string homeAction = "Index";
     bool isAdmin = false;
+    bool isPilot = false;
+    bool isRegistrar = false;
     ApplicationUser? currentUser = null;
     
     if (SignInManager.IsSignedIn(User))
@@ -16,18 +18,20 @@
         if (currentUser != null)
         {
             isAdmin = await UserManager.IsInRoleAsync(currentUser, "Admin");
+            isPilot = await UserManager.IsInRoleAsync(currentUser, "Pilot");
+            isRegistrar = await UserManager.IsInRoleAsync(currentUser, "Registerfører");
             
             if (isAdmin)
             {
                 homeController = "Admin";
                 homeAction = "Dashboard";
             }
-            else if (await UserManager.IsInRoleAsync(currentUser, "Pilot"))
+            else if (isPilot)
             {
                 homeController = "Map";
                 homeAction = "Map";
             }
-            else if (await UserManager.IsInRoleAsync(currentUser, "Registerfører"))
+            else if (isRegistrar)
             {
                 homeController = "Registrar";
                 homeAction = "Registrar";
@@ -50,18 +54,38 @@
             <div class="container-fluid d-flex justify-content-between align-items-center">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kartverket</a>
                 
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        Meny
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" asp-area="" asp-controller="Map" asp-action="Map">Kart</a></li>
-                        <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="Registrar">Registerfører</a></li>
-                        <li><a class="dropdown-item" asp-area="" asp-controller="Advice" asp-action="FeedbackForm">Tilbakemelding</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Administrator</a></li>
-                    </ul>
-                </div>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; padding: 0.5rem;">
+                            <span class="hamburger-icon">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            @if (isAdmin)
+                            {
+                                <li><h6 class="dropdown-header">Admin</h6></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers">Brukerhåndtering</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Reports">Rapporter</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="CreateUser">Opprett bruker</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
+                            }
+                            else if (isPilot)
+                            {
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
+                            }
+                            else if (isRegistrar)
+                            {
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
+                            }
+                        </ul>
+                    </div>
+                }
             </div>
         </nav>
     </header>
