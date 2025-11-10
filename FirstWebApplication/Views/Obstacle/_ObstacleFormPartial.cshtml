@@ -1,7 +1,7 @@
 ﻿@model FirstWebApplication.Models.ObstacleData
 
 @{
-    ViewData["Title"] = "Register Obstacle";
+    ViewData["Title"] = "Registrer hindring";
 }
 
 <link rel="stylesheet" href="~/css/_ObstacleFormPartial.css" />
@@ -10,8 +10,8 @@
     <div class="obstacle-form-container">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Register an Obstacle</h5>
-                <p class="text-muted mb-0 small">Fill in the obstacle details below.</p>
+                <h5 class="card-title mb-0">Registrer en hindring</h5>
+                <p class="text-muted mb-0 small">Fyll inn hindringens detaljer nedenfor.</p>
             </div>
             <div class="card-body">
                 <form asp-controller="Obstacle" asp-action="SubmitObstacle" method="post" id="obstacle-form">
@@ -25,30 +25,30 @@
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="ObstacleName" class="form-label">Obstacle Name</label>
+                        <label asp-for="ObstacleName" class="form-label">Hindringens navn</label>
                         <input asp-for="ObstacleName" 
                                class="form-control" 
-                               placeholder="e.g., Wall, Ramp" />
+                               placeholder="f.eks. Vegg, Ramp" />
                         <span asp-validation-for="ObstacleName" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="ObstacleHeight" class="form-label">Height (meters)</label>
+                        <label asp-for="ObstacleHeight" class="form-label">Høyde (meter)</label>
                         <input asp-for="ObstacleHeight" 
                                type="number" 
                                step="0.01" 
                                min="0" 
                                class="form-control" 
-                               placeholder="e.g., 2.5" />
+                               placeholder="f.eks. 2,5" />
                         <span asp-validation-for="ObstacleHeight" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="ObstacleDescription" class="form-label">Description</label>
+                        <label asp-for="ObstacleDescription" class="form-label">Beskrivelse</label>
                         <textarea asp-for="ObstacleDescription" 
                                   rows="3" 
                                   class="form-control" 
-                                  placeholder="Describe the obstacle, materials, location, etc."></textarea>
+                                  placeholder="Beskriv hindringen, materialer, plassering, osv."></textarea>
                         <span asp-validation-for="ObstacleDescription" class="text-danger small"></span>
                     </div>
 
@@ -56,8 +56,8 @@
                         <button type="submit" 
                                 class="btn btn-green-custom" 
                                 id="obstacle-submit-button"
-                                aria-label="Submit obstacle">
-                            Submit
+                                aria-label="Send inn hindring">
+                            Send inn
                         </button>
                     </div>
                 </form>
