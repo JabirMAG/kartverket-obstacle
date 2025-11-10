@@ -28,7 +28,6 @@ else
     <table class="table table-striped align-middle">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Navn</th>
                 <th>Beskrivelse</th>
                 <th>Koordinater</th>
@@ -92,7 +91,6 @@ else
                 var statusBadge = obstacle.ObstacleStatus == 1 ? "bg-warning" : obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
 
                 <tr>
-                    <td>@obstacle.ObstacleId</td>
                     <td>@obstacle.ObstacleName</td>
                     <td>@obstacle.ObstacleDescription</td>
                     <td>@coordinatesDisplay</td>
