@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 namespace FirstWebApplication.Models
 {
     // ObstacleData representerer data om en hindring som registreres i systemet.
@@ -7,6 +8,10 @@ namespace FirstWebApplication.Models
     {
         [Key]
         public int ObstacleId { get; set; }
+
+        // Eieren (piloten) som sendte inn hindringen
+        [MaxLength(255)]
+        public string? OwnerUserId { get; set; }
 
         // Navnet på hindringen.
         // Må fylles ut og kan maks være 100 tegn.

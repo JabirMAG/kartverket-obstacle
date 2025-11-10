@@ -1,0 +1,105 @@
+@model IEnumerable<FirstWebApplication.Models.ObstacleData>
+@using System.Text.Json
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Mine rapporter";
+}
+
+<h1 class="display-6">Mine rapporter</h1>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        <p>Du har ikke sendt inn noen hindringer ennå.</p>
+    </div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Navn</th>
+                <th>Beskrivelse</th>
+                <th>Koordinater</th>
+                <th>Høyde (m)</th>
+                <th class="text-end">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var obstacle in Model)
+            {
+                string coordinatesDisplay = "N/A";
+                try
+                {
+                    if (!string.IsNullOrEmpty(obstacle.GeometryGeoJson))
+                    {
+                        var geoJson = JsonSerializer.Deserialize<JsonElement>(obstacle.GeometryGeoJson);
+                        double? lat = null;
+                        double? lng = null;
+
+                        if (geoJson.TryGetProperty("geometry", out var geometry))
+                        {
+                            if (geometry.TryGetProperty("type", out var typeProp))
+                            {
+                                var type = typeProp.GetString();
+                                if (type == "Point" && geometry.TryGetProperty("coordinates", out var coords))
+                                {
+                                    if (coords.GetArrayLength() >= 2)
+                                    {
+                                        lng = coords[0].GetDouble();
+                                        lat = coords[1].GetDouble();
+                                    }
+                                }
+                            }
+                        }
+
+                        if (lat.HasValue && lng.HasValue)
+                        {
+                            coordinatesDisplay = $"{lat.Value:F5}, {lng.Value:F5}";
+                        }
+                    }
+                }
+                catch
+                {
+                    coordinatesDisplay = "N/A";
+                }
+
+                var statusText = obstacle.ObstacleStatus switch
+                {
+                    1 => "Under behandling",
+                    2 => "Godkjent",
+                    3 => "Avslått",
+                    _ => "Ukjent"
+                };
+                var statusBadge = obstacle.ObstacleStatus == 1 ? "bg-warning" : obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
+
+                <tr>
+                    <td>@obstacle.ObstacleName</td>
+                    <td>@obstacle.ObstacleDescription</td>
+                    <td>@coordinatesDisplay</td>
+                    <td>@obstacle.ObstacleHeight</td>
+                    <td class="text-end">
+                        <div class="d-flex align-items-center justify-content-end gap-2">
+                            <span class="badge @statusBadge">@statusText</span>
+                            <a asp-controller="Pilot" asp-action="DetaljerOmRapport" asp-route-obstacleId="@obstacle.ObstacleId" class="btn btn-sm btn-outline-primary">
+                                Se detaljer
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
