@@ -77,10 +77,14 @@
                             }
                             else if (isPilot)
                             {
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Map" asp-action="Map">Kart</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
                             }
                             else if (isRegistrar)
                             {
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="Registrar">Rapporter</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
                             }
                         </ul>
