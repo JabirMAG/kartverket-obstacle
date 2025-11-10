@@ -1,7 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using FirstWebApplication.Models
+@using FirstWebApplication.Repositories
+@using System.Linq
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject IRegistrarRepository RegistrarRepository
 
 @{
     // Determine the home page based on user role
@@ -9,6 +12,8 @@
     string homeAction = "Index";
     bool isAdmin = false;
     ApplicationUser? currentUser = null;
+    int notificationCount = 0;
+    bool hasNotifications = false;
     
     if (SignInManager.IsSignedIn(User))
     {
@@ -32,6 +37,24 @@
                 homeController = "Registrar";
                 homeAction = "Registrar";
             }
+
+            // Check for notifications (comments from admin/registerfører that are not automatic submission comments)
+            try
+            {
+                var allRapports = await RegistrarRepository.GetAllRapports();
+                var notifications = allRapports
+                    .Where(r => !(r.RapportComment.StartsWith("Hindring '") && 
+                                 r.RapportComment.Contains(" ble sendt inn. Høyde:")))
+                    .ToList();
+                notificationCount = notifications.Count;
+                hasNotifications = notificationCount > 0;
+            }
+            catch
+            {
+                // If there's an error, just set to 0
+                notificationCount = 0;
+                hasNotifications = false;
+            }
         }
     }
 }
@@ -50,16 +73,32 @@
             <div class="container-fluid d-flex justify-content-between align-items-center">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kartverket</a>
                 
-                <div class="dropdown">
+                <div class="dropdown" style="position: relative;">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         Meny
+                        @if (hasNotifications)
+                        {
+                            <span class="notification-indicator has-notifications">@(notificationCount > 9 ? "9+" : notificationCount.ToString())</span>
+                        }
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" asp-area="" asp-controller="Map" asp-action="Map">Map</a></li>
                         <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="Registrar">Registerfører</a></li>
+                        <li><a class="dropdown-item varsling-menu-item @(hasNotifications ? "has-notifications" : "")" 
+                               asp-area="" asp-controller="Varsling" asp-action="Index" 
+                               id="varslingMenuItem">
+                               Varsling
+                               @if (hasNotifications)
+                               {
+                                   <span class="badge bg-primary ms-2">@notificationCount</span>
+                               }
+                           </a></li>
                         <li><a class="dropdown-item" asp-area="" asp-controller="Advice" asp-action="FeedbackForm">Feedback</a></li>
+                        @if (isAdmin)
+                        {
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Admin</a></li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -80,5 +119,89 @@
 
     @await Html.PartialAsync("_Scripts")  <!-- Include JS -->
     @RenderSection("Scripts", required: false)  <!-- Optional page-specific scripts -->
+    
+    <script>
+        // Check for notifications periodically and update UI
+        (function() {
+            var hasInitialNotifications = @(hasNotifications ? "true" : "false");
+            var notificationCount = @notificationCount;
+            
+            function updateNotificationUI(count) {
+                var hasNotifications = count > 0;
+                var indicator = document.querySelector('.notification-indicator');
+                var varslingMenuItem = document.getElementById('varslingMenuItem');
+                var menuButton = document.getElementById('navbarDropdown');
+                
+                // Update indicator on menu button
+                if (indicator) {
+                    if (hasNotifications) {
+                        indicator.classList.add('has-notifications');
+                        indicator.textContent = count > 9 ? '9+' : count.toString();
+                    } else {
+                        indicator.classList.remove('has-notifications');
+                    }
+                } else if (hasNotifications && menuButton) {
+                    // Create indicator if it doesn't exist
+                    var newIndicator = document.createElement('span');
+                    newIndicator.className = 'notification-indicator has-notifications';
+                    newIndicator.textContent = count > 9 ? '9+' : count.toString();
+                    menuButton.appendChild(newIndicator);
+                }
+                
+                // Update varsling menu item
+                if (varslingMenuItem) {
+                    if (hasNotifications) {
+                        varslingMenuItem.classList.add('has-notifications');
+                        // Update or create badge
+                        var badge = varslingMenuItem.querySelector('.badge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'badge bg-primary ms-2';
+                            varslingMenuItem.appendChild(badge);
+                        }
+                        badge.textContent = count > 9 ? '9+' : count.toString();
+                    } else {
+                        varslingMenuItem.classList.remove('has-notifications');
+                        var badge = varslingMenuItem.querySelector('.badge');
+                        if (badge) {
+                            badge.remove();
+                        }
+                    }
+                }
+            }
+            
+            // Check for notifications every 30 seconds
+            if (@(SignInManager.IsSignedIn(User) ? "true" : "false")) {
+                setInterval(function() {
+                    fetch('@Url.Action("GetNotificationCount", "Varsling")')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.count !== notificationCount) {
+                                notificationCount = data.count;
+                                updateNotificationUI(notificationCount);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking notifications:', error);
+                        });
+                }, 30000); // Check every 30 seconds
+            }
+            
+            // Highlight varsling menu item when dropdown is opened and there are notifications
+            var dropdown = document.getElementById('navbarDropdown');
+            if (dropdown) {
+                dropdown.addEventListener('click', function() {
+                    if (hasInitialNotifications || notificationCount > 0) {
+                        setTimeout(function() {
+                            var varslingItem = document.getElementById('varslingMenuItem');
+                            if (varslingItem) {
+                                varslingItem.style.fontWeight = 'bold';
+                            }
+                        }, 100);
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
 </html>
