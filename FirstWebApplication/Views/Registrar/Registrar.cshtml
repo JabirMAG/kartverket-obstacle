@@ -83,9 +83,9 @@ else
 
                 var statusText = obstacle.ObstacleStatus switch
                 {
-                    1 => "Pending",
-                    2 => "Approved",
-                    3 => "Rejected",
+                    1 => "Under behandling",
+                    2 => "Godkjent",
+                    3 => "Avslått",
                     _ => "Ukjent"
                 };
                 var statusBadge = obstacle.ObstacleStatus == 1 ? "bg-warning" : obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
