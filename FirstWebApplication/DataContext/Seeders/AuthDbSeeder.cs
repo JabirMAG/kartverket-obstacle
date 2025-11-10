@@ -65,4 +65,3 @@ namespace FirstWebApplication.DataContext.Seeders
         }
     }
 }
-
