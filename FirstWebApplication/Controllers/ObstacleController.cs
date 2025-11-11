@@ -2,6 +2,7 @@ using FirstWebApplication.DataContext;
 using FirstWebApplication.Repositories;
 using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 
 namespace FirstWebApplication.Controllers
 {
@@ -9,11 +10,13 @@ namespace FirstWebApplication.Controllers
     {
         private readonly IObstacleRepository _obstacleRepository;
         private readonly IRegistrarRepository _registrarRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ObstacleController(IObstacleRepository obstacleRepository, IRegistrarRepository registrarRepository)
+        public ObstacleController(IObstacleRepository obstacleRepository, IRegistrarRepository registrarRepository, UserManager<ApplicationUser> userManager)
         {
             _obstacleRepository = obstacleRepository;
             _registrarRepository = registrarRepository;
+            _userManager = userManager;
         }
 
         public IActionResult DataFormPartial()
@@ -47,6 +50,13 @@ namespace FirstWebApplication.Controllers
                 return PartialView("_ObstacleFormPartial", obstacledata);
             }
             
+            // Sett eier av hindringen (innlogget pilot)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                obstacledata.OwnerUserId = currentUser.Id;
+            }
+
             // Lagre hindringen
             var savedObstacle = await _obstacleRepository.AddObstacle(obstacledata);
             

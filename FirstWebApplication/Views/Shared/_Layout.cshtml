@@ -8,6 +8,8 @@
     string homeController = "Home";
     string homeAction = "Index";
     bool isAdmin = false;
+    bool isPilot = false;
+    bool isRegistrar = false;
     ApplicationUser? currentUser = null;
     
     if (SignInManager.IsSignedIn(User))
@@ -16,18 +18,20 @@
         if (currentUser != null)
         {
             isAdmin = await UserManager.IsInRoleAsync(currentUser, "Admin");
+            isPilot = await UserManager.IsInRoleAsync(currentUser, "Pilot");
+            isRegistrar = await UserManager.IsInRoleAsync(currentUser, "Registerfører");
             
             if (isAdmin)
             {
                 homeController = "Admin";
                 homeAction = "Dashboard";
             }
-            else if (await UserManager.IsInRoleAsync(currentUser, "Pilot"))
+            else if (isPilot)
             {
                 homeController = "Map";
                 homeAction = "Map";
             }
-            else if (await UserManager.IsInRoleAsync(currentUser, "Registerfører"))
+            else if (isRegistrar)
             {
                 homeController = "Registrar";
                 homeAction = "Registrar";
@@ -38,11 +42,11 @@
 
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="~/kartverket-logo.png" />
+    <link rel="icon" type="image/png" href="~/images/kartverket-logo.png" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Kartverket</title>
-    @await Html.PartialAsync("_Styles")  <!-- Include CSS -->
+    @await Html.PartialAsync("_Styles")  
 </head>
 <body>
     <header>
@@ -85,7 +89,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Kartverket - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Kartverket - <a asp-area="" asp-controller="Home" asp-action="Privacy">Personvern</a>
         </div>
     </footer>
 

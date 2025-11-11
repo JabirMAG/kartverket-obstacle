@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Map Test</title>
+    <title>Kart</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -109,6 +109,90 @@
             max-width: 90%;
             display: none;
         }
+
+        /* Styling for Leaflet Draw Control - større og mer iPad-vennlig */
+        .leaflet-draw-toolbar {
+            margin-top: 10px;
+        }
+
+        .leaflet-draw-toolbar a {
+            background-color:rgb(255, 255, 255);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 44px;
+            height: 44px;
+            line-height: 44px;
+            font-size: 20px;
+            margin: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: inline-block;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .leaflet-draw-toolbar a:hover {
+            background-color:rgb(255, 255, 255);
+            transform: scale(1.05);
+        }
+
+        .leaflet-draw-toolbar a:active {
+            background-color:rgb(136, 212, 114);
+            transform: scale(0.95);
+        }
+
+        /* Større ikoner for bedre synlighet */
+        .leaflet-draw-toolbar .leaflet-draw-draw-marker,
+        .leaflet-draw-toolbar .leaflet-draw-draw-polyline {
+            font-size: 24px;
+        }
+
+        /* Styling for draw control container */
+        .leaflet-draw {
+            font-size: 16px;
+        }
+
+        /* Større touch targets for iPad */
+        @@media (hover: none) and (pointer: coarse) {
+            .leaflet-draw-toolbar a {
+                width: 50px;
+                height: 50px;
+                line-height: 50px;
+                font-size: 24px;
+                margin: 6px;
+            }
+        }
+
+        /* Styling for draw toolbar når den er aktiv */
+        .leaflet-draw-toolbar-top {
+            margin-top: 10px;
+        }
+
+        .leaflet-draw-toolbar-top .leaflet-draw-toolbar {
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        /* Fjerne standard Leaflet styling som kan konflikte */
+        .leaflet-draw-toolbar .leaflet-draw-actions {
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .leaflet-draw-toolbar .leaflet-draw-actions a {
+            background-color: #f5f5f5;
+            color: #333;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            font-size: 18px;
+        }
+
+        .leaflet-draw-toolbar .leaflet-draw-actions a:hover {
+            background-color: #e0e0e0;
+        }
     </style>
 
 
@@ -120,11 +204,11 @@
         <!-- Button positioned over the map -->
         <div class="location-button-container">
             <button id="use-current-location">
-                Use current location
+                Bruk nåværende posisjon
             </button>
         </div>
 
-        <!-- Info about reported obstacles -->
+        <!-- Info om rapporterte hindringer -->
         <div class="pending-info-container">
             <div class="legend-item">
                 <span class="pending-marker-example"></span>
@@ -141,7 +225,7 @@
     <input type="hidden" id="GeometryGeoJsonMap" />
     <input type="hidden" id="GeometryGeoJsonCoordinates" />
 
-    <!-- Placeholder for obstacle form -->
+    <!-- Plassholder for hindringsskjema -->
     <div id="form-container"></div>
 
     <!-- Leaflet and dependencies -->
@@ -160,7 +244,7 @@
 
 
     <script>
-        // Get reported obstacles (pending and approved) from server
+        // Hent rapporterte hindringer (under behandling og godkjent) fra server
         // Create anonymous objects with lowercase property names to match JavaScript conventions
         @{
             var reportedObstaclesList = ViewBag.ReportedObstacles as List<FirstWebApplication.Models.ObstacleData> ?? new List<FirstWebApplication.Models.ObstacleData>();
@@ -174,10 +258,10 @@
             }));
         }
         let reportedObstacles = @Html.Raw(reportedObstaclesJson);
-        // Keep pending obstacles separate for conflict checking (filter in JavaScript)
+        // Hold hindringer under behandling separat for konfliktsjekking (filtrer i JavaScript)
         let pendingObstacles = reportedObstacles ? reportedObstacles.filter(function(o) { return o.status === 1; }) : [];
 
-        // Function to get status text
+        // Funksjon for å hente statustekst
         function getStatusText(status) {
             switch(status) {
                 case 1: return 'Under behandling';
@@ -187,7 +271,7 @@
             }
         }
 
-        // Function to get status color
+        // Funksjon for å hente statusfarge
         function getStatusColor(status) {
             switch(status) {
                 case 1: return '#ff9800'; // Orange for pending
@@ -198,24 +282,24 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            // Initialize the map
+            // Initialiser kartet
             const map = L.map('map').setView([59.9139, 10.7522], 7);
 
-            // Add OSM tile layer
+            // Legg til OSM-flislelag
             const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             });
             osm.addTo(map);
 
-            // Feature group to store drawn layers
+            // Funksjonsgruppe for å lagre tegnede lag
             const drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
 
-            // Feature group to store reported obstacle markers
+            // Funksjonsgruppe for å lagre rapporterte hindringsmarkører
             const reportedMarkers = new L.FeatureGroup();
             map.addLayer(reportedMarkers);
 
-            // Add reported obstacles (pending and approved) as markers on the map
+            // Legg til rapporterte hindringer (under behandling og godkjent) som markører på kartet
             if (reportedObstacles && reportedObstacles.length > 0) {
                 reportedObstacles.forEach(function(obstacle) {
                     if (obstacle.geometryGeoJson) {
@@ -224,23 +308,23 @@
                                 ? JSON.parse(obstacle.geometryGeoJson) 
                                 : obstacle.geometryGeoJson;
                             
-                            // Extract geometry - handle both Feature and direct geometry
+                            // Trekk ut geometri - håndter både Feature og direkte geometri
                             var geometry = geoJson.geometry || geoJson;
                             if (!geometry || !geometry.coordinates) return;
                             
                             var geometryType = geometry.type;
                             var coordinates = geometry.coordinates;
                             
-                            // Get status color based on obstacle status
+                            // Hent statusfarge basert på hindringens status
                             var statusColor = getStatusColor(obstacle.status);
                             var statusText = getStatusText(obstacle.status);
                             
-                            // Create popup content
+                            // Opprett popup-innhold
                             var popupContent = '<strong>' + (obstacle.name || 'Rapportert hindring') + '</strong><br>' +
                                               'Høyde: ' + (obstacle.height || 'N/A') + 'm<br>' +
                                               '<small>Status: <span style="color: ' + statusColor + '; font-weight: bold;">' + statusText + '</span></small>';
                             
-                            // Create a custom icon based on status
+                            // Opprett en tilpasset ikon basert på status
                             var customIcon = L.divIcon({
                                 className: 'reported-obstacle-marker',
                                 html: '<div style="background-color: ' + statusColor + '; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
@@ -248,25 +332,25 @@
                                 iconAnchor: [10, 10]
                             });
                             
-                            // Handle Point geometry
+                            // Håndter punktgeometri
                             if (geometryType === "Point" && coordinates.length >= 2) {
                                 var lat = coordinates[1];
                                 var lng = coordinates[0];
                                 
-                                // Create marker with popup showing status
+                                // Opprett markør med popup som viser status
                                 var marker = L.marker([lat, lng], { icon: customIcon })
                                     .bindPopup(popupContent);
                                 
                                 reportedMarkers.addLayer(marker);
                             }
-                            // Handle LineString/Polyline geometry
+                            // Håndter LineString/Polyline-geometri
                             else if (geometryType === "LineString" && Array.isArray(coordinates) && coordinates.length > 0) {
-                                // Convert coordinates from [lng, lat] to [lat, lng] for Leaflet
+                                // Konverter koordinater fra [lng, lat] til [lat, lng] for Leaflet
                                 var latlngs = coordinates.map(function(coord) {
                                     return [coord[1], coord[0]]; // [lat, lng]
                                 });
                                 
-                                // Create polyline with status color
+                                // Opprett polyline med statusfarge
                                 var polyline = L.polyline(latlngs, {
                                     color: statusColor,
                                     weight: 4,
@@ -275,7 +359,7 @@
                                 
                                 reportedMarkers.addLayer(polyline);
                                 
-                                // Add markers at each corner/point of the polyline
+                                // Legg til markører ved hvert hjørne/punkt på polylinjen
                                 latlngs.forEach(function(latlng, index) {
                                     var cornerMarker = L.marker(latlng, { icon: customIcon })
                                         .bindPopup(popupContent + '<br><small>Punkt ' + (index + 1) + ' av ' + latlngs.length + '</small>');
@@ -283,13 +367,13 @@
                                 });
                             }
                         } catch (err) {
-                            console.error("Error parsing obstacle GeoJSON:", err, obstacle);
+                            console.error("Feil ved parsing av hindring GeoJSON:", err, obstacle);
                         }
                     }
                 });
             }
 
-            // Leaflet.draw control
+            // Leaflet.draw-kontroll
             const drawControl = new L.Control.Draw({
                 draw: {
                     polygon: false,
@@ -305,11 +389,11 @@
             });
             map.addControl(drawControl);
 
-            // Store last drawn layer's GeoJSON
+            // Lagre siste tegnede lags GeoJSON
             let lastGeoJsonString = "";
             let currentLocationMarker = null;
 
-            // Function to update GeoJSON inputs from coordinates
+            // Funksjon for å oppdatere GeoJSON-inndata fra koordinater
             function updateGeoJsonInputs(lat, lng) {
                 const geoJsonData = {
                     type: "Feature",
@@ -330,13 +414,13 @@
                 if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
             }
 
-            // Function to check if there's a pending obstacle at the same coordinates
+            // Funksjon for å sjekke om det er en hindring under behandling på samme koordinater
             function checkForPendingObstacle(lat, lng) {
                 if (!pendingObstacles || pendingObstacles.length === 0) {
                     return null;
                 }
 
-                // Tolerance in degrees (approximately 10 meters)
+                // Toleranse i grader (omtrent 10 meter)
                 const tolerance = 0.0001;
 
                 for (var i = 0; i < pendingObstacles.length; i++) {
@@ -352,21 +436,21 @@
                                 var obstacleLat = coords[1];
                                 var obstacleLng = coords[0];
                                 
-                                // Check if coordinates are within tolerance
+                                // Sjekk om koordinater er innenfor toleranse
                                 if (Math.abs(obstacleLat - lat) < tolerance && 
                                     Math.abs(obstacleLng - lng) < tolerance) {
                                     return obstacle;
                                 }
                             }
                         } catch (err) {
-                            console.error("Error parsing obstacle GeoJSON:", err);
+                            console.error("Feil ved parsing av hindring GeoJSON:", err);
                         }
                     }
                 }
                 return null;
             }
 
-            // Function to extract coordinates from GeoJSON
+            // Funksjon for å trekke ut koordinater fra GeoJSON
             function extractCoordinates(geoJsonValue) {
                 try {
                     const parsed = typeof geoJsonValue === 'string' ? JSON.parse(geoJsonValue) : geoJsonValue;
@@ -377,12 +461,50 @@
                         }
                     }
                 } catch (e) {
-                    console.error("Error extracting coordinates:", e);
+                    console.error("Feil ved uttrekking av koordinater:", e);
                 }
                 return null;
             }
 
-            // Function to open the obstacle form (extracted for reuse)
+            // Funksjon for å lukke hindringsskjemaet
+            function closeObstacleForm() {
+                // Fjern kun markørene som brukeren har tegnet (ikke markørene fra databasen)
+                // drawnItems inneholder kun midlertidige markører, reportedMarkers inneholder markører fra databasen
+                if (drawnItems) {
+                    drawnItems.clearLayers();
+                }
+                currentLocationMarker = null;
+                
+                // Tøm GeoJSON inputs
+                const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
+                const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
+                if (geoJsonInput) {
+                    geoJsonInput.value = "";
+                }
+                if (coordinatesInput) {
+                    coordinatesInput.value = "";
+                }
+                
+                // Skjul skjemaet
+                const formElem = document.getElementById("obstacle-form");
+                if (formElem) {
+                    formElem.style.display = "none";
+                }
+                
+                // Tøm form-container
+                const formContainer = document.getElementById("form-container");
+                if (formContainer) {
+                    formContainer.innerHTML = "";
+                }
+                
+                // Skjul overlay hvis den finnes
+                const overlay = document.querySelector(".obstacle-form-overlay");
+                if (overlay) {
+                    overlay.style.display = "none";
+                }
+            }
+
+        // Funksjon for å åpne hindringsskjemaet (ekstrahert for gjenbruk)
             function openObstacleForm() {
                 const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
                 const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
@@ -420,11 +542,11 @@
                 }
 
                 if (!geoJsonValue) {
-                    alert("Please click on the map to select obstacle location before registering.");
+                    alert("Vennligst klikk på kartet for å velge hindringens plassering før registrering.");
                     return;
                 }
 
-                // Load the partial form
+                // Last inn delskjemaet
                 fetch('/Obstacle/DataFormPartial')
                     .then(response => response.text())
                     .then(html => {
@@ -432,7 +554,15 @@
 
                         const formElem = document.getElementById("obstacle-form");
                         if (formElem) {
-                            // Copy values into hidden fields in the form
+                            // Legg til event listener for avbryt-knappen
+                            const cancelButton = formElem.querySelector('#cancel-obstacle-button');
+                            if (cancelButton) {
+                                cancelButton.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    closeObstacleForm();
+                                });
+                            }
+                            // Kopier verdier til skjulte felt i skjemaet
                             const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
                             const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
 
@@ -448,22 +578,22 @@
                                 console.error("Could not find input[name='GeometryGeoCoordinates'] in form");
                             }
 
-                            // Show the form
+                            // Vis skjemaet
                             formElem.style.display = "block";
 
-                            // Fetch the latest pending obstacles from server and check for conflicts
+                            // Hent de nyeste hindringene under behandling fra server og sjekk for konflikter
                             const coords = extractCoordinates(geoJsonValue);
                             if (coords) {
                                 fetch('/Map/GetPendingObstacles')
                                     .then(response => response.json())
                                     .then(latestPendingObstacles => {
-                                        // Update the global pendingObstacles array with latest data
+                                        // Oppdater den globale pendingObstacles-arrayen med nyeste data
                                         pendingObstacles = latestPendingObstacles;
                                         
-                                        // Check for pending obstacle at this location
+                                        // Sjekk for hindring under behandling på denne plasseringen
                                         const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
                                         if (existingObstacle) {
-                                            // Show warning in the form
+                                            // Vis advarsel i skjemaet
                                             const warningDiv = formElem.querySelector('#pending-obstacle-warning');
                                             if (warningDiv) {
                                                 warningDiv.style.display = 'block';
@@ -478,8 +608,8 @@
                                         }
                                     })
                                     .catch(error => {
-                                        console.error("Error fetching pending obstacles:", error);
-                                        // Fallback to using existing pendingObstacles array
+                                        console.error("Feil ved henting av hindringer under behandling:", error);
+                                        // Fallback til å bruke eksisterende pendingObstacles-array
                                         const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
                                         if (existingObstacle) {
                                             const warningDiv = formElem.querySelector('#pending-obstacle-warning');
@@ -497,10 +627,10 @@
                                     });
                             }
 
-                            // Reparse for unobtrusive validation
+                            // Reparse for unobtrusive-validering
                             $.validator.unobtrusive.parse(formElem);
 
-                            // Handle form submission via AJAX
+                            // Håndter skjemainnsending via AJAX
                             function handleFormSubmit(e) {
                                 e.preventDefault();
 
@@ -517,23 +647,31 @@
                                 .then(response => {
                                     const contentType = response.headers.get("content-type");
                                     if (contentType && contentType.includes("application/json")) {
-                                        // Success - JSON response with redirect URL
-                                        return response.json();
-                                    } else {
-                                        // Validation failed - return HTML
+                                    // Suksess - JSON-respons med omdirigerings-URL
+                                    return response.json();
+                                } else {
+                                    // Validering feilet - returner HTML
                                         return response.text().then(html => ({ html: html }));
                                     }
                                 })
                                 .then(data => {
                                     if (data.redirectUrl) {
-                                        // Success - redirect to Overview page
+                                        // Suksess - omdiriger til oversiktsside
                                         window.location.href = data.redirectUrl;
                                     } else if (data.html) {
-                                        // Validation failed - update form with errors
+                                        // Validering feilet - oppdater skjema med feil
                                         formContainer.innerHTML = data.html;
                                         const updatedForm = document.getElementById("obstacle-form");
                                         if (updatedForm) {
-                                            // Copy coordinates back into the form
+                                            // Legg til event listener for avbryt-knappen i oppdatert skjema
+                                            const cancelButton = updatedForm.querySelector('#cancel-obstacle-button');
+                                            if (cancelButton) {
+                                                cancelButton.addEventListener('click', function(e) {
+                                                    e.preventDefault();
+                                                    closeObstacleForm();
+                                                });
+                                            }
+                                            // Kopier koordinater tilbake til skjemaet
                                             const formGeoInput = updatedForm.querySelector('input[name="GeometryGeoJson"]');
                                             const formGeoInputCoordinates = updatedForm.querySelector('input[name="GeometryGeoCoordinates"]');
                                             const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
@@ -548,14 +686,14 @@
                                             
                                             updatedForm.style.display = "block";
                                             
-                                            // Check for pending obstacle again when form is updated
+                                            // Sjekk for hindring under behandling igjen når skjemaet er oppdatert
                                             const coords = extractCoordinates(geoJsonInput ? geoJsonInput.value : "");
                                             if (coords) {
-                                                // Fetch the latest pending obstacles from server
+                                                // Hent de nyeste hindringene under behandling fra server
                                                 fetch('/Map/GetPendingObstacles')
                                                     .then(response => response.json())
                                                     .then(latestPendingObstacles => {
-                                                        // Update the global pendingObstacles array with latest data
+                                                        // Oppdater den globale pendingObstacles-arrayen med nyeste data
                                                         pendingObstacles = latestPendingObstacles;
                                                         
                                                         const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
@@ -567,15 +705,15 @@
                                                                 if (warningText) {
                                                                     warningText.textContent = 
                                                                         'Det er allerede en ubehandlet rapport i denne koordinaten (' + 
-                                                                        (existingObstacle.name || 'Pending Obstacle') + 
+                                                                        (existingObstacle.name || 'Hindring under behandling') + 
                                                                         '). Du er fortsatt velkommen til å rapportere.';
                                                                 }
                                                             }
                                                         }
                                                     })
                                                     .catch(error => {
-                                                        console.error("Error fetching pending obstacles:", error);
-                                                        // Fallback to using existing pendingObstacles array
+                                                        console.error("Feil ved henting av hindringer under behandling:", error);
+                                                        // Fallback til å bruke eksisterende pendingObstacles-array
                                                         const existingObstacle = checkForPendingObstacle(coords.lat, coords.lng);
                                                         if (existingObstacle) {
                                                             const warningDiv = updatedForm.querySelector('#pending-obstacle-warning');
@@ -585,7 +723,7 @@
                                                                 if (warningText) {
                                                                     warningText.textContent = 
                                                                         'Det er allerede en ubehandlet rapport i denne koordinaten (' + 
-                                                                        (existingObstacle.name || 'Pending Obstacle') + 
+                                                                        (existingObstacle.name || 'Hindring under behandling') + 
                                                                         '). Du er fortsatt velkommen til å rapportere.';
                                                                 }
                                                             }
@@ -595,26 +733,26 @@
                                             
                                             $.validator.unobtrusive.parse(updatedForm);
                                             
-                                            // Re-attach submit handler to the updated form
+                                            // Vedlegg innsendingshåndterer på nytt til det oppdaterte skjemaet
                                             updatedForm.addEventListener("submit", handleFormSubmit);
                                         }
                                     }
                                 })
                                 .catch(error => {
                                     console.error("Error submitting form:", error);
-                                    alert("An error occurred while submitting the form. Please try again.");
+                                    alert("En feil oppstod ved innsending av skjemaet. Vennligst prøv igjen.");
                                 });
                             }
                             
                             formElem.addEventListener("submit", handleFormSubmit);
                         } else {
-                            console.error("Could not find obstacle-form element");
+                            console.error("Kunne ikke finne hindringsskjema-element");
                         }
                     })
                     
             }
 
-            // Event when a new shape is drawn
+            // Hendelse når en ny form er tegnet
             map.on(L.Draw.Event.CREATED, function (e) {
                 const layer = e.layer;
                 drawnItems.addLayer(layer);
@@ -630,40 +768,40 @@
                 if (geoInput) geoInput.value = lastGeoJsonString;
                 if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
                 
-                // Automatically open the obstacle form after coordinates are set (same as use-current-location)
+                // Åpne hindringsskjemaet automatisk etter at koordinater er satt (samme som bruk-nåværende-posisjon)
                 openObstacleForm();
             });
 
-            // Event when user clicks "Use current location"
+            // Hendelse når bruker klikker "Bruk nåværende posisjon"
             document.getElementById("use-current-location").addEventListener("click", function () {
                 if (!navigator.geolocation) {
-                    alert("Geolocation is not supported by your browser.");
+                    alert("Geolokasjon støttes ikke av nettleseren din.");
                     return;
                 }
 
                 const button = this;
                 const originalText = button.textContent;
                 button.disabled = true;
-                button.textContent = "Getting location...";
+                button.textContent = "Henter posisjon...";
 
                 navigator.geolocation.getCurrentPosition(
                     function (position) {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
 
-                        // Remove all existing layers first to avoid conflicts
+                        // Fjern alle eksisterende lag først for å unngå konflikter
                         drawnItems.clearLayers();
                         currentLocationMarker = null;
 
-                        // Create and add marker at current location
+                        // Opprett og legg til markør på nåværende posisjon
                         currentLocationMarker = L.marker([lat, lng]);
                         drawnItems.addLayer(currentLocationMarker);
                         map.setView([lat, lng], 15);
 
-                        // Update GeoJSON inputs - this is critical for the form to work
+                        // Oppdater GeoJSON-inndata - dette er kritisk for at skjemaet skal fungere
                         updateGeoJsonInputs(lat, lng);
                         
-                        // Also update lastGeoJsonString for consistency
+                        // Oppdater også lastGeoJsonString for konsistens
                         const geoJsonData = {
                             type: "Feature",
                             geometry: {
@@ -677,23 +815,23 @@
                         button.disabled = false;
                         button.textContent = originalText;
 
-                        // Automatically open the obstacle form after location is set
+                        // Åpne hindringsskjemaet automatisk etter at posisjon er satt
                         openObstacleForm();
                     },
                     function (error) {
-                        let errorMessage = "Unable to retrieve your location. ";
+                        let errorMessage = "Kunne ikke hente din posisjon. ";
                         switch (error.code) {
                             case error.PERMISSION_DENIED:
-                                errorMessage += "Location access denied by user.";
+                                errorMessage += "Posisjonstilgang nektet av bruker.";
                                 break;
                             case error.POSITION_UNAVAILABLE:
-                                errorMessage += "Location information unavailable.";
+                                errorMessage += "Posisjonsinformasjon utilgjengelig.";
                                 break;
                             case error.TIMEOUT:
-                                errorMessage += "Location request timed out.";
+                                errorMessage += "Posisjonsforespørsel utløpt.";
                                 break;
                             default:
-                                errorMessage += "An unknown error occurred.";
+                                errorMessage += "En ukjent feil oppstod.";
                                 break;
                         }
                         alert(errorMessage);

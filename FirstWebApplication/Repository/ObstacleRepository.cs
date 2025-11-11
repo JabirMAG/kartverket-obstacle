@@ -92,5 +92,13 @@ namespace FirstWebApplication.Repositories
             
             return obstacles;
         }
+
+        public async Task<IEnumerable<ObstacleData>> GetObstaclesByOwner(string ownerUserId)
+        {
+            return await _context.ObstaclesData
+                .Where(x => x.OwnerUserId == ownerUserId)
+                .OrderByDescending(x => x.ObstacleId)
+                .ToListAsync();
+        }
     }
 }

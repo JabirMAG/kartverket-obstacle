@@ -1,7 +1,7 @@
 ﻿@model FirstWebApplication.Models.ObstacleData
 
 @{
-    ViewData["Title"] = "Overview";
+    ViewData["Title"] = "Oversikt";
 }
 
 <link rel="stylesheet" href="~/css/Overview.css" />
@@ -9,8 +9,8 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
-            <h1 class="display-6 mb-3">Overview</h1>
-            <p class="text-muted mb-4">Thank you for registering an obstacle:</p>
+            <h1 class="display-6 mb-3">Oversikt</h1>
+            <p class="text-muted mb-4">Takk for at du registrerte en hindring:</p>
         </div>
     </div>
 
@@ -19,20 +19,20 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Obstacle Details</h5>
+                    <h5 class="card-title mb-0">Hindringsdetaljer</h5>
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-4">Obstacle Name:</dt>
+                        <dt class="col-sm-4">Hindringens navn:</dt>
                         <dd class="col-sm-8">@Model.ObstacleName</dd>
 
-                        <dt class="col-sm-4">Height:</dt>
+                        <dt class="col-sm-4">Høyde:</dt>
                         <dd class="col-sm-8">@Model.ObstacleHeight m</dd>
 
-                        <dt class="col-sm-4">Description:</dt>
+                        <dt class="col-sm-4">Beskrivelse:</dt>
                         <dd class="col-sm-8">@Model.ObstacleDescription</dd>
 
-                        <dt class="col-sm-4">Coordinates:</dt>
+                        <dt class="col-sm-4">Koordinater:</dt>
                         <dd class="col-sm-8">
                             <code id="geoJsonCoordinates" class="small"></code>
                         </dd>
@@ -42,7 +42,10 @@
 
             <div class="mt-3">
                 <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
-                    ← Back to Home
+                    ← Tilbake til hjem
+                </a>
+                <a asp-controller="Map" asp-action="Map" class="btn btn-secondary">
+                    ← Tilbake til Kartet
                 </a>
             </div>
         </div>
@@ -51,7 +54,7 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Geometry (Map)</h5>
+                    <h5 class="card-title mb-0">Geometri (Kart)</h5>
                 </div>
                 <div class="card-body p-0">
                     <div id="overview-map"></div>
@@ -108,7 +111,7 @@
 
             } catch (err) {
                 console.error("Invalid GeoJSON:", err);
-                coordsElement.textContent = "Invalid coordinates";
+                coordsElement.textContent = "Ugyldige koordinater";
             }
         })();
     </script>

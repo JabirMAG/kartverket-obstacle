@@ -53,9 +53,9 @@ else
                         {
                             var statusText = rapport.Obstacle.ObstacleStatus switch
                             {
-                                1 => "Pending",
-                                2 => "Approved",
-                                3 => "Rejected",
+                                1 => "Under behandling",
+                                2 => "Godkjent",
+                                3 => "Avslått",
                                 _ => "Ukjent"
                             };
                             var statusBadge = rapport.Obstacle.ObstacleStatus == 1 ? "bg-warning" : rapport.Obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
