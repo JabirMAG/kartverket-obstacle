@@ -77,7 +77,9 @@
                             }
                             else if (isPilot)
                             {
-                                <li><a class="dropdown-item" asp-area="" asp-controller="Map" asp-action="Map">Kart</a></li>
+                                <li><h6 class="dropdown-header">Pilot</h6></li>
+                                <li><a class="dropdown-item" asp-controller="Map" asp-action="Map">Kart</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pilot" asp-action="Index">Mine rapporter</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
                             }
