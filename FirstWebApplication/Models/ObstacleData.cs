@@ -38,7 +38,10 @@ namespace FirstWebApplication.Models
         // Status for hindringen (1=Pending, 2=Approved, 3=Rejected).
         public int ObstacleStatus { get; set;} = 1; // Default til "Pending"
 
+        // Eieren (piloten) som sendte inn hindringen
+        [MaxLength(255)]
+        public string? OwnerUserId { get; set; }
+
         public ICollection<RapportData> Rapports { get; set; } = new List<RapportData>();
-        public string OwnerUserId { get; set; }
     }
 }
