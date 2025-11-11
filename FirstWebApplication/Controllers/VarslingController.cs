@@ -31,6 +31,13 @@ using System.Threading.Tasks;
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // Hent innlogget bruker
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return View(new List<VarslingViewModel>());
+            }
+
             // Hent alle rapporter
             var allRapports = await _registrarRepository.GetAllRapports();
             
@@ -40,8 +47,21 @@ using System.Threading.Tasks;
                              r.RapportComment.Contains(" ble sendt inn. Høyde:")))
                 .ToList();
             
+            // Hent hindringer som tilhører den innloggede brukeren
+            var userObstacles = await _obstacleRepository.GetObstaclesByOwner(currentUser.Id);
+            var userObstacleIds = userObstacles.Select(o => o.ObstacleId).ToHashSet();
+            
+            // Filtrer kommentarer til kun hindringer som tilhører brukeren
+            var userComments = comments
+                .Where(r => r.Obstacle != null && userObstacleIds.Contains(r.Obstacle.ObstacleId))
+                .ToList();
+            
+            // Lagre den høyeste RapportID brukeren har sett (markerer alle varslinger med lavere eller lik ID som sett)
+            var maxRapportId = userComments.Any() ? userComments.Max(r => r.RapportID) : 0;
+            HttpContext.Session.SetInt32($"LastViewedRapportId_{currentUser.Id}", maxRapportId);
+            
             // Grupper kommentarer etter ObstacleId
-            var groupedComments = comments
+            var groupedComments = userComments
                 .Where(r => r.Obstacle != null)
                 .GroupBy(r => r.ObstacleId)
                 .ToList();
@@ -97,7 +117,7 @@ using System.Threading.Tasks;
         }
 
         /// <summary>
-        /// Gets the count of new notifications (comments from admin/registerfører)
+        /// Gets the count of new/unread notifications (comments from admin/registerfører) for the current user
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
@@ -110,18 +130,36 @@ using System.Threading.Tasks;
 
             try
             {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null)
+                {
+                    return Json(new { count = 0 });
+                }
+
+                // Hent den høyeste RapportID brukeren har sett
+                var lastViewedRapportId = HttpContext.Session.GetInt32($"LastViewedRapportId_{currentUser.Id}") ?? 0;
+
+                // Hent alle rapporter
                 var allRapports = await _registrarRepository.GetAllRapports();
                 
-                // Filter out automatic submission comments
-                // These are comments that start with "Hindring '" and contain " ble sendt inn. Høyde:"
-                var notifications = allRapports
+                // Filtrer ut automatisk genererte kommentarer (de som starter med "Hindring 'X' ble sendt inn")
+                var comments = allRapports
                     .Where(r => !(r.RapportComment.StartsWith("Hindring '") && 
                                  r.RapportComment.Contains(" ble sendt inn. Høyde:")))
                     .ToList();
 
-                // For now, return all non-automatic comments as notifications
-                // In the future, this should filter by user and track read/unread status
-                var count = notifications.Count;
+                // Filtrer kun varslinger for hindringer som tilhører den innloggede brukeren
+                var userObstacles = await _obstacleRepository.GetObstaclesByOwner(currentUser.Id);
+                var userObstacleIds = userObstacles.Select(o => o.ObstacleId).ToHashSet();
+
+                // Filtrer ut varslinger som brukeren allerede har sett (RapportID <= lastViewedRapportId)
+                var unreadNotifications = comments
+                    .Where(r => r.Obstacle != null && 
+                               userObstacleIds.Contains(r.Obstacle.ObstacleId) &&
+                               r.RapportID > lastViewedRapportId)
+                    .ToList();
+
+                var count = unreadNotifications.Count;
 
                 return Json(new { count = count });
             }
