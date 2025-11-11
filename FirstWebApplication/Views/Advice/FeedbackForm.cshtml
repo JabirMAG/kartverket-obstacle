@@ -3,14 +3,35 @@
     ViewData["Title"] = "Feedback";
 }
 <link rel="stylesheet" href="~/css/FeedbackForm.css" />
-<div class = "feedbackform-title">
-<h1>Tilbakemelding</h1>
+<div class="container mx-auto">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-6">
+            
+            <!-- Hele innholdet i en grå boks -->
+            <div class="feedback-box p-4 rounded">
+                <h1 class="mt-0 mb-3 h3 text-center">
+                    Feedback
+                </h1>
+
+                <form asp-action="Feedback" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" asp-for="ViewadviceMessage" placeholder="Write your feedback here..." rows="6"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" asp-for="ViewEmail" placeholder="Email..." />
+                    </div>
+
+                    <div class="feedback-button">
+                        <button type="submit" class="btn btn-primary">Send Feedback</button>
+                    </div>
+                </form>
+            </div>
+            <!-- slutt på grå boks -->
+
+        </div>
+    </div>
 </div>
 
-
-<form method="post" class="feedback-form">
-    <textarea asp-for="ViewadviceMessage" class="feedback-message" placeholder="Skriv her..." rows="6" cols="50"></textarea>
-    <input type="email" class="feedback-email" placeholder="Email.." asp-for="ViewEmail" />
-    <br />
-    <button type="submit" class="feedback-submit">Send inn</button>
-</form>
