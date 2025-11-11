@@ -39,6 +39,12 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> QuickSaveObstacle(ObstacleData obstacledata)
         {
+            // Sett standardverdier FØRST for feltene som kan hoppes over (databasen tillater ikke null)
+            // Dette må gjøres eksplisitt fordi tomme form-felt kan komme inn som null
+            obstacledata.ObstacleName = obstacledata.ObstacleName ?? string.Empty;
+            obstacledata.ObstacleDescription = obstacledata.ObstacleDescription ?? string.Empty;
+            // ObstacleHeight er allerede 0 som default for double, så den trenger ikke settes
+
             // Fjern valideringsfeil for de tre feltene som kan hoppes over
             ModelState.Remove(nameof(ObstacleData.ObstacleName));
             ModelState.Remove(nameof(ObstacleData.ObstacleHeight));
