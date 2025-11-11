@@ -9,6 +9,5 @@ namespace FirstWebApplication.Repositories
         Task<IEnumerable<ObstacleData>> GetAllObstacles();
         Task<IEnumerable<ObstacleData>> GetObstaclesByOwner(string ownerUserId);
         Task<ObstacleData> UpdateObstacles(ObstacleData obstacles);
-        Task<IEnumerable<ObstacleData>> GetObstaclesByOwner(string ownerUserId);
     }
 }
