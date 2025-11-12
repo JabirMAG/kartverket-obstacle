@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using System.Text.Encodings.Web;
+using System.Linq;
 
 namespace FirstWebApplication.Controllers
 {
@@ -33,6 +34,8 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            ViewBag.PasswordRequirements = BuildPasswordRequirements();
+            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
             return View();
         }
         
@@ -63,15 +66,33 @@ namespace FirstWebApplication.Controllers
             }
             else
             {
-                foreach (var error in identityResult.Errors) 
+                // Detect password-related errors
+                var pwErrors = identityResult.Errors.Where(e =>
+                    (!string.IsNullOrEmpty(e.Code) && e.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(e.Description) && e.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0)
+                ).ToList();
+
+                if (pwErrors.Any())
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    ModelState.AddModelError(nameof(registerViewModel.Password), "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
+                    foreach (var pe in pwErrors)
+                    {
+                        var friendly = TranslatePasswordError(pe.Description, _userManager.Options.Password);
+                        ModelState.AddModelError(nameof(registerViewModel.Password), friendly);
+                    }
                 }
-    
-                // returner viewet på nytt slik at feilmeldingene vises
+
+                // Keep other identity errors as form-level messages
+                var otherErrors = identityResult.Errors.Except(pwErrors).ToList();
+                foreach (var err in otherErrors)
+                {
+                    ModelState.AddModelError(string.Empty, err.Description);
+                }
+
+                ViewBag.PasswordRequirements = BuildPasswordRequirements();
+                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
                 return View(registerViewModel);
             }
-            return View();
         }
 
         [HttpGet]
@@ -92,9 +113,8 @@ namespace FirstWebApplication.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // Find user by username or email
-            var user = await _userManager.FindByNameAsync(model.Username) 
-                       ?? await _userManager.FindByEmailAsync(model.Username);
+            // Find user by username only
+            var user = await _userManager.FindByNameAsync(model.Username);
 
             if (user == null)
             {
@@ -203,6 +223,8 @@ namespace FirstWebApplication.Controllers
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
             {
                 ModelState.AddModelError(string.Empty, "Ugyldig tilbakestillingslink.");
+                ViewBag.PasswordRequirements = BuildPasswordRequirements();
+                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
                 return View();
             }
 
@@ -212,6 +234,8 @@ namespace FirstWebApplication.Controllers
                 Token = token
             };
 
+            ViewBag.PasswordRequirements = BuildPasswordRequirements();
+            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
             return View(model);
         }
 
@@ -239,11 +263,31 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
             }
 
-            foreach (var error in result.Errors)
+            // Detect password-related errors
+            var pwErrors = result.Errors.Where(e =>
+                (!string.IsNullOrEmpty(e.Code) && e.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(e.Description) && e.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0)
+            ).ToList();
+
+            if (pwErrors.Any())
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                ModelState.AddModelError(nameof(model.Password), "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
+                foreach (var pe in pwErrors)
+                {
+                    var friendly = TranslatePasswordError(pe.Description, _userManager.Options.Password);
+                    ModelState.AddModelError(nameof(model.Password), friendly);
+                }
             }
 
+            // Keep other identity errors as form-level messages
+            var otherErrors = result.Errors.Except(pwErrors).ToList();
+            foreach (var err in otherErrors)
+            {
+                ModelState.AddModelError(string.Empty, err.Description);
+            }
+
+            ViewBag.PasswordRequirements = BuildPasswordRequirements();
+            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
             return View(model);
         }
 
@@ -251,6 +295,75 @@ namespace FirstWebApplication.Controllers
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        private IEnumerable<string> BuildPasswordRequirements()
+        {
+            var opts = _userManager.Options.Password;
+            var reqs = new List<string>
+            {
+                $"Minimum lengde: {opts.RequiredLength} tegn"
+            };
+
+            if (opts.RequireDigit) reqs.Add("Minst ett siffer (0-9)");
+            if (opts.RequireLowercase) reqs.Add("Minst en liten bokstav (a-z)");
+            if (opts.RequireUppercase) reqs.Add("Minst en stor bokstav (A-Z)");
+            if (opts.RequireNonAlphanumeric) reqs.Add("Minst ett ikke-alfanumerisk tegn (f.eks. !, @, #)");
+            if (opts.RequiredUniqueChars > 1) reqs.Add($"Minst {opts.RequiredUniqueChars} unike tegn");
+
+            return reqs;
+        }
+
+        private object BuildPasswordPolicyObject()
+        {
+            var opts = _userManager.Options.Password;
+            return new
+            {
+                opts.RequiredLength,
+                opts.RequireDigit,
+                opts.RequireLowercase,
+                opts.RequireUppercase,
+                opts.RequireNonAlphanumeric,
+                opts.RequiredUniqueChars
+            };
+        }
+
+        private string TranslatePasswordError(string? description, PasswordOptions opts)
+        {
+            if (string.IsNullOrEmpty(description))
+                return "Passordet oppfyller ett eller flere krav.";
+
+            var d = description.ToLowerInvariant();
+
+            if (d.Contains("at least") && d.Contains("characters"))
+            {
+                var digits = System.Text.RegularExpressions.Regex.Match(d, @"\d+").Value;
+                if (!string.IsNullOrEmpty(digits))
+                    return $"Passordet må være minst {digits} tegn langt.";
+                return $"Passordet må være minst {opts.RequiredLength} tegn langt.";
+            }
+
+            if (d.Contains("uppercase") || d.Contains("upper-case") || d.Contains("store bokstav"))
+                return "Må inneholde minst en stor bokstav (A-Z).";
+
+            if (d.Contains("lowercase") || d.Contains("lower-case") || d.Contains("liten bokstav"))
+                return "Må inneholde minst en liten bokstav (a-z).";
+
+            if (d.Contains("digit") || d.Contains("siffer") || d.Contains("number"))
+                return "Må inneholde minst ett siffer (0-9).";
+
+            if (d.Contains("non alphanumeric") || d.Contains("non-alphanumeric") || d.Contains("ikke-alfanumerisk"))
+                return "Må inneholde minst ett ikke-alfanumerisk tegn (f.eks. !, @, #).";
+
+            if (d.Contains("unique") || d.Contains("unike"))
+            {
+                var digits = System.Text.RegularExpressions.Regex.Match(d, @"\d+").Value;
+                if (!string.IsNullOrEmpty(digits))
+                    return $"Må inneholde minst {digits} unike tegn.";
+                return $"Må inneholde minst {opts.RequiredUniqueChars} unike tegn.";
+            }
+
+            return "Passordfeil: " + description;
         }
     }
 }
