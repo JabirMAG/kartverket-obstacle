@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using FirstWebApplication.Models
+@using System
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
@@ -11,6 +12,11 @@
     bool isPilot = false;
     bool isRegistrar = false;
     ApplicationUser? currentUser = null;
+    
+    // Get current controller and action
+    string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    bool isOnHomePage = currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);
     
     if (SignInManager.IsSignedIn(User))
     {
@@ -56,28 +62,39 @@
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kartverket</a>
                 
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle position-relative" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        Meny
+                    <button class="btn btn-outline-secondary position-relative hamburger-menu" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Meny">
+                        <span class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
                         <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none;">
                             <span id="notification-count">0</span>
                             <span class="visually-hidden">nye varslinger</span>
                         </span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        @if (SignInManager.IsSignedIn(User))
+                        @if (!SignInManager.IsSignedIn(User))
                         {
-                            <li><a class="dropdown-item" asp-area="" asp-controller="Map" asp-action="Map">Map</a></li>
-                            <li><a class="dropdown-item" id="varsling-menu-item" asp-area="" asp-controller="Varsling" asp-action="Index">Varsling</a></li>
-                            <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="Registrar">Registerfører</a></li>
-                            <li><a class="dropdown-item" asp-area="" asp-controller="Advice" asp-action="FeedbackForm">Feedback</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            @* Frontpage menu - only when not logged in *@
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Home" asp-action="OmOss">Om oss</a></li>
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Login">Log inn</a></li>
+                        }
+                        else
+                        {
+                            @* Role-based menus when logged in *@
                             @if (isAdmin)
                             {
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Admin</a></li>
+                                @* Admin menu - only show when in Admin views *@
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers">Brukerhåndtering</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Reports">Rapporter</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
                             }
                             else if (isPilot)
                             {
-                                <li><h6 class="dropdown-header">Pilot</h6></li>
+                                @* Pilot menu - only show when in Pilot views *@
                                 <li><a class="dropdown-item" asp-controller="Map" asp-action="Map">Kart</a></li>
                                 <li><a class="dropdown-item" asp-controller="Pilot" asp-action="Index">Mine rapporter</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -85,13 +102,14 @@
                             }
                             else if (isRegistrar)
                             {
+                                @* Registerfører menu - only show when in Registerfører views *@
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="Registrar">Rapporter</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
                             }
                         }    
-                        </ul>
-                    </div>
+                    </ul>
+                </div>
             </div>
         </nav>
     </header>

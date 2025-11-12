@@ -119,6 +119,20 @@ body {
 }
 
 /* Hamburger menu icon */
+.hamburger-menu {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hamburger-menu:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+}
+
 .hamburger-icon {
     display: flex;
     flex-direction: column;
@@ -137,8 +151,8 @@ body {
     transition: all 0.3s ease;
 }
 
-.hamburger-icon:hover span {
-    background-color: white;
+.hamburger-menu:hover .hamburger-icon span {
+    background-color: #0d6efd;
 }
 
 
