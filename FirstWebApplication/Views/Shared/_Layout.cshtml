@@ -110,5 +110,7 @@
 
     @await Html.PartialAsync("_Scripts")  <!-- Include JS -->
     @RenderSection("Scripts", required: false)  <!-- Optional page-specific scripts -->
+    @RenderSection("Styles", required: false)
+
 </body>
 </html>

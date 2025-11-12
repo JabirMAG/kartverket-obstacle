@@ -3,24 +3,35 @@
     ViewData["Title"] = "Logg inn";
 }
 
-<h2>Logg inn</h2>
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+}
 
-<form asp-action="Login" method="post">
-    <div class="form-group mb-3">
-        <label asp-for="Username"></label>
-        <input asp-for="Username" class="form-control" />
-        <span asp-validation-for="Username" class="text-danger"></span>
+<div class="login-wrapper">
+    <div class="login-box">
+        <h2>Logg inn</h2>
+
+        <form asp-action="Login" method="post">
+            <div class="form-group mb-3">
+                <label asp-for="Username">E-post</label>
+                <input asp-for="Username" class="form-control" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Password">Passord</label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <a asp-action="ForgotPassword">Glemt passord?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Logg inn</button>
+                    <div class="register-link">
+                Har du ikke konto? <a asp-action="Register">Registrer deg</a>
+            </div>
+        </form>
     </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <a asp-action="ForgotPassword">Glemt passord?</a>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Logg inn</button>
-</form>
+</div>
