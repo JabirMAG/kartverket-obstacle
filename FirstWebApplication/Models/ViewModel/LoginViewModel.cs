@@ -1,14 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FirstWebApplication.Models
+namespace FirstWebApplication.Models.ViewModel
 {
     public class LoginViewModel
     {
         [Required(ErrorMessage = "Brukernavn er påkrevd")]
-        public string Username { get; set; }
+        [Display(Name = "Brukernavn")]
+        public string Username { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Passord er påkrevd")]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        [Display(Name = "Passord")]
+        public string Password { get; set; } = string.Empty;
     }
 }
