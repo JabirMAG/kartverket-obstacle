@@ -62,6 +62,22 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+// === APPLY MIGRATIONS ===
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDBContext>();
+    try
+    {
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
+
 // === SEED DATABASE ===
 using (var scope = app.Services.CreateScope())
 {

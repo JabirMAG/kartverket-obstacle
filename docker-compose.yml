@@ -10,9 +10,12 @@ services:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=mariadbcontainer;Port=3306;Database=DB;User=root;Password=Mammaerbest1;
+      - ConnectionStrings__DatabaseConnection=Server=mariadbcontainer;Port=3306;Database=KartverketDB;User=root;Password=Mammaerbest1;
     networks:
       - appnet
+    depends_on:
+      mariadbcontainer:
+        condition: service_healthy
 
   mariadbcontainer:
     image: mariadb:10.11
@@ -25,11 +28,14 @@ services:
       - mariadbdata:/var/lib/mysql
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
       
 volumes:
     mariadbdata:
-
-
 
 networks:
   appnet:
