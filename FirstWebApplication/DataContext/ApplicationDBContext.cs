@@ -47,6 +47,12 @@ namespace FirstWebApplication.DataContext
                            .WithMany(o => o.Rapports)
                            .HasForeignKey(r => r.ObstacleId)
                            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RapportData>()
+                .HasOne(r => r.ReportedBy)
+                .WithMany()
+                .HasForeignKey(r => r.ReportedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

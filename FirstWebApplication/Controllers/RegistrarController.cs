@@ -2,6 +2,7 @@
 using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using System.Threading.Tasks;
 using FirstWebApplication.Repositories;
@@ -12,11 +13,13 @@ namespace FirstWebApplication.Controllers
     {
         private readonly IObstacleRepository _obstacleRepository;
         private readonly IRegistrarRepository _registrarRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public RegistrarController(IObstacleRepository obstacleRepository, IRegistrarRepository registrarRepository)
+        public RegistrarController(IObstacleRepository obstacleRepository, IRegistrarRepository registrarRepository, UserManager<ApplicationUser> userManager)
         {
             _obstacleRepository = obstacleRepository;
             _registrarRepository = registrarRepository;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -65,10 +68,12 @@ namespace FirstWebApplication.Controllers
             if (string.IsNullOrWhiteSpace(rapportComment))
                 return RedirectToAction(nameof(Registrar));
 
+            var currentUser = await _userManager.GetUserAsync(User);
             var rapport = new RapportData
             {
                 ObstacleId = obstacleId,
-                RapportComment = rapportComment
+                RapportComment = rapportComment,
+                ReportedByUserId = currentUser?.Id
             };
 
             await _registrarRepository.AddRapport(rapport);
@@ -111,10 +116,12 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(Registrar));
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
             var rapport = new RapportData
             {
                 ObstacleId = obstacleId,
-                RapportComment = comment
+                RapportComment = comment,
+                ReportedByUserId = currentUser?.Id
             };
 
             await _registrarRepository.AddRapport(rapport);

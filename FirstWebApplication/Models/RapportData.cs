@@ -17,5 +17,11 @@ namespace FirstWebApplication.Models
 
         [MaxLength(1000)]
         public string RapportComment { get; set; } = string.Empty;
+
+        // FK to ApplicationUser (the user who reported/created this rapport)
+        [ForeignKey(nameof(ReportedBy))]
+        public string? ReportedByUserId { get; set; }
+
+        public ApplicationUser? ReportedBy { get; set; }
     }
 }

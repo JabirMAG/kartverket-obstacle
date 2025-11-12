@@ -178,10 +178,12 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(Reports));
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
             var rapport = new RapportData
             {
                 ObstacleId = obstacleId,
-                RapportComment = comment
+                RapportComment = comment,
+                ReportedByUserId = currentUser?.Id
             };
 
             await _registrarRepository.AddRapport(rapport);

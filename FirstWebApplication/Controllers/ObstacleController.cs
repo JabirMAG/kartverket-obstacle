@@ -85,7 +85,8 @@ namespace FirstWebApplication.Controllers
             var rapport = new RapportData
             {
                 ObstacleId = savedObstacle.ObstacleId,
-                RapportComment = $"Hindring '{obstacleName}' ble hurtiglagret. {heightInfo}{descriptionInfo}"
+                RapportComment = $"Hindring '{obstacleName}' ble hurtiglagret. {heightInfo}{descriptionInfo}",
+                ReportedByUserId = currentUser?.Id
             };
             
             await _registrarRepository.AddRapport(rapport);
@@ -130,7 +131,8 @@ namespace FirstWebApplication.Controllers
             var rapport = new RapportData
             {
                 ObstacleId = savedObstacle.ObstacleId,
-                RapportComment = $"Hindring '{savedObstacle.ObstacleName}' ble sendt inn. Høyde: {savedObstacle.ObstacleHeight}m. {savedObstacle.ObstacleDescription}"
+                RapportComment = $"Hindring '{savedObstacle.ObstacleName}' ble sendt inn. Høyde: {savedObstacle.ObstacleHeight}m. {savedObstacle.ObstacleDescription}",
+                ReportedByUserId = currentUser?.Id
             };
             
             await _registrarRepository.AddRapport(rapport);

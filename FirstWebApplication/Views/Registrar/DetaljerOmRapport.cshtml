@@ -1,6 +1,8 @@
 @model FirstWebApplication.Models.ObstacleData
 @using System.Text.Json
 @using System.Linq
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<FirstWebApplication.Models.ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = Model?.ObstacleName ?? "Detaljer om rapport";
@@ -13,6 +15,16 @@
         3 => "Avslått",
         _ => "Ukjent"
     };
+    
+    // Check if current user is admin or registrar
+    var currentUser = await UserManager.GetUserAsync(User);
+    bool isAdmin = false;
+    bool isRegistrar = false;
+    if (currentUser != null)
+    {
+        isAdmin = await UserManager.IsInRoleAsync(currentUser, "Admin");
+        isRegistrar = await UserManager.IsInRoleAsync(currentUser, "Registerfører");
+    }
 }
 
 <h1 class="display-6">@(obstacle?.ObstacleName ?? "N/A")</h1>
@@ -69,6 +81,25 @@ else
 
                         <dt class="col-sm-4">Beskrivelse:</dt>
                         <dd class="col-sm-8">@obstacle.ObstacleDescription</dd>
+
+                        @if ((isAdmin || isRegistrar) && obstacle != null)
+                        {
+                            // Find the first rapport (the one that was created when the obstacle was reported)
+                            var firstRapport = rapports?.OrderBy(r => r.RapportID).FirstOrDefault();
+                            var reportedByUser = firstRapport?.ReportedBy;
+                            
+                            // Fallback to obstacle owner if ReportedBy is not available
+                            if (reportedByUser == null && !string.IsNullOrEmpty(obstacle.OwnerUserId))
+                            {
+                                reportedByUser = await UserManager.FindByIdAsync(obstacle.OwnerUserId);
+                            }
+                            
+                            @if (reportedByUser != null)
+                            {
+                                <dt class="col-sm-4">Rapportert av:</dt>
+                                <dd class="col-sm-8">@reportedByUser.UserName</dd>
+                            }
+                        }
                     </dl>
                 </div>
             </div>

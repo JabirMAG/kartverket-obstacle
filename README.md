@@ -27,6 +27,27 @@ Applikasjonen kjøres i Docker for enkel drift og portabilitet.
 Docker-compose kan brukes til å starte både web-applikasjon og database i egne containere.
 -**Web-applikasjon** kjører på'mcr.microsoft.com/dotnet/aspnet:9.0'
 -**Database** kjører i 'mariadb'
--Kommunikasjon skjer via Docker-nettverket 
+-Kommunikasjon skjer via Docker-nettverket
+
+#### Cross-Platform Support (Windows & macOS)
+Applikasjonen er designet for å fungere på både Windows og macOS:
+- **Automatiske migrasjoner**: Database-migrasjoner kjøres automatisk ved oppstart
+- **Automatisk nettverk**: Docker-nettverket opprettes automatisk
+- **Database healthcheck**: Applikasjonen venter på at databasen er klar før den starter
+- **Port-konfigurasjon**: Standard port 5000 (merk: på macOS kan port 5000 være opptatt av AirPlay - deaktiver AirPlay Receiver i System Settings hvis nødvendig)
+
+#### Oppstart
+```bash
+docker compose down
+docker compose build
+docker compose up
+```
+
+Ved oppstart vil systemet automatisk:
+1. Vente på at MariaDB-containeren er klar
+2. Koble til databasen
+3. Kjøre alle pending migrasjoner
+4. Seed databasen med initial data
+5. Starte web-applikasjonen 
 
 [![.NET Tests](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml/badge.svg)](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml)

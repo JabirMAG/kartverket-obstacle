@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   firstwebapplication:
     image: ${DOCKER_REGISTRY-}firstwebapplication
@@ -10,23 +8,40 @@ services:
       - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=mariadbcontainer;Port=3306;Database=DB;User=root;Password=Mammaerbest1;
+      - ConnectionStrings__DatabaseConnection=Server=mariadbcontainer;Port=3306;Database=KartverketDB;User=root;Password=Mammaerbest1;
+    depends_on:
+      mariadbcontainer:
+        condition: service_healthy
     networks:
       - appnet
+    # Optional: If you ever need user secrets, uncomment and use platform-specific paths:
+    # macOS/Linux: ~/.microsoft/usersecrets:/Microsoft/UserSecrets:ro
+    # Windows: ${APPDATA}/Microsoft/UserSecrets:/Microsoft/UserSecrets:ro
+    # volumes:
+    #   - ~/.microsoft/usersecrets:/Microsoft/UserSecrets:ro
 
   mariadbcontainer:
     image: mariadb:10.11
+    container_name: mariadbcontainer
     environment:
       MYSQL_ROOT_PASSWORD: Mammaerbest1
       MYSQL_DATABASE: KartverketDB
     ports:
-      - "3306:3306"
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
+volumes:
+  mariadb_data:
 
 networks:
   appnet:
-    external: true
-    name: appnet
- 
+    driver: bridge

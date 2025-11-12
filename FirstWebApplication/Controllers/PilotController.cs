@@ -87,7 +87,8 @@ namespace FirstWebApplication.Controllers
             await _registrarRepository.AddRapport(new RapportData
             {
                 ObstacleId = obstacle.ObstacleId,
-                RapportComment = $"Piloten oppdaterte hindringen. Ny høyde: {obstacle.ObstacleHeight}m."
+                RapportComment = $"Piloten oppdaterte hindringen. Ny høyde: {obstacle.ObstacleHeight}m.",
+                ReportedByUserId = user.Id
             });
 
             TempData["Success"] = "Hindringen er oppdatert.";

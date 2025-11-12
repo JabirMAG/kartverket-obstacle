@@ -27,6 +27,7 @@ namespace FirstWebApplication.Repositories
         {
             return await _context.Rapports
                 .Include(r => r.Obstacle)
+                .Include(r => r.ReportedBy)
                 .OrderByDescending(r => r.RapportID)
                 .Take(50)
                 .ToListAsync();
