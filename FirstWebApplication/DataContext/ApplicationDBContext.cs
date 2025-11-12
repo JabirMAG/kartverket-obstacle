@@ -27,6 +27,15 @@ namespace FirstWebApplication.DataContext
             modelBuilder.Entity<ArchivedReport>().HasKey(a => a.ArchivedReportId);
             modelBuilder.Entity<ArchivedRapport>().HasKey(ar => ar.ArchivedRapportId);
 
+            // Konfigurer ObstacleData for å håndtere null-verdier
+            modelBuilder.Entity<ObstacleData>(entity =>
+            {
+                entity.Property(e => e.ObstacleName).IsRequired(false);
+                entity.Property(e => e.ObstacleDescription).IsRequired(false);
+                entity.Property(e => e.GeometryGeoJson).IsRequired(false);
+                entity.Property(e => e.OwnerUserId).IsRequired(false);
+            });
+
             modelBuilder.Entity<ArchivedRapport>()
                 .HasOne(ar => ar.ArchivedReport)
                 .WithMany(ar => ar.ArchivedRapports)

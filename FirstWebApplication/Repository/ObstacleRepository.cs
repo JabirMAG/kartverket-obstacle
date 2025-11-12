@@ -28,6 +28,11 @@ namespace FirstWebApplication.Repositories
 
             if (findById != null)
             {
+                // Håndter null-verdier fra databasen
+                findById.ObstacleName = findById.ObstacleName ?? string.Empty;
+                findById.ObstacleDescription = findById.ObstacleDescription ?? string.Empty;
+                findById.GeometryGeoJson = findById.GeometryGeoJson ?? string.Empty;
+                findById.OwnerUserId = findById.OwnerUserId ?? string.Empty;
                 return findById;
             }
             else
@@ -52,18 +57,40 @@ namespace FirstWebApplication.Repositories
 
         public async Task<IEnumerable<ObstacleData>> GetAllObstacles()
         {
-            return await _context.ObstaclesData
+            var obstacles = await _context.ObstaclesData
                 .OrderByDescending(x => x.ObstacleId)
                 .Take(50)
                 .ToListAsync();
+            
+            // Håndter null-verdier fra databasen
+            foreach (var obstacle in obstacles)
+            {
+                obstacle.ObstacleName = obstacle.ObstacleName ?? string.Empty;
+                obstacle.ObstacleDescription = obstacle.ObstacleDescription ?? string.Empty;
+                obstacle.GeometryGeoJson = obstacle.GeometryGeoJson ?? string.Empty;
+                obstacle.OwnerUserId = obstacle.OwnerUserId ?? string.Empty;
+            }
+            
+            return obstacles;
         }
 
         public async Task<IEnumerable<ObstacleData>> GetObstaclesByOwner(string ownerUserId)
         {
-            return await _context.ObstaclesData
+            var obstacles = await _context.ObstaclesData
                 .Where(x => x.OwnerUserId == ownerUserId)
                 .OrderByDescending(x => x.ObstacleId)
                 .ToListAsync();
+            
+            // Håndter null-verdier fra databasen
+            foreach (var obstacle in obstacles)
+            {
+                obstacle.ObstacleName = obstacle.ObstacleName ?? string.Empty;
+                obstacle.ObstacleDescription = obstacle.ObstacleDescription ?? string.Empty;
+                obstacle.GeometryGeoJson = obstacle.GeometryGeoJson ?? string.Empty;
+                obstacle.OwnerUserId = obstacle.OwnerUserId ?? string.Empty;
+            }
+            
+            return obstacles;
         }
     }
 }
