@@ -30,7 +30,7 @@ namespace Kartverket.Tests.Controllers
 
             var controller = new HomeController(config, logger.Object);
             controller.Index();
-            var greetings = new[] { "Good Morning!", "Good Afternoon!", "Good Evening!" };
+            var greetings = new[] { "God morgen!", "God ettermiddag!", "God kveld!" };
             var controllerGreeting = controller.ViewBag.Greeting;
 
             Assert.NotNull(controllerGreeting);

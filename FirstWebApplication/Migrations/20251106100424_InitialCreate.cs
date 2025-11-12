@@ -5,7 +5,7 @@
 namespace FirstWebApplication.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveRapportStatus : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

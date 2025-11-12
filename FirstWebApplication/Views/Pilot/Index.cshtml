@@ -1,12 +1,12 @@
-﻿@model FirstWebApplication.Models.ViewModel.RegistrarViewModel
-@using System.Linq
+@model IEnumerable<FirstWebApplication.Models.ObstacleData>
 @using System.Text.Json
+@using System.Linq
 
 @{
-    ViewData["Title"] = "Rapporter";
+    ViewData["Title"] = "Mine rapporter";
 }
 
-<h1 class="display-6">Rapporter</h1>
+<h1 class="display-6">Mine rapporter</h1>
 
 @if (TempData["Success"] != null)
 {
@@ -17,10 +17,10 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-@if (Model == null || Model.Obstacles == null || !Model.Obstacles.Any())
+@if (Model == null || !Model.Any())
 {
     <div class="alert alert-info">
-        <p>Ingen hindringer funnet.</p>
+        <p>Du har ikke sendt inn noen hindringer ennå.</p>
     </div>
 }
 else
@@ -36,9 +36,8 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var obstacle in Model.Obstacles)
+            @foreach (var obstacle in Model)
             {
-                // Extract coordinates from GeometryGeoJson
                 string coordinatesDisplay = "N/A";
                 try
                 {
@@ -50,29 +49,23 @@ else
 
                         if (geoJson.TryGetProperty("geometry", out var geometry))
                         {
-                            if (geometry.TryGetProperty("coordinates", out var coords))
+                            if (geometry.TryGetProperty("type", out var typeProp))
                             {
-                                if (coords.ValueKind == JsonValueKind.Array && coords.GetArrayLength() >= 2)
+                                var type = typeProp.GetString();
+                                if (type == "Point" && geometry.TryGetProperty("coordinates", out var coords))
                                 {
-                                    var coordArray = coords.EnumerateArray().ToArray();
-                                    lng = coordArray[0].GetDouble();
-                                    lat = coordArray[1].GetDouble();
+                                    if (coords.GetArrayLength() >= 2)
+                                    {
+                                        lng = coords[0].GetDouble();
+                                        lat = coords[1].GetDouble();
+                                    }
                                 }
-                            }
-                        }
-                        else if (geoJson.TryGetProperty("coordinates", out var directCoords))
-                        {
-                            if (directCoords.ValueKind == JsonValueKind.Array && directCoords.GetArrayLength() >= 2)
-                            {
-                                var coordArray = directCoords.EnumerateArray().ToArray();
-                                lng = coordArray[0].GetDouble();
-                                lat = coordArray[1].GetDouble();
                             }
                         }
 
                         if (lat.HasValue && lng.HasValue)
                         {
-                            coordinatesDisplay = $"{lat.Value:F6}, {lng.Value:F6}";
+                            coordinatesDisplay = $"{lat.Value:F5}, {lng.Value:F5}";
                         }
                     }
                 }
@@ -98,7 +91,7 @@ else
                     <td class="text-end">
                         <div class="d-flex align-items-center justify-content-end gap-2">
                             <span class="badge @statusBadge">@statusText</span>
-                            <a asp-controller="Registrar" asp-action="DetaljerOmRapport" asp-route-obstacleId="@obstacle.ObstacleId" class="btn btn-sm btn-outline-primary">
+                            <a asp-controller="Pilot" asp-action="DetaljerOmRapport" asp-route-obstacleId="@obstacle.ObstacleId" class="btn btn-sm btn-outline-primary">
                                 Se detaljer
                             </a>
                         </div>
@@ -108,4 +101,5 @@ else
         </tbody>
     </table>
 }
+
 

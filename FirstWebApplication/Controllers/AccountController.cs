@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using System.Reflection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
+using System.Text.Encodings.Web;
 
 namespace FirstWebApplication.Controllers
 {
@@ -12,10 +15,19 @@ namespace FirstWebApplication.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        private readonly IWebHostEnvironment _environment;
+        private readonly ILogger<AccountController> _logger;
+
+        public AccountController(
+            UserManager<ApplicationUser> userManager, 
+            SignInManager<ApplicationUser> signInManager,
+            IWebHostEnvironment environment,
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _environment = environment;
+            _logger = logger;
         }
         
         [HttpGet]
@@ -36,15 +48,18 @@ namespace FirstWebApplication.Controllers
             {
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
-                
+                DesiredRole = registerViewModel.DesiredRole,
+                IaApproved = false
             };
             
             var identityResult = await _userManager.CreateAsync(applicationUser, registerViewModel.Password);
 
             if (identityResult.Succeeded)
             {
-                await _signInManager.SignInAsync(applicationUser, isPersistent: false);
-                return RedirectToAction("Map", "Map"); 
+                TempData["Message"] =
+                    "Takk for registreringen! Du vil motta e-post når en administrator har godkjent kontoen din";
+                return RedirectToAction("RegisterConfirmation");
+               
             }
             else
             {
@@ -56,29 +71,12 @@ namespace FirstWebApplication.Controllers
                 // returner viewet på nytt slik at feilmeldingene vises
                 return View(registerViewModel);
             }
+            return View();
+        }
 
-/*
-            foreach (var error in Results.Error) //todo: fikse error for identityresult
-            {
-                ModelState.AddModelError("", error.Description);
-            }
-        */
-/*
-            //lager bruker
-
-         
-            {
-                //assign this user the "User" role
-                var roleIdentityResult = await _userManager.AddToRoleAsync(identityUser, "User");
-
-                if (roleIdentityResult.Succeeded)
-                {
-                    //show success notification
-                    return RedirectToAction("Register"); 
-                }
-            }
-            //show error notification
-            */
+        [HttpGet]
+        public IActionResult RegisterConfirmation()
+        {
             return View();
         }
         
@@ -89,16 +87,170 @@ namespace FirstWebApplication.Controllers
         }
         
         [HttpPost]
-        public IActionResult Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            // Skip all user/session checks and always redirect to Map page
+            if (!ModelState.IsValid)
+                return View(model);
+
+            // Find user by username or email
+            var user = await _userManager.FindByNameAsync(model.Username) 
+                       ?? await _userManager.FindByEmailAsync(model.Username);
+
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
+                return View(model);
+            }
+
+            // Check if user is approved before allowing login
+            if (!user.IaApproved)
+            {
+                ModelState.AddModelError(string.Empty, "Din konto er ikke godkjent ennå. Vent til en administrator har godkjent kontoen din.");
+                return View(model);
+            }
+
+            // Attempt to sign in
+            var result = await _signInManager.PasswordSignInAsync(
+                user.UserName!, 
+                model.Password, 
+                isPersistent: false, 
+                lockoutOnFailure: false);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
+                return View(model);
+            }
+
+            // Check user role and redirect to appropriate page
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            if (isAdmin)
+            {
+                return RedirectToAction("Dashboard", "Admin");
+            }
+
+            var isRegisterforer = await _userManager.IsInRoleAsync(user, "Registerfører");
+            if (isRegisterforer)
+            {
+                return RedirectToAction("Registrar", "Registrar");
+            }
+
+            // Pilots and other approved users go to Map page (register obstacle site)
             return RedirectToAction("Map", "Map");
         }
 
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            await _signInManager.SignOutAsync();
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                // Don't reveal that the user does not exist
+                return RedirectToAction(nameof(ForgotPasswordConfirmation));
+            }
+
+            // Generate password reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+            // Create reset password URL
+            var callbackUrl = Url.Action(
+                action: nameof(ResetPassword),
+                controller: "Account",
+                values: new { token, email = user.Email },
+                protocol: Request.Scheme);
+
+            // In development, log the email content
+            // In production, you would send this via email service
+            if (_environment.IsDevelopment())
+            {
+                _logger.LogInformation("Password Reset Email for {Email}: {CallbackUrl}", user.Email, callbackUrl);
+            }
+
+            // TODO: Send email here using your email service
+            // For now, we'll just redirect to confirmation page
+            // In production, implement IEmailSender and send the email
+
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string token, string email)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+            {
+                ModelState.AddModelError(string.Empty, "Ugyldig tilbakestillingslink.");
+                return View();
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = email,
+                Token = token
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                // Don't reveal that the user does not exist
+                return RedirectToAction(nameof(ResetPasswordConfirmation));
+            }
+
+            // Decode the token
+            var tokenBytes = WebEncoders.Base64UrlDecode(model.Token);
+            var token = Encoding.UTF8.GetString(tokenBytes);
+
+            var result = await _userManager.ResetPasswordAsync(user, token, model.Password);
+            if (result.Succeeded)
+            {
+                return RedirectToAction(nameof(ResetPasswordConfirmation));
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ResetPasswordConfirmation()
+        {
+            return View();
         }
     }
 }

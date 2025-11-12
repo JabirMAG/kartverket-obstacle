@@ -1,0 +1,9 @@
+#overview-map {
+    height: 420px;
+    width: 100%;
+}
+
+#OverviewCoordinates {
+    display: none;
+}
+

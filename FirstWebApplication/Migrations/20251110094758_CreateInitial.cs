@@ -5,7 +5,7 @@
 namespace FirstWebApplication.Migrations
 {
     /// <inheritdoc />
-    public partial class FullDatabase : Migration
+    public partial class CreateInitial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

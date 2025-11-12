@@ -1,6 +1,7 @@
 ﻿using FirstWebApplication.Models;
 using FirstWebApplication.Models.AdminViewModels;
 using FirstWebApplication.Repositories;
+using FirstWebApplication.DataContext;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,31 +12,181 @@ using System.Linq;
 
 namespace FirstWebApplication.Controllers
 {
-    [AllowAnonymous] //endre når login er fikset til bare admin
+    [Authorize(Roles = "Admin")]
     [Route("admin")]
     public class AdminController : Controller
     {
         private readonly IUserRepository _userRepository;
+        private readonly IRegistrarRepository _registrarRepository;
+        private readonly IObstacleRepository _obstacleRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDBContext _context;
 
         private static readonly string[] AllowedAssignableRoles = new[] { "Pilot", "Registerfører" };
         private const string DefaultAdminEmail = "admin@kartverket.com";
 
         public AdminController(
             IUserRepository userRepository,
+            IRegistrarRepository registrarRepository,
+            IObstacleRepository obstacleRepository,
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDBContext context)
         {
             _userRepository = userRepository;
+            _registrarRepository = registrarRepository;
+            _obstacleRepository = obstacleRepository;
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
 
         [HttpGet("dashboard")]
         public IActionResult Dashboard()
         {
             return View();
+        }
+
+        [HttpGet("reports")]
+        public async Task<IActionResult> Reports()
+        {
+            // Hent alle hindringer som har rapporter
+            var rapports = await _registrarRepository.GetAllRapports();
+            // Filtrer ut rejected hindringer (status 3) siden de er arkivert
+            // Grupper på ObstacleId og ta den første rapporten for hver hindring for å unngå duplikater
+            var uniqueRapports = rapports
+                .Where(r => r.Obstacle != null && r.Obstacle.ObstacleStatus != 3)
+                .GroupBy(r => r.ObstacleId)
+                .Select(g => g.First())
+                .ToList();
+            
+            return View("AdminViewReports", uniqueRapports);
+        }
+
+        [HttpPost("update-obstacle-status")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status, string returnUrl = null)
+        {
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            if (obstacle == null)
+            {
+                TempData["Error"] = "Fant ikke hindring.";
+                return RedirectToAction(nameof(Reports));
+            }
+
+            obstacle.ObstacleStatus = status;
+            
+            // Hvis status er Rejected (3), arkiver hindringen og alle rapporter
+            if (status == 3)
+            {
+                // Hent alle rapporter knyttet til hindringen
+                var rapports = await _context.Rapports
+                    .Where(r => r.ObstacleId == obstacle.ObstacleId)
+                    .ToListAsync();
+                
+                var archivedReport = new ArchivedReport
+                {
+                    OriginalObstacleId = obstacle.ObstacleId,
+                    ObstacleName = obstacle.ObstacleName,
+                    ObstacleHeight = obstacle.ObstacleHeight,
+                    ObstacleDescription = obstacle.ObstacleDescription,
+                    GeometryGeoJson = obstacle.GeometryGeoJson,
+                    ObstacleStatus = 3,
+                    ArchivedDate = DateTime.UtcNow
+                };
+                
+                await _context.ArchivedReports.AddAsync(archivedReport);
+                await _context.SaveChangesAsync(); // Må lagre for å få ArchivedReportId
+                
+                // Flytt alle rapporter til ArchivedRapports
+                if (rapports.Any())
+                {
+                    var archivedRapports = rapports.Select(r => new ArchivedRapport
+                    {
+                        ArchivedReportId = archivedReport.ArchivedReportId,
+                        OriginalRapportId = r.RapportID,
+                        RapportComment = r.RapportComment
+                    }).ToList();
+                    
+                    await _context.ArchivedRapports.AddRangeAsync(archivedRapports);
+                    
+                    // Slett rapporter fra Rapports-tabellen (de er nå flyttet til ArchivedRapports)
+                    _context.Rapports.RemoveRange(rapports);
+                }
+                
+                await _context.SaveChangesAsync();
+                
+                // Slett hindringen fra ObstaclesData (som UpdateObstacles gjør når status er 3)
+                await _obstacleRepository.UpdateObstacles(obstacle);
+                
+                TempData["Success"] = $"Hindring '{obstacle.ObstacleName}' er avvist og arkivert sammen med {rapports.Count} rapport(er).";
+            }
+            else
+            {
+                await _obstacleRepository.UpdateObstacles(obstacle);
+                TempData["Success"] = $"Status for hindring '{obstacle.ObstacleName}' er oppdatert.";
+            }
+            
+            // Redirect tilbake til detaljsiden hvis returnUrl er satt, ellers til rapporter
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DetaljerOmRapport"))
+            {
+                // Hvis status er Rejected, redirect til rapporter siden hindringen er slettet
+                if (status == 3)
+                {
+                    return RedirectToAction(nameof(Reports));
+                }
+                return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
+            }
+            
+            return RedirectToAction(nameof(Reports));
+        }
+
+        [HttpGet("report-details/{obstacleId}")]
+        public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
+        {
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            if (obstacle == null)
+            {
+                TempData["Error"] = "Fant ikke hindring.";
+                return RedirectToAction(nameof(Reports));
+            }
+
+            var rapports = await _registrarRepository.GetAllRapports();
+            var obstacleRapports = rapports.Where(r => r.ObstacleId == obstacleId).ToList();
+
+            ViewBag.Obstacle = obstacle;
+            ViewBag.Rapports = obstacleRapports;
+
+            return View("DetaljerOmRapport", obstacle);
+        }
+
+        [HttpPost("add-comment")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(int obstacleId, string comment)
+        {
+            if (string.IsNullOrWhiteSpace(comment))
+            {
+                TempData["Error"] = "Kommentar kan ikke være tom.";
+                return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
+            }
+
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            if (obstacle == null)
+            {
+                TempData["Error"] = "Fant ikke hindring.";
+                return RedirectToAction(nameof(Reports));
+            }
+
+            var rapport = new RapportData
+            {
+                ObstacleId = obstacleId,
+                RapportComment = comment
+            };
+
+            await _registrarRepository.AddRapport(rapport);
+            TempData["Success"] = "Kommentar lagt til.";
+            return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
         }
 
         [HttpGet("manage-users")]
@@ -52,7 +203,9 @@ namespace FirstWebApplication.Controllers
                     Id = u.Id,
                     Email = u.Email!,
                     DisplayName = u.UserName,
-                    Roles = roles
+                    Roles = roles,
+                    IsApproved = u.IaApproved,
+                    DesiredRole = u.DesiredRole
                 });
             }
 
@@ -170,6 +323,114 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(ManageUsers));
         }
 
+        [ValidateAntiForgeryToken]
+        [HttpPost("approve-user")]
+        public async Task<IActionResult> ApproveUser(string UserId)
+        {
+            if (string.IsNullOrEmpty(UserId))
+            {
+                TempData["Error"] = "Ugyldig forespørsel.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            var user = await _userRepository.GetByIdAsync(UserId);
+            if (user == null)
+            {
+                TempData["Error"] = "Fant ikke bruker.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            // Protect default admin account from changes
+            if (!string.IsNullOrEmpty(user.Email) &&
+                string.Equals(user.Email, DefaultAdminEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = $"Kan ikke endre standard administrator ({DefaultAdminEmail}).";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            user.IaApproved = true;
+            var result = await _userRepository.UpdateAsync(user);
+            
+            if (result.Succeeded)
+            {
+                // Reload user from database to ensure we have the latest data
+                user = await _userRepository.GetByIdAsync(UserId);
+                if (user == null)
+                {
+                    TempData["Error"] = "Fant ikke bruker etter oppdatering.";
+                    return RedirectToAction(nameof(ManageUsers));
+                }
+                
+                // Assign the DesiredRole if the user has one and doesn't already have a role
+                if (!string.IsNullOrEmpty(user.DesiredRole))
+                {
+                    var existingRoles = await _userManager.GetRolesAsync(user);
+                    if (!existingRoles.Any())
+                    {
+                        // Check if the desired role is allowed
+                        if (AllowedAssignableRoles.Contains(user.DesiredRole))
+                        {
+                            // Ensure the role exists
+                            if (!await _roleManager.RoleExistsAsync(user.DesiredRole))
+                            {
+                                await _roleManager.CreateAsync(new IdentityRole(user.DesiredRole));
+                            }
+                            
+                            // Assign the role
+                            var roleResult = await _userManager.AddToRoleAsync(user, user.DesiredRole);
+                            if (!roleResult.Succeeded)
+                            {
+                                TempData["Error"] = $"Bruker {user.Email} er godkjent, men kunne ikke tildele rolle: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}.";
+                                return RedirectToAction(nameof(ManageUsers));
+                            }
+                        }
+                    }
+                }
+                
+                TempData["Success"] = $"Bruker {user.Email} er godkjent{(string.IsNullOrEmpty(user.DesiredRole) ? "" : $" og tildelt rolle {user.DesiredRole}")}.";
+            }
+            else
+            {
+                TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
+        [ValidateAntiForgeryToken]
+        [HttpPost("reject-user")]
+        public async Task<IActionResult> RejectUser(string UserId)
+        {
+            if (string.IsNullOrEmpty(UserId))
+            {
+                TempData["Error"] = "Ugyldig forespørsel.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            var user = await _userRepository.GetByIdAsync(UserId);
+            if (user == null)
+            {
+                TempData["Error"] = "Fant ikke bruker.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            // Protect default admin account from changes
+            if (!string.IsNullOrEmpty(user.Email) &&
+                string.Equals(user.Email, DefaultAdminEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = $"Kan ikke endre standard administrator ({DefaultAdminEmail}).";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+
+            user.IaApproved = false;
+            var result = await _userRepository.UpdateAsync(user);
+            TempData[result.Succeeded ? "Success" : "Error"] =
+                result.Succeeded ? $"Bruker {user.Email} er avvist." :
+                string.Join(", ", result.Errors.Select(e => e.Description));
+
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
         [HttpGet("create-user")]
         public IActionResult CreateUser()
         {
@@ -214,7 +475,8 @@ namespace FirstWebApplication.Controllers
             var user = new ApplicationUser
             {
                 UserName = model.Email,
-                Email = model.Email
+                Email = model.Email,
+                IaApproved = true // Admin-created users are automatically approved
             };
 
             var createResult = await _userRepository.CreateAsync(user, model.Password);
