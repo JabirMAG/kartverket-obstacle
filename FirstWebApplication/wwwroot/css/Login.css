@@ -1,0 +1,82 @@
+﻿/* Lys gradient bakgrunn */
+body {
+    background: linear-gradient(135deg, #eaf2ff, #ffffff);
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Wrapper som sentrerer alt vertikalt og horisontalt */
+.login-wrapper {
+    display: flex;
+    justify-content: center; /* horisontalt */
+    align-items: center;     /* vertikalt */
+    min-height: 100vh;       /* fyller hele høyden */
+    padding: 20px;
+}
+
+/* Selve login-boksen */
+.login-box {
+    background-color: #ffffff;
+    padding: 30px 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 380px;
+}
+
+/* Tittel */
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* Inputfelt */
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Glemt passord-lenke */
+a[asp-action="ForgotPassword"] {
+    font-size: 14px;
+    color: #007bff;
+    text-decoration: none;
+}
+
+a[asp-action="ForgotPassword"]:hover {
+    text-decoration: underline;
+}
+
+/* Mindre, ren login-knapp */
+.btn-primary {
+    width: 100%;
+    padding: 8px;
+    font-size: 15px;
+    border-radius: 8px;
+    background-color: #007bff;
+    border-color: #007bff;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* Tekst under login-knappen */
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    color: #555;
+}
+
+    .register-link a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
