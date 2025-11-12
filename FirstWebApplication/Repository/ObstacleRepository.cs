@@ -20,7 +20,7 @@ namespace FirstWebApplication.Repositories
             return obstacle;
         }
 
-        public async Task<ObstacleData> GetElementById(int id)
+        public async Task<ObstacleData?> GetElementById(int id)
         {
             var findById = await _context.ObstaclesData
                 .Where(x => x.ObstacleId == id)
