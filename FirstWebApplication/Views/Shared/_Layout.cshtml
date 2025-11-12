@@ -54,26 +54,25 @@
             <div class="container-fluid d-flex justify-content-between align-items-center">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kartverket</a>
                 
-                @if (SignInManager.IsSignedIn(User))
-                {
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; padding: 0.5rem;">
-                            <span class="hamburger-icon">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle position-relative" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Meny
+                        <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none;">
+                            <span id="notification-count">0</span>
+                            <span class="visually-hidden">nye varslinger</span>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Map" asp-action="Map">Map</a></li>
+                            <li><a class="dropdown-item" id="varsling-menu-item" asp-area="" asp-controller="Varsling" asp-action="Index">Varsling</a></li>
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="Registrar">Registerfører</a></li>
+                            <li><a class="dropdown-item" asp-area="" asp-controller="Advice" asp-action="FeedbackForm">Feedback</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             @if (isAdmin)
                             {
-                                <li><h6 class="dropdown-header">Admin</h6></li>
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers">Brukerhåndtering</a></li>
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Reports">Rapporter</a></li>
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="CreateUser">Opprett bruker</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Admin</a></li>
                             }
                             else if (isPilot)
                             {
@@ -89,9 +88,9 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Logout">Logg ut</a></li>
                             }
+                        }    
                         </ul>
                     </div>
-                }
             </div>
         </nav>
     </header>
@@ -110,7 +109,57 @@
 
     @await Html.PartialAsync("_Scripts")  <!-- Include JS -->
     @RenderSection("Scripts", required: false)  <!-- Optional page-specific scripts -->
-    @RenderSection("Styles", required: false)
+    
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <script>
+            // Hent notification count når siden lastes
+            document.addEventListener('DOMContentLoaded', function() {
+                loadNotificationCount();
+                
+                // Oppdater hvert 30. sekund
+                setInterval(loadNotificationCount, 30000);
+            });
 
+            function loadNotificationCount() {
+                fetch('/Varsling/GetNotificationCount')
+                    .then(response => response.json())
+                    .then(data => {
+                        const badge = document.getElementById('notification-badge');
+                        const countElement = document.getElementById('notification-count');
+                        const varslingMenuItem = document.getElementById('varsling-menu-item');
+                        
+                        if (data.count > 0) {
+                            // Vis badge med antall
+                            if (badge) {
+                                badge.style.display = 'inline-block';
+                                if (countElement) {
+                                    countElement.textContent = data.count;
+                                }
+                            }
+                            
+                            // Legg til blå outline på Varsling menypunkt (uten bakgrunnsfarge)
+                            if (varslingMenuItem) {
+                                varslingMenuItem.classList.add('border', 'border-primary', 'border-2', 'rounded', 'px-2', 'py-1');
+                            }
+                        } else {
+                            // Skjul badge
+                            if (badge) {
+                                badge.style.display = 'none';
+                            }
+                            
+                            // Fjern outline fra Varsling menypunkt
+                            if (varslingMenuItem) {
+                                varslingMenuItem.classList.remove('border', 'border-primary', 'border-2', 'rounded', 'px-2', 'py-1');
+                                varslingMenuItem.style.backgroundColor = '';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading notification count:', error);
+                    });
+            }
+        </script>
+    }
 </body>
 </html>

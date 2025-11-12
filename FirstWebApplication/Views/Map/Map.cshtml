@@ -459,7 +459,20 @@
                                 const currentForm = e.target;
                                 const formData = new FormData(currentForm);
                                 
-                                fetch('/Obstacle/SubmitObstacle', {
+                                // Sjekk hvilken knapp som ble klikket
+                                const submitButton = e.submitter || document.activeElement;
+                                let actionUrl = '/Obstacle/SubmitObstacle'; // Standard action
+                                
+                                if (submitButton && submitButton.type === 'submit') {
+                                    // Sjekk om knappen har formaction attributt
+                                    if (submitButton.hasAttribute('formaction')) {
+                                        actionUrl = submitButton.getAttribute('formaction');
+                                    } else if (submitButton.id === 'obstacle-quick-save-button') {
+                                        actionUrl = '/Obstacle/QuickSaveObstacle';
+                                    }
+                                }
+                                
+                                fetch(actionUrl, {
                                     method: 'POST',
                                     body: formData,
                                     headers: {
