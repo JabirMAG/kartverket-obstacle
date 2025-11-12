@@ -25,7 +25,8 @@
     gap: 10px;
 }
 
-.login-button {
+.login-button,
+.register-button {
     background-color: #1976d2;
     color: white;
     padding: 12px 24px;
@@ -38,13 +39,7 @@
     width: 100%;
     min-width: 200px;
     box-sizing: border-box;
-}
-
-.login-button::after {
-    content: '>';
-    margin-left: 10px;
-}
-
+.login-button::after,
 .register-button::after {
     content: '>';
     margin-left: 10px;
