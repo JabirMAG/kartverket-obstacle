@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FirstWebApplication.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20251109165654_Test")]
-    partial class Test
+    [Migration("20251110161440_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -211,6 +211,10 @@ namespace FirstWebApplication.Migrations
 
                     b.Property<int>("ObstacleStatus")
                         .HasColumnType("int");
+
+                    b.Property<string>("OwnerUserId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("ObstacleId");
 
