@@ -20,9 +20,15 @@ services:
       MYSQL_ROOT_PASSWORD: Mammaerbest1
       MYSQL_DATABASE: KartverketDB
     ports:
-      - "3306:3306"
+      - "3307:3306"
+    volumes:
+      - mariadbdata:/var/lib/mysql
     networks:
       - appnet
+      
+volumes:
+    mariadbdata:
+
 
 
 networks:
