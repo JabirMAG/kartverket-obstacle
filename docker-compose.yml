@@ -11,8 +11,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DatabaseConnection=Server=mariadbcontainer;Port=3306;Database=KartverketDB;User=root;Password=Mammaerbest1;
-    networks:
-      - appnet
     depends_on:
       mariadbcontainer:
         condition: service_healthy
@@ -26,8 +24,6 @@ services:
       - "3307:3306"
     volumes:
       - mariadbdata:/var/lib/mysql
-    networks:
-      - appnet
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
       interval: 10s
@@ -36,9 +32,3 @@ services:
       
 volumes:
     mariadbdata:
-
-networks:
-  appnet:
-    external: true
-    name: appnet
- 
