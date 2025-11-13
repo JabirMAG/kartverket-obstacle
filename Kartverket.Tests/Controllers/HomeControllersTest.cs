@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -24,9 +25,17 @@ namespace Kartverket.Tests.Controllers
             var logger = new Mock<ILogger<HomeController>>();
             
             //lager mock for UserManager (påkrevd av homekontroller construtor)
+            var userStore = Mock.Of<IUserStore<ApplicationUser>>();
             var userManager = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(),
-                null, null, null, null, null, null, null, null);
+                userStore,
+                Mock.Of<IOptions<IdentityOptions>>(),
+                Mock.Of<IPasswordHasher<ApplicationUser>>(),
+                new List<IUserValidator<ApplicationUser>>(),
+                new List<IPasswordValidator<ApplicationUser>>(),
+                Mock.Of<ILookupNormalizer>(),
+                Mock.Of<IdentityErrorDescriber>(),
+                Mock.Of<IServiceProvider>(),
+                Mock.Of<ILogger<UserManager<ApplicationUser>>>());
 
             var inMemorySettings = new Dictionary<string, string?>
             {
