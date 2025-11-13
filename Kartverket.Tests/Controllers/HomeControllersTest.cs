@@ -1,11 +1,14 @@
 using FirstWebApplication.Controllers;
 using FirstWebApplication.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Kartverket.Tests.Controllers
@@ -37,7 +40,17 @@ namespace Kartverket.Tests.Controllers
                 .Build();
 
             var controller = new HomeController(config, logger.Object, userManager.Object);
-            await controller.Index();
+            
+            // Set up HttpContext with a non-authenticated user
+            var httpContext = new DefaultHttpContext();
+            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity());
+            httpContext.User = claimsPrincipal;
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+            
+            var result = await controller.Index();
             var greetings = new[] { "God morgen!", "God ettermiddag!", "God kveld!" };
             var controllerGreeting = controller.ViewBag.Greeting;
 
