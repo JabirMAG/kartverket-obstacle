@@ -3,6 +3,8 @@ using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -77,18 +79,60 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
             }
 
+            // Valider input
+            if (string.IsNullOrWhiteSpace(obstacleName) || obstacleName.Length > 100)
+            {
+                TempData["Error"] = "Navn må være mellom 1 og 100 tegn.";
+                return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
+            }
+
+            if (obstacleHeight < 0 || obstacleHeight > 200)
+            {
+                TempData["Error"] = "Høyde må være mellom 0 og 200 meter.";
+                return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
+            }
+
+            if (string.IsNullOrWhiteSpace(obstacleDescription) || obstacleDescription.Length > 1000)
+            {
+                TempData["Error"] = "Beskrivelse må være mellom 1 og 1000 tegn.";
+                return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
+            }
+
+            // Spor endringer for å lage en informativ kommentar
+            var changes = new List<string>();
+            if (obstacle.ObstacleName != obstacleName)
+            {
+                changes.Add($"Navn: '{obstacle.ObstacleName}' → '{obstacleName}'");
+            }
+            if (Math.Abs(obstacle.ObstacleHeight - obstacleHeight) > 0.01)
+            {
+                changes.Add($"Høyde: {obstacle.ObstacleHeight}m → {obstacleHeight}m");
+            }
+            if (obstacle.ObstacleDescription != obstacleDescription)
+            {
+                changes.Add("Beskrivelse er oppdatert");
+            }
+
+            // Oppdater hindringen
             obstacle.ObstacleName = obstacleName;
             obstacle.ObstacleDescription = obstacleDescription;
             obstacle.ObstacleHeight = obstacleHeight;
 
             await _obstacleRepository.UpdateObstacles(obstacle);
 
-            // Legg igjen en kommentar om at piloten oppdaterte
-            await _registrarRepository.AddRapport(new RapportData
+            // Legg igjen en kommentar om at piloten oppdaterte (kun hvis det var endringer)
+            if (changes.Any())
             {
-                ObstacleId = obstacle.ObstacleId,
-                RapportComment = $"Piloten oppdaterte hindringen. Ny høyde: {obstacle.ObstacleHeight}m."
-            });
+                var changeDescription = changes.Count == 1 
+                    ? changes.First() 
+                    : string.Join(", ", changes);
+                
+                await _registrarRepository.AddRapport(new RapportData
+                {
+                    ObstacleId = obstacle.ObstacleId,
+                    RapportComment = $"Piloten oppdaterte hindringen. Endringer: {changeDescription}."
+                });
+            }
 
             TempData["Success"] = "Hindringen er oppdatert.";
             return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });

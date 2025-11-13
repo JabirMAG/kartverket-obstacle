@@ -15,6 +15,17 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
+<div class="mb-3">
+    <form method="get" asp-action="Reports" class="d-inline-flex gap-2 align-items-center">
+        <label for="statusFilter" class="form-label mb-0">Filtrer på status:</label>
+        <select name="statusFilter" id="statusFilter" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+            <option value="">Alle</option>
+            <option value="1" selected="@(ViewBag.StatusFilter != null && (int)ViewBag.StatusFilter == 1)">Under behandling</option>
+            <option value="2" selected="@(ViewBag.StatusFilter != null && (int)ViewBag.StatusFilter == 2)">Godkjent</option>
+        </select>
+    </form>
+</div>
+
 @if (Model == null || !Model.Any())
 {
     <div class="alert alert-info">

@@ -36,4 +36,8 @@
     <EditorConfigFiles Remove="C:\Users\hamdi\source\repos\FirstWebApplication\FirstWebApplication\Models\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\Register\Register.cshtml" />
+  </ItemGroup>
+
 </Project>

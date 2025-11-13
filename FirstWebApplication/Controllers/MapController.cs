@@ -24,7 +24,7 @@ namespace FirstWebApplication.Controllers
             ViewBag.ReportedObstacles = reportedObstacles;
             
             var obstacleData = new ObstacleData();
-            return View(obstacleData);
+            return View("~/Views/Pilot/Map.cshtml", obstacleData);
         }
 
         [HttpGet]
