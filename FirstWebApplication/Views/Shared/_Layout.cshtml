@@ -59,7 +59,29 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid d-flex justify-content-between align-items-center">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kartverket</a>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    @if (isAdmin)
+                    {
+                        <a class="navbar-brand" asp-controller="Admin" asp-action="Dashboard">Kartverket</a>
+                    }
+                    else if (isPilot)
+                    {
+                        <a class="navbar-brand" asp-controller="Map" asp-action="Map">Kartverket</a>
+                    }
+                    else if (isRegistrar)
+                    {
+                        <a class="navbar-brand" asp-controller="Registrar" asp-action="Registrar">Kartverket</a>
+                    }
+                    else
+                    {
+                        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kartverket</a>
+                    }
+                }
+                else
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kartverket</a>
+                }
                 
                 <div class="dropdown">
                     <button class="btn btn-outline-secondary position-relative hamburger-menu" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Meny">
@@ -68,10 +90,13 @@
                             <span></span>
                             <span></span>
                         </span>
-                        <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none;">
-                            <span id="notification-count">0</span>
-                            <span class="visually-hidden">nye varslinger</span>
-                        </span>
+                        @if (isPilot)
+                        {
+                            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none;">
+                                <span id="notification-count">0</span>
+                                <span class="visually-hidden">nye varslinger</span>
+                            </span>
+                        }
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         @if (!SignInManager.IsSignedIn(User))
@@ -132,7 +157,7 @@
     @await Html.PartialAsync("_Scripts")  <!-- Include JS -->
     @RenderSection("Scripts", required: false)  <!-- Optional page-specific scripts -->
     
-    @if (SignInManager.IsSignedIn(User))
+    @if (SignInManager.IsSignedIn(User) && isPilot)
     {
         <script>
             // Hent notification count når siden lastes

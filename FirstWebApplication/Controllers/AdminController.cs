@@ -50,18 +50,33 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpGet("reports")]
-        public async Task<IActionResult> Reports()
+        public async Task<IActionResult> Reports(int? statusFilter = null)
         {
             // Hent alle hindringer som har rapporter
             var rapports = await _registrarRepository.GetAllRapports();
-            // Filtrer ut rejected hindringer (status 3) siden de er arkivert
+            
+            // Filtrer basert på status hvis filter er valgt
+            if (statusFilter.HasValue)
+            {
+                rapports = rapports
+                    .Where(r => r.Obstacle != null && r.Obstacle.ObstacleStatus == statusFilter.Value)
+                    .ToList();
+            }
+            else
+            {
+                // Standard: filtrer ut rejected hindringer (status 3) siden de er arkivert
+                rapports = rapports
+                    .Where(r => r.Obstacle != null && r.Obstacle.ObstacleStatus != 3)
+                    .ToList();
+            }
+            
             // Grupper på ObstacleId og ta den første rapporten for hver hindring for å unngå duplikater
             var uniqueRapports = rapports
-                .Where(r => r.Obstacle != null && r.Obstacle.ObstacleStatus != 3)
                 .GroupBy(r => r.ObstacleId)
                 .Select(g => g.First())
                 .ToList();
             
+            ViewBag.StatusFilter = statusFilter;
             return View("AdminViewReports", uniqueRapports);
         }
 

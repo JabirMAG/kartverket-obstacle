@@ -26,10 +26,21 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Registrar()
+        public async Task<IActionResult> Registrar(int? statusFilter = null)
         {
             var obstacles = await _obstacleRepository.GetAllObstacles();
             var rapports = await _registrarRepository.GetAllRapports();
+
+            // Filtrer obstacles basert på status hvis filter er valgt
+            if (statusFilter.HasValue)
+            {
+                obstacles = obstacles.Where(o => o.ObstacleStatus == statusFilter.Value).ToList();
+            }
+            else
+            {
+                // Standard: vis alle unntatt avslåtte (status 3)
+                obstacles = obstacles.Where(o => o.ObstacleStatus != 3).ToList();
+            }
 
             var vm = new RegistrarViewModel
             {
@@ -37,6 +48,7 @@ namespace FirstWebApplication.Controllers
                 Rapports = rapports
             };
 
+            ViewBag.StatusFilter = statusFilter;
             return View(vm);
         }
 
