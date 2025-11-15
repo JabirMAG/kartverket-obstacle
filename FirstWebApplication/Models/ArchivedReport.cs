@@ -29,8 +29,9 @@ namespace FirstWebApplication.Models
         // Dato for når rapporten ble arkivert
         public DateTime ArchivedDate { get; set; } = DateTime.UtcNow;
 
-        // Relasjon til arkiverte rapporter
-        public ICollection<ArchivedRapport> ArchivedRapports { get; set; } = new List<ArchivedRapport>();
+        // Alle rapport-kommentarer lagret som JSON array
+        // Format: ["comment1", "comment2", ...]
+        public string RapportComments { get; set; } = "[]";
     }
 }
 

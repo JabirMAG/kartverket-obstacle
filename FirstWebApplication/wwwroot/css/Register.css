@@ -1,0 +1,64 @@
+﻿/* Bakgrunn */
+body {
+    background: linear-gradient(135deg, #eaf2ff, #ffffff);
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Wrapper som sentrerer alt */
+.register-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Selve registreringsboksen */
+.register-box {
+    background-color: #ffffff;
+    padding: 30px 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+    /* Tittel */
+    .register-box h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+/* Input og select */
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Submit-knapp */
+.btn-primary {
+    width: 100%;
+    padding: 8px;
+    font-size: 15px;
+    border-radius: 8px;
+    background-color: #007bff;
+    border-color: #007bff;
+    transition: background-color 0.3s ease;
+}
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+/* Lenke til login */
+.login-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    .login-link a:hover {
+        text-decoration: underline;
+    }
