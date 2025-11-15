@@ -190,11 +190,9 @@ namespace FirstWebApplication.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ObstacleId"));
 
                     b.Property<string>("GeometryGeoJson")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("ObstacleDescription")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
@@ -202,7 +200,6 @@ namespace FirstWebApplication.Migrations
                         .HasColumnType("double");
 
                     b.Property<string>("ObstacleName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 

@@ -1,7 +1,7 @@
 .feedback-box {
-    background-color: #d9e9fb; /* lys grå bakgrunn */
-    border-radius: 8px;        /* avrundede hjørner */
-    padding: 30px;             /* innvendig luft */
+    background-color: #d9e9fb; 
+    border-radius: 8px;        
+    padding: 30px;             
 }
 
 .feedback-button {
@@ -16,7 +16,7 @@ textarea.form-control {
     resize: vertical;
 }
 
-/* Polished CTA button for navbar */
+
 .btn-cta {
     background: linear-gradient(135deg, #4c8bf5 0%, #2563eb 100%);
     color: #ffffff;
