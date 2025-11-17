@@ -1,4 +1,5 @@
-﻿using FirstWebApplication.Models;
+﻿using FirstWebApplication.Constants;
+using FirstWebApplication.Models;
 using FirstWebApplication.Models.AdminViewModels;
 using FirstWebApplication.Repositories;
 using FirstWebApplication.DataContext;
@@ -280,7 +281,8 @@ namespace FirstWebApplication.Controllers
                     DisplayName = u.UserName,
                     Roles = roles,
                     IsApproved = u.IaApproved,
-                    DesiredRole = u.DesiredRole
+                    DesiredRole = u.DesiredRole,
+                    Organization = u.Organization
                 });
             }
 
@@ -509,10 +511,7 @@ namespace FirstWebApplication.Controllers
         [HttpGet("create-user")]
         public IActionResult CreateUser()
         {
-            ViewBag.AssignableRoles = AllowedAssignableRoles;
-            var policy = BuildPasswordPolicyObject();
-            ViewBag.PasswordRequirements = BuildPasswordRequirements();
-            ViewBag.PasswordPolicy = policy;
+            PopulateCreateUserViewData();
             return View(new CreateUserVm());
         }
 
@@ -520,11 +519,19 @@ namespace FirstWebApplication.Controllers
         [HttpPost("create-user")]
         public async Task<IActionResult> CreateUser(CreateUserVm model)
         {
+            if (!OrganizationOptions.All.Contains(model.Organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(nameof(model.Organization), "Velg en gyldig organisasjon.");
+            }
+            else
+            {
+                model.Organization = OrganizationOptions.All.First(o =>
+                    string.Equals(o, model.Organization, StringComparison.OrdinalIgnoreCase));
+            }
+
             if (!ModelState.IsValid)
             {
-                ViewBag.AssignableRoles = AllowedAssignableRoles;
-                ViewBag.PasswordRequirements = BuildPasswordRequirements();
-                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+                PopulateCreateUserViewData();
                 return View(model);
             }
 
@@ -532,26 +539,31 @@ namespace FirstWebApplication.Controllers
             if (existing != null)
             {
                 ModelState.AddModelError(nameof(model.Email), "E-posten er allerede i bruk.");
-                ViewBag.AssignableRoles = AllowedAssignableRoles;
-                ViewBag.PasswordRequirements = BuildPasswordRequirements();
-                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+                PopulateCreateUserViewData();
+                return View(model);
+            }
+
+            var existingUsername = await _userManager.FindByNameAsync(model.Username);
+            if (existingUsername != null)
+            {
+                ModelState.AddModelError(nameof(model.Username), "Brukernavnet er allerede i bruk.");
+                PopulateCreateUserViewData();
                 return View(model);
             }
 
             if (!AllowedAssignableRoles.Contains(model.Role))
             {
                 ModelState.AddModelError(nameof(model.Role), "Ugyldig rolle.");
-                ViewBag.AssignableRoles = AllowedAssignableRoles;
-                ViewBag.PasswordRequirements = BuildPasswordRequirements();
-                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+                PopulateCreateUserViewData();
                 return View(model);
             }
 
             var user = new ApplicationUser
             {
-                UserName = model.Email,
+                UserName = model.Username,
                 Email = model.Email,
-                IaApproved = true // Admin-created users are automatically approved
+                IaApproved = true, // Admin-created users are automatically approved
+                Organization = model.Organization
             };
 
             var createResult = await _userRepository.CreateAsync(user, model.Password);
@@ -581,9 +593,7 @@ namespace FirstWebApplication.Controllers
                 foreach (var err in otherErrors)
                     ModelState.AddModelError(string.Empty, err.Description);
 
-                ViewBag.AssignableRoles = AllowedAssignableRoles;
-                ViewBag.PasswordRequirements = BuildPasswordRequirements();
-                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+                PopulateCreateUserViewData();
                 return View(model);
             }
 
@@ -594,6 +604,14 @@ namespace FirstWebApplication.Controllers
 
             TempData["Success"] = $"Opprettet bruker {model.Email} med rolle {model.Role}.";
             return RedirectToAction(nameof(ManageUsers));
+        }
+
+        private void PopulateCreateUserViewData()
+        {
+            ViewBag.AssignableRoles = AllowedAssignableRoles;
+            ViewBag.PasswordRequirements = BuildPasswordRequirements();
+            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+            ViewBag.OrganizationOptions = OrganizationOptions.All;
         }
 
         private IEnumerable<string> BuildPasswordRequirements()

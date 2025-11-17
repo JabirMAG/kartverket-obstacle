@@ -1,3 +1,4 @@
+using FirstWebApplication.Constants;
 using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
 //using FirstWebApplication.NewFolder;
@@ -34,8 +35,7 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            ViewBag.PasswordRequirements = BuildPasswordRequirements();
-            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+            PopulateRegisterViewData();
             return View();
         }
         
@@ -43,8 +43,21 @@ namespace FirstWebApplication.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
+            if (!OrganizationOptions.All.Contains(registerViewModel.Organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(nameof(registerViewModel.Organization), "Velg en gyldig organisasjon.");
+            }
+            else
+            {
+                registerViewModel.Organization = OrganizationOptions.All.First(o =>
+                    string.Equals(o, registerViewModel.Organization, StringComparison.OrdinalIgnoreCase));
+            }
+
             if (!ModelState.IsValid)
+            {
+                PopulateRegisterViewData();
                 return View(registerViewModel);
+            }
             
             //lager new user
             var applicationUser = new ApplicationUser
@@ -52,7 +65,8 @@ namespace FirstWebApplication.Controllers
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
                 DesiredRole = registerViewModel.DesiredRole,
-                IaApproved = false
+                IaApproved = false,
+                Organization = registerViewModel.Organization
             };
             
             var identityResult = await _userManager.CreateAsync(applicationUser, registerViewModel.Password);
@@ -89,8 +103,7 @@ namespace FirstWebApplication.Controllers
                     ModelState.AddModelError(string.Empty, err.Description);
                 }
 
-                ViewBag.PasswordRequirements = BuildPasswordRequirements();
-                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+                PopulateRegisterViewData();
                 return View(registerViewModel);
             }
         }
@@ -295,6 +308,13 @@ namespace FirstWebApplication.Controllers
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
+        }
+
+        private void PopulateRegisterViewData()
+        {
+            ViewBag.PasswordRequirements = BuildPasswordRequirements();
+            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+            ViewBag.OrganizationOptions = OrganizationOptions.All;
         }
 
         private IEnumerable<string> BuildPasswordRequirements()
