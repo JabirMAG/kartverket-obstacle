@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace FirstWebApplication.Controllers
 {
@@ -65,6 +66,86 @@ namespace FirstWebApplication.Controllers
             return View("AdminViewReports", uniqueRapports);
         }
 
+        [HttpGet("archived-reports")]
+        public async Task<IActionResult> ArchivedReports()
+        {
+            var archivedReports = await _context.ArchivedReports
+                .OrderByDescending(ar => ar.ArchivedDate)
+                .ToListAsync();
+            
+            return View("AdminArchivedReports", archivedReports);
+        }
+
+        [HttpPost("restore-archived-report")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestoreArchivedReport(int archivedReportId, int newStatus)
+        {
+            // Valider at newStatus er enten 1 (Under behandling) eller 2 (Godkjent)
+            if (newStatus != 1 && newStatus != 2)
+            {
+                TempData["Error"] = "Ugyldig status. Status må være 'Under behandling' (1) eller 'Godkjent' (2).";
+                return RedirectToAction(nameof(ArchivedReports));
+            }
+
+            var archivedReport = await _context.ArchivedReports
+                .FirstOrDefaultAsync(ar => ar.ArchivedReportId == archivedReportId);
+
+            if (archivedReport == null)
+            {
+                TempData["Error"] = "Fant ikke arkivert rapport.";
+                return RedirectToAction(nameof(ArchivedReports));
+            }
+
+            // Opprett ny ObstacleData fra ArchivedReport
+            var restoredObstacle = new ObstacleData
+            {
+                ObstacleName = archivedReport.ObstacleName,
+                ObstacleHeight = archivedReport.ObstacleHeight,
+                ObstacleDescription = archivedReport.ObstacleDescription,
+                GeometryGeoJson = archivedReport.GeometryGeoJson,
+                ObstacleStatus = newStatus,
+                OwnerUserId = null // Vi har ikke OwnerUserId i ArchivedReport, så setter til null
+            };
+
+            // Legg til hindringen i databasen (AddObstacle returnerer obstacle med ObstacleId satt)
+            var savedObstacle = await _obstacleRepository.AddObstacle(restoredObstacle);
+
+            // Deserialiser og opprett RapportData-entries fra RapportComments
+            List<string> rapportComments = new List<string>();
+            try
+            {
+                if (!string.IsNullOrEmpty(archivedReport.RapportComments))
+                {
+                    rapportComments = JsonSerializer.Deserialize<List<string>>(archivedReport.RapportComments) ?? new List<string>();
+                }
+            }
+            catch
+            {
+                rapportComments = new List<string>();
+            }
+
+            // Opprett RapportData for hver kommentar
+            foreach (var comment in rapportComments)
+            {
+                var rapport = new RapportData
+                {
+                    ObstacleId = savedObstacle.ObstacleId,
+                    RapportComment = comment
+                };
+                await _context.Rapports.AddAsync(rapport);
+            }
+
+            // Slett ArchivedReport
+            _context.ArchivedReports.Remove(archivedReport);
+
+            await _context.SaveChangesAsync();
+
+            var statusText = newStatus == 1 ? "Under behandling" : "Godkjent";
+            TempData["Success"] = $"Hindring '{archivedReport.ObstacleName}' er gjenopprettet med status '{statusText}' og {rapportComments.Count} rapport(er) er lagt til.";
+            
+            return RedirectToAction(nameof(ArchivedReports));
+        }
+
         [HttpPost("update-obstacle-status")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status, string returnUrl = null)
@@ -86,6 +167,10 @@ namespace FirstWebApplication.Controllers
                     .Where(r => r.ObstacleId == obstacle.ObstacleId)
                     .ToListAsync();
                 
+                // Kombiner alle rapport-kommentarer til en JSON array
+                var rapportComments = rapports.Select(r => r.RapportComment).ToList();
+                var rapportCommentsJson = JsonSerializer.Serialize(rapportComments);
+                
                 var archivedReport = new ArchivedReport
                 {
                     OriginalObstacleId = obstacle.ObstacleId,
@@ -94,25 +179,15 @@ namespace FirstWebApplication.Controllers
                     ObstacleDescription = obstacle.ObstacleDescription,
                     GeometryGeoJson = obstacle.GeometryGeoJson,
                     ObstacleStatus = 3,
-                    ArchivedDate = DateTime.UtcNow
+                    ArchivedDate = DateTime.UtcNow,
+                    RapportComments = rapportCommentsJson
                 };
                 
                 await _context.ArchivedReports.AddAsync(archivedReport);
-                await _context.SaveChangesAsync(); // Må lagre for å få ArchivedReportId
                 
-                // Flytt alle rapporter til ArchivedRapports
+                // Slett rapporter fra Rapports-tabellen (de er nå lagret i ArchivedReport)
                 if (rapports.Any())
                 {
-                    var archivedRapports = rapports.Select(r => new ArchivedRapport
-                    {
-                        ArchivedReportId = archivedReport.ArchivedReportId,
-                        OriginalRapportId = r.RapportID,
-                        RapportComment = r.RapportComment
-                    }).ToList();
-                    
-                    await _context.ArchivedRapports.AddRangeAsync(archivedRapports);
-                    
-                    // Slett rapporter fra Rapports-tabellen (de er nå flyttet til ArchivedRapports)
                     _context.Rapports.RemoveRange(rapports);
                 }
                 

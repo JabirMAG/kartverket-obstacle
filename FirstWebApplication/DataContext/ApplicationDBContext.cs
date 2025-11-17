@@ -14,7 +14,6 @@ namespace FirstWebApplication.DataContext
         public DbSet<ObstacleData> ObstaclesData { get; set; }
         public DbSet<RapportData> Rapports { get; set; }
         public DbSet<ArchivedReport> ArchivedReports { get; set; }
-        public DbSet<ArchivedRapport> ArchivedRapports { get; set; }
         
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,7 +24,6 @@ namespace FirstWebApplication.DataContext
             modelBuilder.Entity<ObstacleData>().HasKey(pri => pri.ObstacleId);
             modelBuilder.Entity<RapportData>().HasKey(r => r.RapportID);
             modelBuilder.Entity<ArchivedReport>().HasKey(a => a.ArchivedReportId);
-            modelBuilder.Entity<ArchivedRapport>().HasKey(ar => ar.ArchivedRapportId);
 
             // Konfigurer ObstacleData for å håndtere null-verdier
             modelBuilder.Entity<ObstacleData>(entity =>
@@ -35,12 +33,6 @@ namespace FirstWebApplication.DataContext
                 entity.Property(e => e.GeometryGeoJson).IsRequired(false);
                 entity.Property(e => e.OwnerUserId).IsRequired(false);
             });
-
-            modelBuilder.Entity<ArchivedRapport>()
-                .HasOne(ar => ar.ArchivedReport)
-                .WithMany(ar => ar.ArchivedRapports)
-                .HasForeignKey(ar => ar.ArchivedReportId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<RapportData>()
                            .HasOne(r => r.Obstacle)
