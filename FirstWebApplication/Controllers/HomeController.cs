@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using MySqlConnector;
 
 namespace FirstWebApplication.Controllers
@@ -9,15 +11,40 @@ namespace FirstWebApplication.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly string? _connectionString;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public HomeController(IConfiguration config, ILogger<HomeController> logger)
+        public HomeController(IConfiguration config, ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
         {
             _connectionString = config.GetConnectionString("DefaultConnection");
             _logger = logger;
+            _userManager = userManager;
         }
 
-        public IActionResult Index()
+        [AllowAnonymous]
+        public async Task<IActionResult> Index()
         {
+            // Hvis brukeren er innlogget, redirect til deres hjemmeside basert på rolle
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        return RedirectToAction("Dashboard", "Admin");
+                    }
+                    else if (await _userManager.IsInRoleAsync(user, "Pilot"))
+                    {
+                        return RedirectToAction("Map", "Map");
+                    }
+                    else if (await _userManager.IsInRoleAsync(user, "Registerfører"))
+                    {
+                        return RedirectToAction("Registrar", "Registrar");
+                    }
+                }
+            }
+
+            // Hvis ikke innlogget, vis forsiden
             var hour = DateTime.Now.Hour;
             string greeting;
 
@@ -42,7 +69,7 @@ namespace FirstWebApplication.Controllers
         [HttpPost]
         public ActionResult DataForm(ObstacleData obstacledata)
         {
-            return View("Overview", obstacledata);
+            return View("~/Views/Pilot/Overview.cshtml", obstacledata);
         }
 
         public IActionResult Privacy()

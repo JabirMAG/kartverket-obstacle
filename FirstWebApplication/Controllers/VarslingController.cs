@@ -92,14 +92,13 @@ using System.Threading.Tasks;
                 .OrderByDescending(v => v.Comments.FirstOrDefault()?.RapportID ?? 0)
                 .ToList();
             
-            return View(varslinger);
+            return View("~/Views/Pilot/Varsling.cshtml", varslinger);
         }
 
         [HttpGet]
         public async Task<IActionResult> Details(int obstacleId)
         {
-            // Placeholder - denne vil vises senere
-            // Den skal vise overview av rapport lignende på DetaljerOmRapport.cshtml men med redigeringstilgang
+            // Redirect til PilotController.DetaljerOmRapport for å bruke samme view med redigeringsfunksjonalitet
             var obstacle = await _obstacleRepository.GetElementById(obstacleId);
             if (obstacle == null)
             {
@@ -107,20 +106,23 @@ using System.Threading.Tasks;
                 return RedirectToAction(nameof(Index));
             }
             
-            var rapports = await _registrarRepository.GetAllRapports();
-            var obstacleRapports = rapports.Where(r => r.ObstacleId == obstacleId).ToList();
+            // Sjekk at hindringen tilhører den innloggede brukeren
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || obstacle.OwnerUserId != currentUser.Id)
+            {
+                TempData["Error"] = "Du har ikke tilgang til denne hindringen.";
+                return RedirectToAction(nameof(Index));
+            }
             
-            ViewBag.Obstacle = obstacle;
-            ViewBag.Rapports = obstacleRapports;
-            
-            return View(obstacle);
+            // Redirect til PilotController.DetaljerOmRapport som har redigeringsfunksjonalitet
+            return RedirectToAction("DetaljerOmRapport", "Pilot", new { obstacleId });
         }
 
         /// <summary>
         /// Gets the count of new/unread notifications (comments from admin/registerfører) for the current user
+        /// Only accessible to Pilots
         /// </summary>
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> GetNotificationCount()
         {
             if (!User.Identity?.IsAuthenticated ?? true)
@@ -132,6 +134,12 @@ using System.Threading.Tasks;
             {
                 var currentUser = await _userManager.GetUserAsync(User);
                 if (currentUser == null)
+                {
+                    return Json(new { count = 0 });
+                }
+
+                // Only Pilots should see notifications
+                if (!await _userManager.IsInRoleAsync(currentUser, "Pilot"))
                 {
                     return Json(new { count = 0 });
                 }

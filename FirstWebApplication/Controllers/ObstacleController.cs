@@ -21,7 +21,7 @@ namespace FirstWebApplication.Controllers
 
         public IActionResult DataFormPartial()
         {
-            return PartialView("_ObstacleFormPartial", new ObstacleData());
+            return PartialView("~/Views/Pilot/_ObstacleFormPartial.cshtml", new ObstacleData());
         }
 
         [HttpGet]
@@ -32,7 +32,7 @@ namespace FirstWebApplication.Controllers
             {
                 return NotFound();
             }
-            return View(obstacle);
+            return View("~/Views/Pilot/Overview.cshtml", obstacle);
         }
 
         [HttpPost]
@@ -62,9 +62,9 @@ namespace FirstWebApplication.Controllers
                 var request = Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
                 if (request)
                 {
-                    return PartialView("_ObstacleFormPartial", obstacledata);
+                    return PartialView("~/Views/Pilot/_ObstacleFormPartial.cshtml", obstacledata);
                 }
-                return PartialView("_ObstacleFormPartial", obstacledata);
+                return PartialView("~/Views/Pilot/_ObstacleFormPartial.cshtml", obstacledata);
             }
             
             // Sett eier av hindringen (innlogget pilot)
@@ -98,7 +98,7 @@ namespace FirstWebApplication.Controllers
                 return Json(new { success = true, redirectUrl = Url.Action("Overview", "Obstacle", new { id = savedObstacle.ObstacleId }) });
             }
             
-            return View("Overview", obstacledata);
+            return View("~/Views/Pilot/Overview.cshtml", obstacledata);
         }
 
         [HttpPost]
@@ -111,9 +111,9 @@ namespace FirstWebApplication.Controllers
                 var request = Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
                 if (request)
                 {
-                    return PartialView("_ObstacleFormPartial", obstacledata);
+                    return PartialView("~/Views/Pilot/_ObstacleFormPartial.cshtml", obstacledata);
                 }
-                return PartialView("_ObstacleFormPartial", obstacledata);
+                return PartialView("~/Views/Pilot/_ObstacleFormPartial.cshtml", obstacledata);
             }
             
             // Sett eier av hindringen (innlogget pilot)
@@ -143,7 +143,7 @@ namespace FirstWebApplication.Controllers
                 return Json(new { success = true, redirectUrl = Url.Action("Overview", "Obstacle", new { id = savedObstacle.ObstacleId }) });
             }
             
-            return View("Overview", obstacledata);
+            return View("~/Views/Pilot/Overview.cshtml", obstacledata);
         }
     }
 }
