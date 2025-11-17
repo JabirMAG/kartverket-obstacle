@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.Repositories;
 
 namespace FirstWebApplication.Controllers
 {
