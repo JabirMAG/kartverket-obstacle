@@ -10,6 +10,5 @@ namespace FirstWebApplication.Models.AdminViewModels
         public IList<string> Roles { get; set; } = new List<string>();
         public bool IsApproved { get; set; }
         public string? DesiredRole { get; set; }
-        public string? Organization { get; set; }
     }
 }

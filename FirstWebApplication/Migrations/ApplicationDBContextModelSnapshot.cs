@@ -85,9 +85,6 @@ namespace FirstWebApplication.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
-                    b.Property<string>("Organization")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("PasswordHash")
                         .HasColumnType("longtext");
 
@@ -459,3 +456,4 @@ namespace FirstWebApplication.Migrations
         }
     }
 }
+

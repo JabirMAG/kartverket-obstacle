@@ -24,8 +24,6 @@
     <thead>
         <tr>
             <th>E-post</th>
-            <th>Brukernavn</th>
-            <th>Organisasjon</th>
             <th>Roller</th>
             <th>Godkjent</th>
             <th class="text-end">Handlinger</th>
@@ -39,26 +37,6 @@
 
             <tr>
                 <td>@u.Email</td>
-                <td>
-                    @if (!string.IsNullOrWhiteSpace(u.DisplayName))
-                    {
-                        @u.DisplayName
-                    }
-                    else
-                    {
-                        <span class="text-muted">Ikke satt</span>
-                    }
-                </td>
-                <td>
-                    @if (!string.IsNullOrWhiteSpace(u.Organization))
-                    {
-                        @u.Organization
-                    }
-                    else
-                    {
-                        <span class="text-muted">Ikke satt</span>
-                    }
-                </td>
                 <td>
                     @if (hasRole && u.Roles != null)
                     {

@@ -1,11 +1,9 @@
 @model FirstWebApplication.Models.ViewModel.RegisterViewModel
 @using System.Text.Json
-@using System.Linq
 @{
     var pwReqs = ViewBag.PasswordRequirements as IEnumerable<string>;
     var pwPolicy = ViewBag.PasswordPolicy;
     var pwPolicyJson = pwPolicy != null ? JsonSerializer.Serialize(pwPolicy) : "{}";
-    var organizations = ViewBag.OrganizationOptions as IEnumerable<string> ?? Enumerable.Empty<string>();
 }
 
 @section Styles {
@@ -39,18 +37,6 @@
                     <option value="Registerfører">Registerfører</option>
                 </select>
                 <span asp-validation-for="DesiredRole" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Organization" class="form-label">Organisasjon</label>
-                <select asp-for="Organization" class="form-select">
-                    <option value="">-- Velg organisasjon --</option>
-                    @foreach (var org in organizations)
-                    {
-                        <option value="@org">@org</option>
-                    }
-                </select>
-                <span asp-validation-for="Organization" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
