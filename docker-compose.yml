@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   firstwebapplication:
     image: ${DOCKER_REGISTRY-}firstwebapplication
@@ -7,7 +5,7 @@ services:
       context: .
       dockerfile: FirstWebApplication/Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DatabaseConnection=Server=mariadbcontainer;Port=3306;Database=KartverketDB;User=root;Password=Mammaerbest1;
