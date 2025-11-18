@@ -11,30 +11,61 @@
 
 .location-button-container {
     position: absolute;
-    bottom: 20px;
+    bottom: 90px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
+    width: calc(100% - 60px);
+    max-width: 420px;
 }
 
+.use-current-location-btn,
 #use-current-location {
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    font-size: 14px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: background-color 0.2s ease;
+    background-color: #ff6b00 !important;
+    background-image: linear-gradient(145deg, #ff7a00, #ff4d00) !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 16px 28px !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    border-radius: 1000px !important;
+    box-shadow: 0 8px 20px rgba(255, 107, 0, 0.35) !important;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+    width: 100% !important;
 }
 
-    #use-current-location:hover {
-        background-color: #1565c0;
-    }
+.use-current-location-btn:hover,
+#use-current-location:hover {
+    background-color: #ff7f1a !important;
+    background-image: linear-gradient(145deg, #ff8a1f, #ff5b0d) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 10px 24px rgba(255, 107, 0, 0.4) !important;
+}
 
-    #use-current-location:active {
-        background-color: #0d47a1;
-    }
+.use-current-location-btn:active,
+#use-current-location:active {
+    background-color: #e55f00 !important;
+    background-image: linear-gradient(145deg, #e55f00, #c14f00) !important;
+    transform: translateY(1px) !important;
+    box-shadow: 0 4px 12px rgba(153, 68, 0, 0.45) !important;
+}
+
+.use-current-location-btn:focus-visible,
+#use-current-location:focus-visible {
+    outline: 4px solid rgba(255, 139, 51, 0.45);
+    outline-offset: 4px;
+}
+
+.use-current-location-btn:disabled,
+#use-current-location:disabled {
+    background-color: #f2a870;
+    background-image: none;
+    color: rgba(255, 255, 255, 0.8);
+    box-shadow: none;
+    transform: none;
+}
 
 .pending-info-container {
     position: absolute;
@@ -91,51 +122,50 @@
     display: none;
 }
 
-/* Styling for Leaflet Draw Control - større og mer iPad-vennlig */
+/* Styling for Leaflet Draw Control - stÃ¸rre og mer iPad-vennlig */
 .leaflet-draw-toolbar {
     margin-top: 10px;
 }
 
-    .leaflet-draw-toolbar a {
-        background-color: rgb(255, 255, 255);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        width: 44px;
-        height: 44px;
-        line-height: 44px;
-        font-size: 20px;
-        margin: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        transition: background-color 0.2s ease, transform 0.1s ease;
-        display: inline-block;
-        text-align: center;
-        cursor: pointer;
-    }
+.leaflet-draw-toolbar a {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    font-size: 20px;
+    margin: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+}
 
-        .leaflet-draw-toolbar a:hover {
-            background-color: rgb(255, 255, 255);
-            transform: scale(1.05);
-        }
+.leaflet-draw-toolbar a:hover {
+    background-color: rgb(255, 255, 255);
+    transform: scale(1.05);
+}
 
-        .leaflet-draw-toolbar a:active {
-            background-color: rgb(136, 212, 114);
-            transform: scale(0.95);
-        }
+.leaflet-draw-toolbar a:active {
+    background-color: rgb(136, 212, 114);
+    transform: scale(0.95);
+}
 
-    /* Større ikoner for bedre synlighet */
-    .leaflet-draw-toolbar .leaflet-draw-draw-marker,
-    .leaflet-draw-toolbar .leaflet-draw-draw-polyline {
-        font-size: 24px;
-    }
+/* StÃ¸rre ikoner for bedre synlighet */
+.leaflet-draw-toolbar .leaflet-draw-draw-marker,
+.leaflet-draw-toolbar .leaflet-draw-draw-polyline {
+    font-size: 24px;
+}
 
 /* Styling for draw control container */
 .leaflet-draw {
     font-size: 16px;
 }
 
-/* Større touch targets for iPad */
-@@media (hover: none) and (pointer: coarse) {
+/* StÃ¸rre touch targets for iPad */
+@media (hover: none) and (pointer: coarse) {
     .leaflet-draw-toolbar a {
         width: 50px;
         height: 50px;
@@ -145,15 +175,15 @@
     }
 }
 
-/* Styling for draw toolbar når den er aktiv */
+/* Styling for draw toolbar nÃ¥r den er aktiv */
 .leaflet-draw-toolbar-top {
     margin-top: 10px;
 }
 
-    .leaflet-draw-toolbar-top .leaflet-draw-toolbar {
-        border-top-left-radius: 6px;
-        border-top-right-radius: 6px;
-    }
+.leaflet-draw-toolbar-top .leaflet-draw-toolbar {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
 
 /* Fjerne standard Leaflet styling som kan konflikte */
 .leaflet-draw-toolbar .leaflet-draw-actions {
@@ -162,15 +192,15 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-    .leaflet-draw-toolbar .leaflet-draw-actions a {
-        background-color: #f5f5f5;
-        color: #333;
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        font-size: 18px;
-    }
+.leaflet-draw-toolbar .leaflet-draw-actions a {
+    background-color: #f5f5f5;
+    color: #333;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 18px;
+}
 
-        .leaflet-draw-toolbar .leaflet-draw-actions a:hover {
-            background-color: #e0e0e0;
-        }
+.leaflet-draw-toolbar .leaflet-draw-actions a:hover {
+    background-color: #e0e0e0;
+}
