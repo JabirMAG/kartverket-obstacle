@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   firstwebapplication:
     image: ${DOCKER_REGISTRY-}firstwebapplication
@@ -5,16 +7,17 @@ services:
       context: .
       dockerfile: FirstWebApplication/Dockerfile
     ports:
-      - "5001:5000"
+      - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DatabaseConnection=Server=mariadbcontainer;Port=3306;Database=KartverketDB;User=root;Password=Mammaerbest1;
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DatabaseConnection=Server=mariadbcontainer;Database=KartverketDB;User=root;Password=Mammaerbest1;
     depends_on:
-      mariadbcontainer:
-        condition: service_healthy
+      - mariadbcontainer
 
   mariadbcontainer:
-    image: mariadb:10.11
+    image: mariadb:latest
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: Mammaerbest1
       MYSQL_DATABASE: KartverketDB
@@ -22,11 +25,6 @@ services:
       - "3307:3306"
     volumes:
       - mariadbdata:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      
+
 volumes:
-    mariadbdata:
+  mariadbdata:

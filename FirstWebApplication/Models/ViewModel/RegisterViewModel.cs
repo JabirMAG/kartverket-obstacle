@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using FirstWebApplication.Constants;
 
 namespace FirstWebApplication.Models.ViewModel;
 
@@ -25,5 +26,7 @@ public class RegisterViewModel
     [Display(Name = "Password")]
     public string Password { get; set; }
 
-    
+    [Required(ErrorMessage = "Organisasjon er påkrevd")]
+    [Display(Name = "Organisasjon")]
+    public string Organization { get; set; } = OrganizationOptions.Kartverket;
 }
