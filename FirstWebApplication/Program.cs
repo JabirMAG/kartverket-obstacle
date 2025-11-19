@@ -3,12 +3,17 @@ using FirstWebApplication.DataContext.Seeders;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    // Enable automatic AntiForgeryToken validation for all POST requests
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();

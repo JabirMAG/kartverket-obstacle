@@ -177,6 +177,7 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult ShowObstacle(ObstacleData obstacledata)
         {
             return View("Registrar", obstacledata);
