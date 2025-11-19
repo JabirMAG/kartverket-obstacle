@@ -41,6 +41,7 @@ namespace FirstWebApplication.Controllers
         
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
             if (!OrganizationOptions.All.Contains(registerViewModel.Organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
@@ -121,6 +122,7 @@ namespace FirstWebApplication.Controllers
         }
         
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)

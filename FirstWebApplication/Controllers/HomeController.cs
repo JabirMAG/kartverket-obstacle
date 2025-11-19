@@ -40,6 +40,7 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult DataForm(ObstacleData obstacledata)
         {
             return View("Overview", obstacledata);
