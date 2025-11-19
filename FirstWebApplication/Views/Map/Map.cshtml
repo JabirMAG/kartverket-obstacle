@@ -17,6 +17,31 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin="" />
     <link rel="stylesheet" href="~/css/Map.css">
+    <style>
+        .location-button-container {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1100;
+            width: min(420px, calc(100% - 40px));
+        }
+
+        .location-button-container #use-current-location {
+            background-color: #ff6b00 !important;
+            background-image: linear-gradient(145deg, #ff7a00, #ff4d00) !important;
+            color: #fff !important;
+            border: none !important;
+            padding: 18px 32px !important;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+            border-radius: 999px !important;
+            box-shadow: 0 10px 24px rgba(255, 107, 0, 0.4) !important;
+            width: 100% !important;
+        }
+    </style>
 
 </head>
 <body>
@@ -25,7 +50,7 @@
         
         <!-- Button positioned over the map -->
         <div class="location-button-container">
-            <button id="use-current-location">
+            <button id="use-current-location" class="use-current-location-btn">
                 Bruk nåværende posisjon
             </button>
         </div>
@@ -206,7 +231,9 @@
                     circlemarker: false
                 },
                 edit: {
-                    featureGroup: drawnItems
+                    featureGroup: drawnItems,
+                    edit: false,
+                    remove: false
                 }
             });
             map.addControl(drawControl);
@@ -323,6 +350,12 @@
                 const overlay = document.querySelector(".obstacle-form-overlay");
                 if (overlay) {
                     overlay.style.display = "none";
+                }
+                
+                // Vis knappen igjen når skjemaet lukkes
+                const buttonContainer = document.querySelector('.location-button-container');
+                if (buttonContainer) {
+                    buttonContainer.style.display = 'block';
                 }
             }
 
@@ -603,6 +636,12 @@
                 if (geoInput) geoInput.value = lastGeoJsonString;
                 if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
                 
+                // Skjul knappen når man tegner med tegneverktøyene
+                const buttonContainer = document.querySelector('.location-button-container');
+                if (buttonContainer) {
+                    buttonContainer.style.display = 'none';
+                }
+                
                 // Åpne hindringsskjemaet automatisk etter at koordinater er satt (samme som bruk-nåværende-posisjon)
                 openObstacleForm();
             });
@@ -649,6 +688,12 @@
 
                         button.disabled = false;
                         button.textContent = originalText;
+
+                        // Skjul knappen etter at posisjon er hentet
+                        const buttonContainer = document.querySelector('.location-button-container');
+                        if (buttonContainer) {
+                            buttonContainer.style.display = 'none';
+                        }
 
                         // Åpne hindringsskjemaet automatisk etter at posisjon er satt
                         openObstacleForm();
