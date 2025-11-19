@@ -17,6 +17,7 @@
         <h2>Registrer deg</h2>
 
         <form asp-action="Register" method="post" novalidate>
+            @Html.AntiForgeryToken()
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
             <div class="mb-3">

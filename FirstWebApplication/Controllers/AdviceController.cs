@@ -23,6 +23,7 @@ namespace FirstWebApplication.Controllers
 
         // Behandler skjemaet når det sendes inn av brukeren (Post- forespørsel)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> FeedbackForm(AdviceViewModel requestData)
         {
             if (!ModelState.IsValid)
