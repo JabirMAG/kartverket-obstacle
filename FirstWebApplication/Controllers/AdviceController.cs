@@ -16,11 +16,16 @@ namespace FirstWebApplication.Controllers
         }
 
         [HttpGet]
+        /*
         public async Task<ActionResult> FeedbackForm(Advice Feedback)
         {   
             return View();
         }
-
+*/
+        public IActionResult FeedbackForm()
+        {
+            return View();
+        }
         // Behandler skjemaet når det sendes inn av brukeren (Post- forespørsel)
         [HttpPost]
         [ValidateAntiForgeryToken]
