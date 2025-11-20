@@ -1,53 +1,224 @@
+/* Modern CSS Reset and Base Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #ffffff;
+}
+
 .main-content {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-start;
     max-width: 1200px;
-    margin: 2rem auto;
+    margin: 4rem auto 6rem;
     padding: 0 2rem;
-    gap: 3rem;
+    gap: 4rem;
 }
 
 .content-section {
-    flex: 1 1 450px;
+    flex: 1 1 500px;
     min-width: 300px;
-    max-width: 500px;
-    
+    max-width: 600px;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content-section h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.greeting-heading {
+    font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+    font-weight: 500;
+    color: #1976d2;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+    display: block;
+}
+
+.content-section h2 {
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 500;
+    color: #1976d2;
+    margin-bottom: 2rem;
+    line-height: 1.3;
+}
+
+.content-section h1 {
+    margin-top: 0;
+}
+
+.content-section p {
+    font-size: clamp(1rem, 2vw, 1.125rem);
+    line-height: 1.8;
+    color: #4a4a4a;
+    margin-bottom: 1.5rem;
+    max-width: 90%;
 }
 
 .login-and-register-section {
-    flex: 1 1 300px;
-    min-width: 250px;
+    flex: 0 1 320px;
+    min-width: 280px;
     display: flex;
-    flex-direction: column; /* 👈 Stabler knappene under hverandre */
-    align-items: flex-end;  /* 👈 Holder knappene høyrejustert */
-    gap: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
 .login-button,
 .register-button {
-    background-color: #1976d2;
-    color: white;
-    padding: 12px 24px;
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    min-width: 200px;
-    box-sizing: border-box;
-.login-button::after,
-.register-button::after {
-    content: '>';
-    margin-left: 10px;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+    color: white !important;
+    padding: 16px 32px !important;
+    text-decoration: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 1.0625rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-width: 240px !important;
+    box-sizing: border-box !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.25) !important;
+    border: none !important;
+    cursor: pointer !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
+.login-button::before,
+.register-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.login-button:hover::before,
+.register-button:hover::before {
+    left: 100%;
+}
+
+.login-button:hover,
+.register-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.35);
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+}
+
+.login-button:active,
+.register-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.login-button::after,
+.register-button::after {
+    content: '→';
+    margin-left: 10px;
+    font-size: 1.2em;
+    transition: transform 0.3s ease;
+}
+
+.login-button:hover::after,
+.register-button:hover::after {
+    transform: translateX(4px);
+}
+
+.register-button {
+    background: linear-gradient(135deg, #43a047 0%, #388e3c 100%) !important;
+    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.25) !important;
+}
+
+.register-button:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+    box-shadow: 0 6px 20px rgba(67, 160, 71, 0.35);
+}
 
 .read-more-link {
     color: #1976d2;
     text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: color 0.3s ease;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.read-more-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: #1976d2;
+    transition: width 0.3s ease;
+}
+
+.read-more-link:hover {
+    color: #1565c0;
+}
+
+.read-more-link:hover::after {
+    width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-content {
+        margin: 2rem auto 4rem;
+        padding: 0 1.5rem;
+        gap: 2.5rem;
+        flex-direction: column;
+    }
+    
+    .content-section {
+        max-width: 100%;
+    }
+    
+    .content-section p {
+        max-width: 100%;
+    }
+    
+    .login-and-register-section {
+        width: 100%;
+        align-items: stretch;
+    }
+    
+    .login-button,
+    .register-button {
+        min-width: 100%;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .main-content {
+        gap: 3rem;
+    }
 }
 
