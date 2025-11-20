@@ -52,23 +52,26 @@
                         <span asp-validation-for="ObstacleDescription" class="text-danger small"></span>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="d-flex justify-content-end obstacle-form-buttons" style="gap: 20px; margin-top: 32px; margin-bottom: 16px;">
                         <button type="button" 
-                                class="btn btn-secondary" 
+                                class="btn btn-cancel-custom" 
                                 id="cancel-obstacle-button"
+                                style="background-color: #dc3545 !important; color: #ffffff !important; border: none !important; padding: 16px 32px !important; font-size: 16px !important; font-weight: 700 !important; min-width: 140px !important; border-radius: 10px !important; box-shadow: 0 6px 16px rgba(220, 53, 69, 0.35) !important; white-space: nowrap !important;"
                                 aria-label="Avbryt og gå tilbake til kartet">
                             Avbryt
                         </button>
                         <button type="submit" 
                                 formaction="/Obstacle/QuickSaveObstacle"
-                                class="btn btn-secondary" 
+                                class="btn btn-orange-custom" 
                                 id="obstacle-quick-save-button"
+                                style="background: linear-gradient(145deg, #ff7a00, #ff4d00) !important; color: #ffffff !important; border: none !important; padding: 16px 32px !important; font-size: 16px !important; font-weight: 700 !important; min-width: 140px !important; border-radius: 10px !important; box-shadow: 0 6px 16px rgba(255, 107, 0, 0.35) !important; white-space: nowrap !important;"
                                 aria-label="Hurtiglagre hindring">
                             Hurtigknapp
                         </button>
                         <button type="submit" 
                                 class="btn btn-green-custom" 
                                 id="obstacle-submit-button"
+                                style="background-color: #00973D !important; color: #ffffff !important; border: none !important; padding: 16px 32px !important; font-size: 16px !important; font-weight: 700 !important; min-width: 140px !important; border-radius: 10px !important; box-shadow: 0 6px 16px rgba(0, 151, 61, 0.35) !important; white-space: nowrap !important;"
                                 aria-label="Send inn hindring">
                             Send inn
                         </button>
