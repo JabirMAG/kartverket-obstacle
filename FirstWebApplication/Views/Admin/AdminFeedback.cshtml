@@ -1,0 +1,25 @@
+@model IEnumerable<FirstWebApplication.Models.Advice>
+
+@{
+    ViewData["Title"] = "Brukertilbakemeldinger";
+}
+
+<h1>Brukertilbakemeldinger</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Bruker</th>
+        <th>Melding</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var f in Model)
+    {
+        <tr>
+            <td>@f.adviceID</td>           <!-- hvem sendte meldingen -->
+            <td>@f.adviceMessage</td>    <!-- selve tilbakemeldingen -->
+        </tr>
+    }
+    </tbody>
+</table>
