@@ -1,11 +1,11 @@
-/* Modern CSS Reset and Base Styles */
-body {
+/* Body reset og base */
+.body-reset {
+    margin: 0;
+    padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #ffffff;
 }
 
+/* Hovedinnhold */
 .main-content {
     display: flex;
     flex-wrap: wrap;
@@ -24,17 +24,6 @@ body {
     animation: fadeInUp 0.6s ease-out;
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 .content-section h1 {
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 700;
@@ -42,9 +31,10 @@ body {
     margin-bottom: 1rem;
     line-height: 1.2;
     letter-spacing: -0.02em;
+    margin-top: 0;
 }
 
-.greeting-heading {
+.content-section h2.greeting-heading {
     font-size: clamp(1.125rem, 2.5vw, 1.5rem);
     font-weight: 500;
     color: #1976d2;
@@ -53,16 +43,12 @@ body {
     display: block;
 }
 
-.content-section h2 {
+.content-section h2, .content-section h3 {
     font-size: clamp(1.25rem, 3vw, 1.75rem);
     font-weight: 500;
     color: #1976d2;
     margin-bottom: 2rem;
     line-height: 1.3;
-}
-
-.content-section h1 {
-    margin-top: 0;
 }
 
 .content-section p {
@@ -73,6 +59,7 @@ body {
     max-width: 90%;
 }
 
+/* Login og register seksjon */
 .login-and-register-section {
     flex: 0 1 320px;
     min-width: 280px;
@@ -83,29 +70,52 @@ body {
     animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
-.login-button,
-.register-button {
-    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
-    color: white !important;
-    padding: 16px 32px !important;
-    text-decoration: none !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    font-size: 1.0625rem !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    min-width: 240px !important;
-    box-sizing: border-box !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.25) !important;
-    border: none !important;
-    cursor: pointer !important;
-    position: relative !important;
-    overflow: hidden !important;
+/* Knappene */
+.login-button {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.0625rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 240px;
+    box-sizing: border-box;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.25);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
+.register-button {
+    background: linear-gradient(135deg, #43a047 0%, #388e3c 100%);
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.0625rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 240px;
+    box-sizing: border-box;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.25);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Pseudoelementer for animasjon på knappene */
 .login-button::before,
 .register-button::before {
     content: '';
@@ -123,17 +133,25 @@ body {
     left: 100%;
 }
 
-.login-button:hover,
-.register-button:hover {
+.login-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(25, 118, 210, 0.35);
     background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
 }
+.register-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 160, 71, 0.25);
+    background: linear-gradient(135deg, #39883c 0%, #388e3c 100%);
+    
+}
 
-.login-button:active,
-.register-button:active {
+.login-button:active {
     transform: translateY(0);
     box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+.register-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(67, 160, 71, 0.25);
 }
 
 .login-button::after,
@@ -149,16 +167,7 @@ body {
     transform: translateX(4px);
 }
 
-.register-button {
-    background: linear-gradient(135deg, #43a047 0%, #388e3c 100%) !important;
-    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.25) !important;
-}
-
-.register-button:hover {
-    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
-    box-shadow: 0 6px 20px rgba(67, 160, 71, 0.35);
-}
-
+/* Read more link */
 .read-more-link {
     color: #1976d2;
     text-decoration: none;
@@ -180,42 +189,19 @@ body {
     transition: width 0.3s ease;
 }
 
-.read-more-link:hover {
-    color: #1565c0;
+/* Footer */
+.footer-background {
+    background-color: #f5f5f5;
+    padding: 2rem 0;
 }
 
-.read-more-link:hover::after {
-    width: 100%;
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .main-content {
-        margin: 2rem auto 4rem;
-        padding: 0 1.5rem;
-        gap: 2.5rem;
-        flex-direction: column;
-    }
-    
-    .content-section {
-        max-width: 100%;
-    }
-    
-    .content-section p {
-        max-width: 100%;
-    }
-    
-    .login-and-register-section {
-        width: 100%;
-        align-items: stretch;
-    }
-    
-    .login-button,
-    .register-button {
-        min-width: 100%;
-    }
-}
-
+/* Responsivt */
 @media (min-width: 769px) and (max-width: 1024px) {
     .main-content {
         gap: 3rem;
