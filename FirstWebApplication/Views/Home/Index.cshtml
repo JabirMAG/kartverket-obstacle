@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/Index.css">
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+<body class="body-reset">
     <div class="main-content">
         <div class="content-section">
             <h2 class="greeting-heading">@ViewBag.Greeting</h2>
@@ -28,9 +28,9 @@
                 <a href="#" class="read-more-link">Les mer om Nasjonalt register over luftfartshindre</a>
             </p>
         </div>
-        <div class="login-and-register-section" style="flex: 0 1 320px; min-width: 280px; display: flex; flex-direction: column; align-items: stretch; gap: 1rem;">
-            <a class="login-button" asp-area="" asp-controller="Account" asp-action="Login" style="background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important; color: white !important; padding: 16px 32px !important; text-decoration: none !important; border-radius: 8px !important; font-weight: 600 !important; font-size: 1.0625rem !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; min-width: 240px !important; box-shadow: 0 4px 12px rgba(25, 118, 210, 0.25) !important; border: none !important; cursor: pointer !important; transition: all 0.3s ease !important;">Logg inn →</a>
-            <a class="register-button" asp-area="" asp-controller="Account" asp-action="Register" style="background: linear-gradient(135deg, #43a047 0%, #388e3c 100%) !important; color: white !important; padding: 16px 32px !important; text-decoration: none !important; border-radius: 8px !important; font-weight: 600 !important; font-size: 1.0625rem !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; min-width: 240px !important; box-shadow: 0 4px 12px rgba(67, 160, 71, 0.25) !important; border: none !important; cursor: pointer !important; transition: all 0.3s ease !important;">Registrer deg →</a>
+        <div class="login-and-register-section"> <!-- bruk ny klasse -->
+            <a class="login-button" asp-area="" asp-controller="Account" asp-action="Login">Logg inn</a>
+            <a class="register-button" asp-area="" asp-controller="Account" asp-action="Register">Registrer deg</a>
         </div>
     </div>
 

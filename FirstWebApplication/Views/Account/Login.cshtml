@@ -1,23 +1,45 @@
 ﻿@model FirstWebApplication.Models.ViewModel.LoginViewModel
+
 @{
     ViewData["Title"] = "Logg inn";
 }
 
-<h2>Logg inn</h2>
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+}
 
-<form asp-action="Login" method="post">
-    @Html.AntiForgeryToken()
-    <div class="form-group mb-3">
-        <label asp-for="Username"></label>
-        <input asp-for="Username" class="form-control" />
-        <span asp-validation-for="Username" class="text-danger"></span>
+<div class="login-wrapper">
+    <div class="login-box">
+        <h2>Logg inn</h2>
+
+        <form asp-action="Login" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            
+            <div class="form-group mb-3">
+                <label asp-for="Username">E-post</label>
+                <input asp-for="Username" class="form-control" autocomplete="username" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label asp-for="Password">Passord</label>
+                <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+           
+            <div class="mb-3 text-end">
+                <a asp-action="ForgotPassword">Glemt passord?</a>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">Logg inn</button>
+
+        </form>
     </div>
+</div>
 
-    <div class="form-group mb-3">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Logg inn</button>
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

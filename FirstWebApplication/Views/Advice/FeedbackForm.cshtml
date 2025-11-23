@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Feedback";
 }
+
 <link rel="stylesheet" href="~/css/FeedbackForm.css" />
 <div class="container mx-auto">
     <div class="row justify-content-center">
@@ -34,14 +35,3 @@
         </div>
     </div>
 </div>
-
-<!-- Form som sender data til samme action-metode i AdviceController via POST -->
-<form method="post">
-    @Html.AntiForgeryToken()
-    <textarea asp-for="ViewadviceMessage" placeholder="Skriv her..." rows="6" cols="50"></textarea>
-    <input type="email"  placeholder="Email.." asp-for="ViewEmail" />
-    
-    <br />
-    <!-- Submit-knapp som sender inn skjemaet -->
-    <button type="submit">Send</button>
-</form>

@@ -3,8 +3,6 @@
 @using System.Linq
 @{
     var pwReqs = ViewBag.PasswordRequirements as IEnumerable<string>;
-    var pwPolicy = ViewBag.PasswordPolicy;
-    var pwPolicyJson = pwPolicy != null ? JsonSerializer.Serialize(pwPolicy) : "{}";
     var organizations = ViewBag.OrganizationOptions as IEnumerable<string> ?? Enumerable.Empty<string>();
 }
 
@@ -21,13 +19,13 @@
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
             <div class="mb-3">
-                <label class="form-label">Username</label>
+                <label class="form-label">Brukernavn</label>
                 <input type="text" id="username" class="form-control" asp-for="Username" />
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Email</label>
+                <label class="form-label">E-post</label>
                 <input type="email" id="email" class="form-control" asp-for="Email" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
@@ -55,31 +53,10 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Password</label>
+                <label class="form-label">Passord</label>
                 <input type="password" id="password" class="form-control" asp-for="Password" autocomplete="new-password" />
                 <span asp-validation-for="Password" class="text-danger"></span>
-
-                @* Adaptive password requirements UI *@
-                <div id="pw-reqs-container" class="form-text text-muted mt-1" data-policy='@Html.Raw(pwPolicyJson)'>
-                    <strong>Krav til passord:</strong>
-                    <ul id="pw-reqs" class="mb-0">
-                        @if (pwReqs != null && pwReqs.Any())
-                        {
-                            var idx = 0;
-                            foreach (var r in pwReqs)
-                            {
-                                <li data-req-index="@idx" class="pw-req-item text-muted">
-                                    <span class="pw-req-icon">◻</span> <span class="pw-req-text">@r</span>
-                                </li>
-                                idx++;
-                            }
-                        }
-                        else
-                        {
-                            <li class="pw-req-item text-muted">Standard passordkrav gjelder.</li>
-                        }
-                    </ul>
-                </div>
+                
             </div>
 
             <div class="register-button-2">
