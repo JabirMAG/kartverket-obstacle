@@ -4,6 +4,9 @@ using FirstWebApplication.Repositories;
 
 namespace FirstWebApplication.Controllers
 {
+    /// <summary>
+    /// Controller for map functionality. Handles display of obstacles on the map.
+    /// </summary>
     public class MapController : Controller
     {
         private readonly IObstacleRepository _obstacleRepository;
@@ -13,6 +16,10 @@ namespace FirstWebApplication.Controllers
             _obstacleRepository = obstacleRepository;
         }
 
+        /// <summary>
+        /// Displays the map view with all pending and approved obstacles
+        /// </summary>
+        /// <returns>The map view with obstacle data</returns>
         [HttpGet]
         public async Task<IActionResult> Map()
         {
@@ -26,6 +33,10 @@ namespace FirstWebApplication.Controllers
             return View(obstacleData);
         }
 
+        /// <summary>
+        /// Returns JSON data of all pending obstacles (status = 1) for map display
+        /// </summary>
+        /// <returns>JSON array of pending obstacles</returns>
         [HttpGet]
         public async Task<IActionResult> GetPendingObstacles()
         {

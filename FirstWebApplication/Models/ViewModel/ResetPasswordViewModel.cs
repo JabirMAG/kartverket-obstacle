@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FirstWebApplication.Models.ViewModel;
 
+/// <summary>
+/// ViewModel for reset password form
+/// </summary>
 public class ResetPasswordViewModel
 {
     [Required]

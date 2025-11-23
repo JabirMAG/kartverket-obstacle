@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FirstWebApplication.Repositories
 {
+    /// <summary>
+    /// Repository for report/rapport data operations
+    /// </summary>
     public class RegistrarRepository : IRegistrarRepository
     {
         private readonly ApplicationDBContext _context;
@@ -16,6 +19,9 @@ namespace FirstWebApplication.Repositories
             _context = context;
         }
 
+        /// <summary>
+        /// Adds a new report
+        /// </summary>
         public async Task<RapportData> AddRapport(RapportData rapport)
         {
             await _context.Rapports.AddAsync(rapport);
@@ -23,15 +29,22 @@ namespace FirstWebApplication.Repositories
             return rapport;
         }
 
+        /// <summary>
+        /// Gets the 50 most recent reports with their associated obstacles
+        /// </summary>
         public async Task<IEnumerable<RapportData>> GetAllRapports()
         {
             return await _context.Rapports
                 .Include(r => r.Obstacle)
+                    .ThenInclude(o => o.OwnerUser)
                 .OrderByDescending(r => r.RapportID)
                 .Take(50)
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Updates an existing report
+        /// </summary>
         public async Task<RapportData> UpdateRapport(RapportData rapport)
         {
             _context.Rapports.Update(rapport);

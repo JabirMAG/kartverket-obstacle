@@ -27,6 +27,7 @@ else
         <thead>
             <tr>
                 <th>Navn</th>
+                <th>Registrert av</th>
                 <th>Høyde (m)</th>
                 <th class="text-end">Status</th>
             </tr>
@@ -41,6 +42,16 @@ else
                             <a asp-controller="Admin" asp-action="DetaljerOmRapport" asp-route-obstacleId="@rapport.Obstacle.ObstacleId" class="text-decoration-none">
                                 @rapport.Obstacle.ObstacleName
                             </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </td>
+                    <td>
+                        @if (rapport.Obstacle?.OwnerUser != null)
+                        {
+                            @(rapport.Obstacle.OwnerUser.UserName ?? rapport.Obstacle.OwnerUser.Email ?? "Ukjent bruker")
                         }
                         else
                         {

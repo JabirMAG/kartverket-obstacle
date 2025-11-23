@@ -11,20 +11,29 @@ using System.Text.Json;
 
 namespace FirstWebApplication.Controllers
 {
+    /// <summary>
+    /// Controller for registrar functionality. Handles processing of obstacles and reports.
+    /// </summary>
     [Authorize(Roles = "Admin,Registerfører")]
     public class RegistrarController : Controller
     {
         private readonly IObstacleRepository _obstacleRepository;
         private readonly IRegistrarRepository _registrarRepository;
         private readonly ApplicationDBContext _context;
+        private readonly IArchiveRepository _archiveRepository;
 
-        public RegistrarController(IObstacleRepository obstacleRepository, IRegistrarRepository registrarRepository, ApplicationDBContext context)
+        public RegistrarController(IObstacleRepository obstacleRepository, IRegistrarRepository registrarRepository, ApplicationDBContext context, IArchiveRepository archiveRepository)
         {
             _obstacleRepository = obstacleRepository;
             _registrarRepository = registrarRepository;
             _context = context;
+            _archiveRepository = archiveRepository;
         }
 
+        /// <summary>
+        /// Displays main overview for registrar with all obstacles and reports
+        /// </summary>
+        /// <returns>The registrar overview view</returns>
         [HttpGet]
         public async Task<IActionResult> Registrar()
         {
@@ -40,6 +49,13 @@ namespace FirstWebApplication.Controllers
             return View(vm);
         }
 
+        /// <summary>
+        /// Updates the status of an obstacle. If status is 3 (Rejected), the obstacle is archived.
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle to update</param>
+        /// <param name="status">The new status for the obstacle</param>
+        /// <param name="returnUrl">Optional return URL to redirect back to details page</param>
+        /// <returns>Redirects to registrar page or details page based on returnUrl</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status, string returnUrl = null)
@@ -53,44 +69,11 @@ namespace FirstWebApplication.Controllers
 
             obstacle.ObstacleStatus = status;
             
-            // Hvis status er Rejected (3), arkiver hindringen og alle rapporter
+            // If status is Rejected (3), archive the obstacle and all reports
             if (status == 3)
             {
-                // Hent alle rapporter knyttet til hindringen
-                var rapports = await _context.Rapports
-                    .Where(r => r.ObstacleId == obstacle.ObstacleId)
-                    .ToListAsync();
-                
-                // Kombiner alle rapport-kommentarer til en JSON array
-                var rapportComments = rapports.Select(r => r.RapportComment).ToList();
-                var rapportCommentsJson = JsonSerializer.Serialize(rapportComments);
-                
-                var archivedReport = new ArchivedReport
-                {
-                    OriginalObstacleId = obstacle.ObstacleId,
-                    ObstacleName = obstacle.ObstacleName,
-                    ObstacleHeight = obstacle.ObstacleHeight,
-                    ObstacleDescription = obstacle.ObstacleDescription,
-                    GeometryGeoJson = obstacle.GeometryGeoJson,
-                    ObstacleStatus = 3,
-                    ArchivedDate = DateTime.UtcNow,
-                    RapportComments = rapportCommentsJson
-                };
-                
-                await _context.ArchivedReports.AddAsync(archivedReport);
-                
-                // Slett rapporter fra Rapports-tabellen (de er nå lagret i ArchivedReport)
-                if (rapports.Any())
-                {
-                    _context.Rapports.RemoveRange(rapports);
-                }
-                
-                await _context.SaveChangesAsync();
-                
-                // Slett hindringen fra ObstaclesData (som UpdateObstacles gjør når status er 3)
-                await _obstacleRepository.UpdateObstacles(obstacle);
-                
-                TempData["Success"] = $"Hindring '{obstacle.ObstacleName}' er avvist og arkivert sammen med {rapports.Count} rapport(er).";
+                var archivedReportCount = await _archiveRepository.ArchiveObstacleAsync(obstacle);
+                TempData["Success"] = $"Hindring '{obstacle.ObstacleName}' er avvist og arkivert sammen med {archivedReportCount} rapport(er).";
             }
             else
             {
@@ -98,10 +81,10 @@ namespace FirstWebApplication.Controllers
                 TempData["Success"] = $"Status for hindring '{obstacle.ObstacleName}' er oppdatert.";
             }
 
-            // Redirect tilbake til detaljsiden hvis returnUrl er satt, ellers til rapporter
+            // Redirect back to details page if returnUrl is set, otherwise to reports
             if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DetaljerOmRapport"))
             {
-                // Hvis status er Rejected, redirect til rapporter siden hindringen er slettet
+                // If status is Rejected, redirect to reports since the obstacle is deleted
                 if (status == 3)
                 {
                     return RedirectToAction(nameof(Registrar));
@@ -112,6 +95,12 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(Registrar));
         }
 
+        /// <summary>
+        /// Adds a new report/comment to an obstacle
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle</param>
+        /// <param name="rapportComment">The comment text to add</param>
+        /// <returns>Redirects to registrar page</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddRapport(int obstacleId, string rapportComment)
@@ -129,6 +118,11 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(Registrar));
         }
 
+        /// <summary>
+        /// Displays detailed view of an obstacle and all its associated reports
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle to view</param>
+        /// <returns>The obstacle details view, or redirects to registrar page if obstacle not found</returns>
         [HttpGet]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
@@ -148,6 +142,12 @@ namespace FirstWebApplication.Controllers
             return View("DetaljerOmRapport", obstacle);
         }
 
+        /// <summary>
+        /// Adds a comment to an obstacle's report
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle</param>
+        /// <param name="comment">The comment text to add</param>
+        /// <returns>Redirects to obstacle details page</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddComment(int obstacleId, string comment)
@@ -183,6 +183,10 @@ namespace FirstWebApplication.Controllers
             return View("Registrar", obstacledata);
         }
 
+        /// <summary>
+        /// Displays all archived reports (rejected obstacles)
+        /// </summary>
+        /// <returns>The archived reports view</returns>
         [HttpGet("archived-reports")]
         public async Task<IActionResult> ArchivedReports()
         {

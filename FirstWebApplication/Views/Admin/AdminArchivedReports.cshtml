@@ -1,0 +1,212 @@
+@model IEnumerable<FirstWebApplication.Models.ArchivedReport>
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Arkiverte rapporter";
+}
+
+<h1 class="display-6">Arkiverte rapporter</h1>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        <p>Ingen arkiverte rapporter funnet.</p>
+    </div>
+}
+else
+{
+    <div class="mb-3">
+        <p class="text-muted">Totalt @Model.Count() arkiverte rapport(er)</p>
+    </div>
+    
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Navn</th>
+                <th>Høyde (m)</th>
+                <th>Beskrivelse</th>
+                <th>Antall kommentarer</th>
+                <th>Arkivert dato</th>
+                <th class="text-end">Handlinger</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var archivedReport in Model)
+            {
+                // Parse JSON comments
+                List<string> comments = new List<string>();
+                try
+                {
+                    if (!string.IsNullOrEmpty(archivedReport.RapportComments))
+                    {
+                        comments = JsonSerializer.Deserialize<List<string>>(archivedReport.RapportComments) ?? new List<string>();
+                    }
+                }
+                catch
+                {
+                    // If JSON parsing fails, treat as empty
+                    comments = new List<string>();
+                }
+                
+                <tr>
+                    <td>
+                        <strong>@archivedReport.ObstacleName</strong>
+                    </td>
+                    <td>@archivedReport.ObstacleHeight</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(archivedReport.ObstacleDescription))
+                        {
+                            <span>@(archivedReport.ObstacleDescription.Length > 50 ? archivedReport.ObstacleDescription.Substring(0, 50) + "..." : archivedReport.ObstacleDescription)</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Ingen beskrivelse</span>
+                        }
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">@comments.Count</span>
+                    </td>
+                    <td>
+                        <small>@archivedReport.ArchivedDate.ToString("dd.MM.yyyy HH:mm")</small>
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailsModal@(archivedReport.ArchivedReportId)">
+                                Se detaljer
+                            </button>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Gjenopprett
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <form asp-controller="Admin" asp-action="RestoreArchivedReport" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="archivedReportId" value="@archivedReport.ArchivedReportId" />
+                                            <input type="hidden" name="newStatus" value="1" />
+                                            <button type="submit" class="dropdown-item" onclick="return confirm('Er du sikker på at du vil gjenopprette denne rapporten med status \"Under behandling\"?');">
+                                                Under behandling
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form asp-controller="Admin" asp-action="RestoreArchivedReport" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="archivedReportId" value="@archivedReport.ArchivedReportId" />
+                                            <input type="hidden" name="newStatus" value="2" />
+                                            <button type="submit" class="dropdown-item" onclick="return confirm('Er du sikker på at du vil gjenopprette denne rapporten med status \"Godkjent\"?');">
+                                                Godkjent
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- Details Modal -->
+                <div class="modal fade" id="detailsModal@(archivedReport.ArchivedReportId)" tabindex="-1" aria-labelledby="detailsModalLabel@(archivedReport.ArchivedReportId)" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="detailsModalLabel@(archivedReport.ArchivedReportId)">Detaljer for @archivedReport.ObstacleName</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <strong>Navn:</strong> @archivedReport.ObstacleName
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Høyde:</strong> @archivedReport.ObstacleHeight m
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <strong>Beskrivelse:</strong>
+                                        <p>@(string.IsNullOrEmpty(archivedReport.ObstacleDescription) ? "Ingen beskrivelse" : archivedReport.ObstacleDescription)</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <strong>Original Obstacle ID:</strong> @archivedReport.OriginalObstacleId
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Arkivert:</strong> @archivedReport.ArchivedDate.ToString("dd.MM.yyyy HH:mm")
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <strong>Status:</strong>
+                                        <span class="badge bg-danger">Avslått</span>
+                                    </div>
+                                </div>
+                                
+                                @if (comments.Any())
+                                {
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <strong>Kommentarer (@comments.Count):</strong>
+                                            <div class="mt-2">
+                                                <ul class="list-unstyled">
+                                                    @foreach (var comment in comments)
+                                                    {
+                                                        <li class="mb-2">
+                                                            <div class="border rounded p-2 bg-light">
+                                                                <p class="mb-0">@comment</p>
+                                                            </div>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <strong>Kommentarer:</strong>
+                                            <p class="text-muted">Ingen kommentarer</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="modal-footer">
+                                <form asp-controller="Admin" asp-action="RestoreArchivedReport" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="archivedReportId" value="@archivedReport.ArchivedReportId" />
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <label for="newStatus@(archivedReport.ArchivedReportId)" class="mb-0">Gjenopprett med status:</label>
+                                        <select name="newStatus" id="newStatus@(archivedReport.ArchivedReportId)" class="form-select form-select-sm" style="width: auto;">
+                                            <option value="1">Under behandling</option>
+                                            <option value="2">Godkjent</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Er du sikker på at du vil gjenopprette denne rapporten?');">
+                                            Gjenopprett
+                                        </button>
+                                    </div>
+                                </form>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Lukk</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </tbody>
+    </table>
+}
+

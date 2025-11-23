@@ -2,11 +2,12 @@
 using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
-using System.Reflection;
 
 namespace FirstWebApplication.Controllers
 {
+    /// <summary>
+    /// Controller for feedback/advice functionality. Handles submission and viewing of user feedback.
+    /// </summary>
     public class AdviceController : Controller
     {
         private readonly IAdviceRepository _adviceRepository;
@@ -15,18 +16,21 @@ namespace FirstWebApplication.Controllers
             _adviceRepository = adviceRepository;
         }
 
+        /// <summary>
+        /// Displays the feedback form
+        /// </summary>
+        /// <returns>The feedback form view</returns>
         [HttpGet]
-        /*
-        public async Task<ActionResult> FeedbackForm(Advice Feedback)
-        {   
-            return View();
-        }
-*/
         public IActionResult FeedbackForm()
         {
             return View();
         }
-        // Behandler skjemaet når det sendes inn av brukeren (Post- forespørsel)
+
+        /// <summary>
+        /// Processes the feedback form submission from the user
+        /// </summary>
+        /// <param name="requestData">The feedback data from the form</param>
+        /// <returns>Redirects to thank you page on success, or returns feedback form with errors</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> FeedbackForm(AdviceViewModel requestData)
@@ -47,7 +51,11 @@ namespace FirstWebApplication.Controllers
 
         }
 
-        // Viser en takk-side etter at tilbakemeldingen er sendt inn
+        /// <summary>
+        /// Displays a thank you page after feedback has been submitted
+        /// </summary>
+        /// <param name="adviceForm">The advice data to display</param>
+        /// <returns>The thank you view</returns>
         [HttpGet]
         public IActionResult ThankForm(Advice adviceForm)
         {
