@@ -7,23 +7,33 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
+/// <summary>
+/// Application entry point and configuration. Sets up services, middleware, and routing
+/// </summary>
 var builder = WebApplication.CreateBuilder(args);
 
+/// <summary>
+/// Configure MVC with automatic CSRF protection for all POST requests
+/// </summary>
 builder.Services.AddControllersWithViews(options =>
 {
-    // Enable automatic AntiForgeryToken validation for all POST requests
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 builder.Services.AddRazorPages();
 
+/// <summary>
+/// Register repositories for dependency injection
+/// </summary>
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IArchiveRepository, ArchiveRepository>();
 
-// === DATABASE SETUP ===
+/// <summary>
+/// Database setup: Configure MySQL connection with retry logic
+/// </summary>
 var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
-
 var serverVersion = new MySqlServerVersion(new Version(11, 8, 3));
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
@@ -33,11 +43,16 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(30),
             errorNumbersToAdd: null)));
 
-// === IDENTITY SETUP ===
+/// <summary>
+/// Identity setup: Configure ASP.NET Identity for user authentication and authorization
+/// </summary>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDBContext>()
     .AddDefaultTokenProviders();
 
+/// <summary>
+/// Password policy configuration: Require strong passwords
+/// </summary>
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Password.RequireDigit = true;
@@ -48,7 +63,9 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredUniqueChars = 1;
 });
 
-// === COOKIES ===
+/// <summary>
+/// Cookie configuration: Set login paths and session timeout
+/// </summary>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -56,7 +73,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 });
 
-// === SESSION ===
+/// <summary>
+/// Session configuration: Configure distributed memory cache and session settings
+/// </summary>
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -67,7 +86,9 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// === APPLY MIGRATIONS ===
+/// <summary>
+/// Apply database migrations automatically on startup
+/// </summary>
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -83,14 +104,18 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// === SEED DATABASE ===
+/// <summary>
+/// Seed database with initial data (roles and admin user)
+/// </summary>
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     await AuthDbSeeder.SeedAsync(services);
 }
 
-// === SECURITY HEADERS ===
+/// <summary>
+/// Security headers: Add security headers to all HTTP responses
+/// </summary>
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
@@ -101,12 +126,18 @@ app.Use(async (context, next) =>
     await next();
 });
 
+/// <summary>
+/// Error handling: Use custom error page in production, enable HSTS
+/// </summary>
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
+/// <summary>
+/// Middleware pipeline: Configure request processing order
+/// </summary>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -117,6 +148,9 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+/// <summary>
+/// Routing: Configure default MVC routing
+/// </summary>
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

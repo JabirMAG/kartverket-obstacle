@@ -50,6 +50,9 @@ else
                         <dt class="col-sm-4">Navn:</dt>
                         <dd class="col-sm-8">@obstacle.ObstacleName</dd>
 
+                        <dt class="col-sm-4">Registrert av:</dt>
+                        <dd class="col-sm-8">@(obstacle.OwnerUser?.UserName ?? obstacle.OwnerUser?.Email ?? "Ukjent bruker")</dd>
+
                         <dt class="col-sm-4">Høyde:</dt>
                         <dd class="col-sm-8">@obstacle.ObstacleHeight m</dd>
 

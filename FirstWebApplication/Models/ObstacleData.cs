@@ -1,42 +1,58 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 namespace FirstWebApplication.Models
 {
-    // ObstacleData representerer data om en hindring som registreres i systemet.
-    // Brukes sammen med skjemaet i ObstacleController
+    /// <summary>
+    /// Represents obstacle data registered in the system. Used with the form in ObstacleController
+    /// </summary>
     public class ObstacleData
     {
         [Key]
         public int ObstacleId { get; set; }
 
-        // Eieren (piloten) som sendte inn hindringen
+        /// <summary>
+        /// Owner (pilot) who submitted the obstacle
+        /// </summary>
         [MaxLength(255)]
         public string? OwnerUserId { get; set; }
 
-        // Navnet på hindringen.
-        // Må fylles ut og kan maks være 100 tegn.
+        /// <summary>
+        /// Navigation property to the owner
+        /// </summary>
+        [ForeignKey(nameof(OwnerUserId))]
+        public ApplicationUser? OwnerUser { get; set; }
+
+        /// <summary>
+        /// Name of the obstacle. Required field, max 100 characters
+        /// </summary>
         [Required(ErrorMessage = "The ObstacleName field is required.")]
         [MaxLength(100)]
         public string? ObstacleName { get; set; } = string.Empty;
 
-        // Høyden på hindringen i meter.
-        // Må fylles ut og må være mellom 0 og 200.
+        /// <summary>
+        /// Height of the obstacle in meters. Must be between 0 and 200
+        /// </summary>
         [Range (0, 200)]
         public double ObstacleHeight { get; set; }
 
-        // En beskrivelse av hindringen.
-        /// Må fylles ut og kan maks være 1000 tegn.
+        /// <summary>
+        /// Description of the obstacle. Max 1000 characters
+        /// </summary>
         [MaxLength(1000)]
         public string? ObstacleDescription { get; set; } = string.Empty;
 
-        // Geometrisk representasjon av hindringen i GeoJSON-format.
-        // Felt som beholder koordinatene til hinderets lokasjon
+        /// <summary>
+        /// Geometric representation of the obstacle in GeoJSON format. Field that holds the coordinates of the obstacle's location
+        /// </summary>
         [Required(ErrorMessage = "Geometry (GeoJSON) is required.")]
         public string GeometryGeoJson { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Status of the obstacle (1=Pending, 2=Approved, 3=Rejected). Default is "Pending"
+        /// </summary>
         [Range(1,3)]
-        // Status for hindringen (1=Pending, 2=Approved, 3=Rejected).
-        public int ObstacleStatus { get; set;} = 1; // Default til "Pending"
+        public int ObstacleStatus { get; set;} = 1;
 
         public ICollection<RapportData> Rapports { get; set; } = new List<RapportData>();
     }

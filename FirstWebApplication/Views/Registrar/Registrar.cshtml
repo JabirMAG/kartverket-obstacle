@@ -29,6 +29,7 @@ else
         <thead>
             <tr>
                 <th>Navn</th>
+                <th>Registrert av</th>
                 <th>Beskrivelse</th>
                 <th>Koordinater</th>
                 <th>Høyde (m)</th>
@@ -92,6 +93,7 @@ else
 
                 <tr>
                     <td>@obstacle.ObstacleName</td>
+                    <td>@(obstacle.OwnerUser?.UserName ?? obstacle.OwnerUser?.Email ?? "Ukjent bruker")</td>
                     <td>@obstacle.ObstacleDescription</td>
                     <td>@coordinatesDisplay</td>
                     <td>@obstacle.ObstacleHeight</td>
