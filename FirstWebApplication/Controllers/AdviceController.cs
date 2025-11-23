@@ -11,9 +11,8 @@ namespace FirstWebApplication.Controllers
     public class AdviceController : Controller
     {
         private readonly IAdviceRepository _adviceRepository;
-
-        public AdviceController(IAdviceRepository adviceRepository)
-        {
+        public AdviceController(IAdviceRepository adviceRepository) {
+           
             _adviceRepository = adviceRepository;
         }
 
@@ -24,7 +23,7 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public IActionResult FeedbackForm()
         {
-            return View(new AdviceViewModel());
+            return View();
         }
 
         /// <summary>
@@ -34,43 +33,41 @@ namespace FirstWebApplication.Controllers
         /// <returns>Redirects to thank you page on success, or returns feedback form with errors</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> FeedbackForm(AdviceViewModel model)
+        public async Task<ActionResult> FeedbackForm(AdviceViewModel requestData)
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return View(requestData);
             }
-
+            
             Advice advice = new Advice
             {
-                adviceMessage = model.ViewadviceMessage,
-                Email = model.ViewEmail
+                adviceMessage = requestData.ViewadviceMessage,
+                Email = requestData.ViewEmail,
             };
 
             await _adviceRepository.AddAdvice(advice);
+            return RedirectToAction("ThankForm", new { advice.Email, advice.adviceMessage });
 
-            return RedirectToAction("ThankForm", new
-            {
-                email = advice.Email,
-                message = advice.adviceMessage
-            });
         }
 
         /// <summary>
         /// Displays a thank you page after feedback has been submitted
         /// </summary>
-        /// <param name="adviceForm">The advice data to display</param>
+        /// <param name="email">The email address from the feedback</param>
+        /// <param name="adviceMessage">The advice message from the feedback</param>
         /// <returns>The thank you view</returns>
         [HttpGet]
-        public IActionResult ThankForm(string email, string message)
+        public IActionResult ThankForm(string email, string adviceMessage)
         {
-            var model = new Advice
+            var adviceForm = new Advice
             {
                 Email = email,
-                adviceMessage = message
+                adviceMessage = adviceMessage
             };
 
-            return View(model);
+            ViewBag.adviceMessage = adviceForm.adviceMessage;
+            return View(adviceForm);
         }
     }
 }
