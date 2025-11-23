@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
-using System.Text.Json;
+using System.IO;
+using System.Text;
 
 namespace Kartverket.Tests.Helpers
 {
@@ -42,22 +43,6 @@ namespace Kartverket.Tests.Helpers
         public bool TryGetValue(string key, out byte[]? value)
         {
             return _store.TryGetValue(key, out value);
-        }
-
-        // Helper methods for easier testing
-        public void SetInt32(string key, int value)
-        {
-            var bytes = BitConverter.GetBytes(value);
-            Set(key, bytes);
-        }
-
-        public int? GetInt32(string key)
-        {
-            if (TryGetValue(key, out var value) && value != null && value.Length == 4)
-            {
-                return BitConverter.ToInt32(value, 0);
-            }
-            return null;
         }
     }
 }

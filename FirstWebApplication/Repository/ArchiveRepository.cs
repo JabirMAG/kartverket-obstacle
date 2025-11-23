@@ -53,6 +53,8 @@ namespace FirstWebApplication.Repositories
             
             await _context.SaveChangesAsync();
 
+            // Set obstacle status to 3 (Rejected) so UpdateObstacles will delete it
+            obstacle.ObstacleStatus = 3;
             await _obstacleRepository.UpdateObstacles(obstacle);
             
             return rapports.Count;

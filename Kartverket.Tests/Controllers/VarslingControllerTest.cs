@@ -217,7 +217,7 @@ namespace Kartverket.Tests.Controllers
 
             // Set lastViewedRapportId to 10, so only RapportID 15 should be unread
             var session = new TestSession();
-            session.SetInt32($"LastViewedRapportId_{user.Id}", 10);
+            session.SetInt32($"LastViewedRapportId_{user.Id}", 10); // Using extension method
             _controller.ControllerContext.HttpContext.Session = session;
 
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
