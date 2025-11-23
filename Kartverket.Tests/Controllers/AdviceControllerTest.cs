@@ -99,10 +99,10 @@ namespace Kartverket.Tests.Controllers
             // Arrange
             var advice = TestDataBuilder.CreateValidAdvice();
             var email = advice.Email;
-            var adviceMessage = advice.adviceMessage;
+            var message = advice.adviceMessage;
 
             // Act
-            var result = _controller.ThankForm(email, adviceMessage);
+            var result = _controller.ThankForm(email, message);
 
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);

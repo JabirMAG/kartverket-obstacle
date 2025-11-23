@@ -23,7 +23,7 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public IActionResult FeedbackForm()
         {
-            return View();
+            return View(new AdviceViewModel());
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace FirstWebApplication.Controllers
             };
 
             await _adviceRepository.AddAdvice(advice);
-            return RedirectToAction("ThankForm", new { advice.Email, advice.adviceMessage });
+            return RedirectToAction("ThankForm", new { email = requestData.ViewEmail, message = requestData.ViewadviceMessage });
 
         }
 
@@ -55,20 +55,19 @@ namespace FirstWebApplication.Controllers
         /// Displays a thank you page after feedback has been submitted
         /// </summary>
         /// <param name="email">The email address from the feedback</param>
-        /// <param name="adviceMessage">The advice message from the feedback</param>
+        /// <param name="message">The advice message from the feedback</param>
         /// <returns>The thank you view</returns>
         [HttpGet]
-        public IActionResult ThankForm(string email, string adviceMessage)
+        public IActionResult ThankForm(string email, string message)
         {
             var adviceForm = new Advice
             {
                 Email = email,
-                adviceMessage = adviceMessage
+                adviceMessage = message
             };
-
             ViewBag.adviceMessage = adviceForm.adviceMessage;
             return View(adviceForm);
         }
     }
-}
 
+ }
