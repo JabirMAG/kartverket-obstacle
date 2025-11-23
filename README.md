@@ -1,317 +1,186 @@
-# kartverket-obstacle
-Applikasjon for rapportering og validering av hindring i luftrommet. Piloter kan sende inn rapporter, og registerfører hos NRL kan validere og godkjenne eller avslå dem. Formålet er å øke flysikkerheten ved å ha et oppdatert register over hindringer.
+# Semesterproject for Kartverket re. Aviation Obstacles Grp. 18
 
-Bygget med ASP.NET Core MVC, Entity framwork core, MySQL/MariaDB, og kjørbart i Docker.
+## Application Setup
 
-## Arkitekturmodell
-Applikasjonen følger (Model-View-Controller) mønsteret:
-**Model**
-Domeneklasser og validering (Advice, ObstacleData, errorViewModel).
-**View**
-Razor Views for presentasjon (skjema for hindringer, feedback, oversiktssider, kart).
-**Controller**
-Forretningslogikk og ruting (HomeController, AdviceController, ObstacleController, FormController, MapController).
-**Database**
-MySQL/MariaDB, håndtert via Entity Framwork Core (ApplicationDBContext + migrasjoner).
+The technologies used in this application are as follows:
 
-### Dataflyt
-1. Bruker åpner nettsiden (Home -->Index).
-2. Piloter kan sende inn hindringsdata (ObstacleController --> Dataform).
-   -Skjema valideres (modellattributter som Required, Range).
-   -Gyldige data sendes til (Overview-siden).
-3. Tilbakemeldinger sendes via adviceController --> FeedbackForm, og lagres i database ( Feedback-tabellen).
-4. Registerfører kan validere og behandle innkomne rapporter (fremtidig utvidelse).
+- **Docker**: For building and running the application and the database.
+- **MariaDB**: Relational database used for data storage.
+- **ASP.NET Core MVC**: Application built with the .NET 9 MVC framework.
+- **IDE**: Visual Studio or Rider.
 
-### Drift 
-Applikasjonen kjøres i Docker for enkel drift og portabilitet.
-Docker-compose kan brukes til å starte både web-applikasjon og database i egne containere.
--**Web-applikasjon** kjører på'mcr.microsoft.com/dotnet/aspnet:9.0'
--**Database** kjører i 'mariadb'
--Kommunikasjon skjer via Docker-nettverket
+## How to Run the Application - Windows
 
-## Kjøre applikasjonen på Mac
+To run the application on Windows, follow these steps:
 
-### Forutsetninger
+1. Install Docker on the machine that will run the application.
+2. Clone the repository to your local system.
+3. Open the application in Visual Studio or Rider.
+4. Run the application using Docker Compose to start both the web application and the database in separate containers.
 
-Før du kan kjøre applikasjonen, må du ha installert:
+## How to Run the Application - Mac
 
-1. **.NET 9.0 SDK**
-   - Last ned fra: https://dotnet.microsoft.com/download/dotnet/9.0
-   - Eller installer via Homebrew:
-     ```bash
-     brew install --cask dotnet-sdk
-     ```
-   - Verifiser installasjonen:
-     ```bash
-     dotnet --version
-     ```
+The application can run on macOS.
 
-2. **Docker Desktop for Mac**
-   - Last ned fra: https://www.docker.com/products/docker-desktop
-   - Start Docker Desktop og sørg for at den kjører
+To start the database and the application using Docker, run the following commands in the project directory in the terminal:
 
-3. **Git** (hvis du ikke allerede har det)
-   - Installer via Homebrew:
-     ```bash
-     brew install git
-     ```
-
-### Metode 1: Kjøre med Docker (Anbefalt)
-
-Dette er den enkleste metoden og krever minimal konfigurasjon.
-
-1. **Klon prosjektet** (hvis du ikke allerede har gjort det):
-   ```bash
-   git clone <repository-url>
-   cd kartverket-obstacle
-   ```
-
-2. **Bygg og start containere**:
-   ```bash
-   docker-compose up --build
-   ```
-
-3. **Åpne applikasjonen i nettleseren**:
-   - Applikasjonen vil være tilgjengelig på: http://localhost:8080
-   - Database er tilgjengelig på port 3307
-
-4. **Stopp applikasjonen**:
-   - Trykk `Ctrl+C` i terminalen
-   - Eller kjør: `docker-compose down`
-
-**Standard innloggingsinformasjon:**
-- Email: `admin@kartverket.com`
-- Passord: `Admin123!`
-
-### Metode 2: Kjøre direkte med .NET (Uten Docker)
-
-Hvis du foretrekker å kjøre applikasjonen direkte uten Docker:
-
-1. **Installer MariaDB lokalt**:
-   ```bash
-   brew install mariadb
-   brew services start mariadb
-   ```
-
-2. **Opprett database**:
-   ```bash
-   mysql -u root -p
-   ```
-   I MySQL-konsollen:
-   ```sql
-   CREATE DATABASE KartverketDB;
-   EXIT;
-   ```
-
-3. **Oppdater connection string** i `FirstWebApplication/appsettings.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DatabaseConnection": "Server=localhost;Port=3306;Database=KartverketDB;User=root;Password=ditt_passord"
-     }
-   }
-   ```
-
-4. **Kjør database-migrasjoner**:
-   ```bash
-   cd FirstWebApplication
-   dotnet ef database update
-   ```
-
-5. **Start applikasjonen**:
-   ```bash
-   dotnet run
-   ```
-
-6. **Åpne applikasjonen i nettleseren**:
-   - Applikasjonen vil være tilgjengelig på: http://localhost:5193 eller https://localhost:7145
-
-### Troubleshooting
-
-**Problem: Docker Desktop kjører ikke**
-- Sørg for at Docker Desktop er startet og kjører
-- Sjekk at Docker er tilgjengelig: `docker --version`
-
-**Problem: Port allerede i bruk**
-- Hvis port 8080 er opptatt, endre port i `docker-compose.yml`:
-  ```yaml
-  ports:
-    - "8081:8080"  # Endre 8080 til 8081
-  ```
-
-**Problem: Database-tilkobling feiler**
-- Sjekk at MariaDB-containeren kjører: `docker ps`
-- Sjekk connection string i `docker-compose.yml` og `appsettings.json`
-- Vent noen sekunder etter at containeren starter (database trenger tid på å initialisere)
-
-**Problem: Migrasjoner feiler**
-- Sørg for at databasen eksisterer
-- Sjekk at connection string er korrekt
-- Prøv å kjøre migrasjoner manuelt:
-  ```bash
-  cd FirstWebApplication
-  dotnet ef database update
-  ```
-
-**Problem: .NET SDK ikke funnet**
-- Verifiser at .NET 9.0 SDK er installert: `dotnet --version`
-- Sørg for at PATH er konfigurert riktig
-- Prøv å starte terminalen på nytt etter installasjon
-
-### Utviklingsmiljø
-
-For utvikling anbefales det å bruke:
-- **Visual Studio Code** med C#-utvidelsen
-- **Rider** (JetBrains)
-- **Visual Studio for Mac** (hvis tilgjengelig)
-
-**Anbefalte VS Code-utvidelser:**
-- C# (Microsoft)
-- C# Dev Kit (Microsoft)
-- Docker (Microsoft) 
-
-[![.NET Tests](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml/badge.svg)](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml)
-
-## Testing
-
-Applikasjonen har omfattende testing gjennomført på flere nivåer:
-
-### 1. Enhetstesting (Unit Testing)
-
-**Status:** ✅ Fullstendig implementert
-
-- **Omfang:** 40+ testfiler med 284+ testmetoder
-- **Dekning:**
-  - Controllers (9 filer) - alle controller-aksjoner er testet
-  - Repositories (5 filer) - alle CRUD-operasjoner er testet
-  - Models (18 filer) - validering og datamodeller er testet
-  - ViewModels (13 filer) - alle viewmodeller er testet
-- **Verktøy:** XUnit, Moq, Entity Framework Core InMemory Database
-- **Dokumentasjon:** Se `docs/testing/testing-scenarier-resultater.md`
-
-**Eksempler på testet funksjonalitet:**
-- Validering av input-data
-- Controller-aksjoner (GET, POST)
-- Repository-operasjoner (Create, Read, Update, Delete)
-- Autentisering og autorisasjon
-- Feilhåndtering
-
-### 2. Systemstesting (System/Integration Testing)
-
-**Status:** ✅ Implementert
-
-- **Integrasjonstester:** Tester hele flyter fra Controller → Repository → Database
-- **Testfiler:**
-  - `Kartverket.Tests/Integration/ObstacleFlowIntegrationTest.cs`
-    - Tester end-to-end flyt for opprettelse av hindringer
-    - Tester oppdatering av hindringer gjennom hele systemet
-    - Tester opprettelse av rapporter sammen med hindringer
-- **Metode:** Bruker InMemory-database for isolerte integrasjonstester
-
-**Testet flyter:**
-- Opprettelse av hindring → Lagring i database → Verifisering
-- Oppdatering av hindring → Endringer i database → Verifisering
-- Opprettelse av hindring med rapport → Begge lagres → Verifisering
-
-### 3. Sikkerhetstesting (Security Testing)
-
-**Status:** ✅ Implementert
-
-- **Testfil:** `Kartverket.Tests/Security/SecurityTest.cs`
-- **Testet sikkerhetsaspekter:**
-
-**Autentisering og autorisasjon:**
-- ✅ AdminController krever Admin-rolle
-- ✅ PilotController krever Pilot-rolle
-- ✅ RegistrarController krever Admin eller Registerfører-rolle
-- ✅ VarslingController krever autentisering
-- ✅ Uautorisert tilgang blir blokkert
-
-**CSRF-beskyttelse:**
-- ✅ Alle POST-aksjoner har `ValidateAntiForgeryToken`-attributt
-- ✅ Verifisert for alle controllers med POST-metoder
-
-**Input-validering:**
-- ✅ SQL injection-forsøk håndteres (Entity Framework parameteriserer queries)
-- ✅ XSS-forsøk håndteres (Razor views encoderer output automatisk)
-- ✅ Passordpolicy håndheves (sterke passordkrav)
-
-**Sikkerhetsfunksjoner:**
-- AutoValidateAntiforgeryToken for alle POST-forespørsler (konfigurert i Program.cs)
-- Security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, etc.)
-- HTTPS-redirect i produksjon
-
-### 4. Brukervennlighetstesting (Usability Testing)
-
-**Status:** ✅ Dokumentert
-
-Brukervennlighetstesting er gjennomført gjennom manuell testing av applikasjonen. Følgende aspekter er testet:
-
-**Navigasjon og brukergrensesnitt:**
-- ✅ Intuitiv navigasjon mellom sider
-- ✅ Tydelige knapper og lenker
-- ✅ Responsivt design for ulike skjermstørrelser
-- ✅ Konsistent layout og styling
-
-**Skjema og input:**
-- ✅ Tydelige feltetiketter og hjelpetekster
-- ✅ Valideringsmeldinger vises tydelig
-- ✅ Passordkrav vises under passordfeltet
-- ✅ Feilmeldinger er forståelige og på norsk
-
-**Brukerroller og tilgang:**
-- ✅ Piloter kan enkelt sende inn hindringer
-- ✅ Registerfører kan enkelt behandle rapporter
-- ✅ Administrator kan enkelt administrere brukere
-- ✅ Roller har tydelige og relevante funksjoner
-
-**Feedback og bekreftelse:**
-- ✅ Suksessmeldinger ved vellykkede operasjoner
-- ✅ Bekreftelsessider etter registrering
-- ✅ Tydelige feilmeldinger ved problemer
-- ✅ Loading-indikatorer ved asynkrone operasjoner
-
-**Tilgjengelighet:**
-- ✅ Tydelige kontraster for lesbarhet
-- ✅ Logisk tab-rekkefølge i skjemaer
-- ✅ Tydelige feilmeldinger for skjermlesere
-- ✅ Responsivt design for mobile enheter
-
-**Testscenarier som er gjennomført:**
-1. Ny bruker registrerer seg og venter på godkjenning
-2. Godkjent bruker logger inn og navigerer til sin rolle-spesifikke side
-3. Pilot sender inn hindring med alle felter utfylt
-4. Pilot sender inn hindring med hurtiglagring (kun geometri)
-5. Registerfører godkjenner/avviser hindringer
-6. Administrator administrerer brukere og roller
-7. Bruker sender tilbakemelding via feedback-skjema
-8. Bruker resetter passord
-
-**Resultat:** Applikasjonen er brukervennlig med tydelig navigasjon, forståelige meldinger og logisk flyt for alle brukerroller.
-
-### Kjøre tester
-
-For å kjøre alle tester:
 ```bash
-dotnet test
+docker compose down -v
+docker compose build
+docker compose up -d
 ```
 
-For å kjøre spesifikke testkategorier:
-```bash
-# Enhetstester
-dotnet test --filter "FullyQualifiedName~Controllers"
+After the containers are running, start the application locally through your IDE:
 
-# Integrasjonstester
-dotnet test --filter "FullyQualifiedName~Integration"
+- Run "FirstWebApplication: http" inside Visual Studio or Rider.
+- This will launch the web application with a working connection to the MariaDB database running in Docker.
 
-# Sikkerhetstester
-dotnet test --filter "FullyQualifiedName~Security"
-```
+## Application Features
 
-### Testdekning
+This is an obstacle reporting and validation system for airspace safety, with role-based workflows for pilots, registrars, and administrators.
 
-- **Controllers:** 100% av alle controllers har tester
-- **Repositories:** 100% av alle repositories har tester
-- **Models:** 100% av alle modeller har tester
-- **Sikkerhet:** Alle kritiske sikkerhetsaspekter er testet
-- **Integrasjon:** Kritiske flyter er testet end-to-end
+### User Administration & Authentication
+
+- User registration with approval workflow
+- Login/Logout
+- Password reset (forgot password)
+- User approval/rejection by administrators
+- Role-based access control (Admin, Registerfører, Pilot)
+
+### User Management
+
+- Create users
+- View all users with roles and approval status
+- Assign/remove roles (Pilot, Registerfører, Admin)
+- Delete users
+- View user details (email, organization, desired role)
+- Default admin account protection
+
+### Obstacle Reporting & Management
+
+- Interactive map for obstacle reporting
+- Quick save obstacle (geometry only)
+- Full obstacle submission (name, height, description, geometry)
+- View obstacle overview/details
+
+### Obstacle Status Management
+
+- Under treatment (1)
+- Approved (2)
+- Rejected (3) - automatically archived
+- Automatic report generation when obstacles are created
+
+### Pilot Features
+
+- View own obstacles
+- View obstacle details and associated reports
+- Update obstacles (only when status is "Under treatment")
+- Receive notifications about comments on obstacles
+
+### Registrar Features
+
+- View all obstacles and reports
+- Update obstacle status
+- Add comments/reports to obstacles
+- View detailed obstacle information
+- View archived reports (rejected obstacles)
+
+### Admin Features
+
+- Admin dashboard
+- View all obstacle reports
+- Update obstacle status
+- Archive/reject obstacles
+- Restore archived obstacles with new status
+- Add comments to obstacles
+- View archived reports
+- User management (see User Administration above)
+
+### Notifications System
+
+- View notifications (comments on user's obstacles)
+- Real-time notification count (unread)
+- Filter out auto-generated comments
+- Group notifications by obstacle
+
+### Feedback System
+
+- Submit feedback form
+- Thank you confirmation page
+
+### General Features
+
+- Home page with time-based greeting
+- Privacy page
+- About us page
+- Error handling
+- Responsive design
+- CSRF protection
+- Security headers
+- Session management
+
+### Data Management
+
+- Archive rejected obstacles
+- Restore archived obstacles
+- Organization-based user categorization
+- GeoJSON geometry support for obstacles
+
+## MVC
+
+MVC (Model-View-Controller) separates an application into three parts:
+
+- **Model**: Data and business logic
+- **View**: User interface and presentation
+- **Controller**: Handles requests, coordinates Model and View, and returns responses
+
+There is a clear separation of concerns, easier maintenance, and better testability. In ASP.NET Core MVC, Controllers process HTTP requests, Models represent data entities, and Views are Razor templates that render HTML.
+
+## Entity Framework
+
+Entity Framework Core is an ORM that lets the application work with the MySQL/MariaDB database using C# objects instead of SQL. It maps models like `ObstacleData`, `RapportData`, and `ApplicationUser` to database tables and handles queries, updates, and migrations.
+
+**Database communication**: The application uses `ApplicationDBContext` (configured in `Program.cs`) to interact with the database. EF translates LINQ queries from repositories (e.g., `ObstacleRepository`, `UserRepository`) into SQL, executes them against MySQL/MariaDB, and maps results back to model objects. Database schema changes are managed through EF migrations (e.g., `InitialCreate`, `CombineArchivedTables`).
+
+## Migrations
+
+Migrations are version-controlled database schema changes managed by Entity Framework Core. They define how the database structure evolves over time, such as creating tables for obstacles, reports, and users. In this application, migrations like `InitialCreate` and `CombineArchivedTables` are applied to keep the MySQL/MariaDB database schema in sync with the model definitions.
+
+## Domain Models
+
+Domain models represent core business entities and map directly to database tables. In this application, models include:
+
+- **ObstacleData**: Obstacles with geometry, height, status
+- **RapportData**: Reports/comments on obstacles
+- **ApplicationUser**: User accounts with roles
+- **ArchivedReport**: Rejected obstacles
+
+These models contain validation attributes, relationships, and business logic, and are defined in the `Models` folder.
+
+## View Models
+
+View models are data transfer objects used to pass data between controllers and views, separate from domain models. They handle form input, display formatting, and role-specific data combinations.
+
+Examples include:
+- **RegisterViewModel**: Registration form
+- **LoginViewModel**: Login credentials
+- **RegistrarViewModel**: Combines obstacles and reports for the registrar view
+- **UserWithRolesVm**: User data with role information for admin management
+
+## Repositories
+
+Repositories abstract database operations and provide a clean interface for data access. They encapsulate Entity Framework queries and operations, making controllers independent of database implementation details.
+
+This application uses repositories like:
+- **ObstacleRepository**: CRUD for obstacles
+- **UserRepository**: User management
+- **RegistrarRepository**: Report handling
+- **ArchiveRepository**: Archiving rejected obstacles
+
+All repositories implement interfaces for testability and dependency injection.
+
+## Database
+
+The application uses MySQL/MariaDB as the database, managed through Entity Framework Core's `ApplicationDBContext`. The context defines `DbSet` properties for `ObstaclesData`, `Rapports`, `ArchivedReports`, and `Feedback`, and configures relationships (e.g., obstacles to reports, obstacles to users) with cascade delete rules.
+
+The database connection is configured in `appsettings.json` and can run in Docker containers for easy deployment and portability.
