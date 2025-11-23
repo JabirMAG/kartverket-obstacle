@@ -1,0 +1,90 @@
+@model IEnumerable<FirstWebApplication.Models.ViewModel.VarslingViewModel>
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Varsling";
+}
+
+<div class="container mt-4">
+    <h1 class="display-6">Varsling</h1>
+    <p class="text-muted">Her ser du alle rapporter som har fått nye kommentarer fra admin eller registerfører.</p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info mt-4">
+            <h5 class="alert-heading">Ingen varslinger</h5>
+            <p class="mb-0">Du har ingen nye varslinger for øyeblikket. Når admin eller registerfører legger til kommentarer på dine rapporter, vil de vises her.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row mt-4">
+            @foreach (var varsling in Model)
+            {
+                var obstacle = varsling.Obstacle;
+                var statusText = obstacle.ObstacleStatus switch
+                {
+                    1 => "Pending",
+                    2 => "Approved",
+                    3 => "Rejected",
+                    _ => "Ukjent"
+                };
+                var statusBadgeClass = obstacle.ObstacleStatus == 1 ? "bg-warning" : obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
+                var latestComment = varsling.Comments.FirstOrDefault();
+                
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0">@obstacle.ObstacleName</h6>
+                            <span class="badge @statusBadgeClass">@statusText</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Høyde:</small>
+                                <strong>@obstacle.ObstacleHeight m</strong>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(obstacle.ObstacleDescription))
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Beskrivelse:</small>
+                                    <p class="mb-0 small">@(obstacle.ObstacleDescription.Length > 100 ? obstacle.ObstacleDescription.Substring(0, 100) + "..." : obstacle.ObstacleDescription)</p>
+                                </div>
+                            }
+                            
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Antall kommentarer:</small>
+                                <span class="badge bg-primary">@varsling.CommentCount</span>
+                            </div>
+                            
+                            @if (latestComment != null)
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Siste kommentar:</small>
+                                    <div class="border rounded p-2 bg-light small">
+                                        @(latestComment.RapportComment.Length > 150 ? latestComment.RapportComment.Substring(0, 150) + "..." : latestComment.RapportComment)
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a asp-controller="Varsling" asp-action="Details" asp-route-obstacleId="@obstacle.ObstacleId" 
+                               class="btn btn-primary w-100">
+                                Se detaljer og kommentarer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

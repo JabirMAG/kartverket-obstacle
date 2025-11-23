@@ -5,6 +5,9 @@ using MySqlConnector;
 
 namespace FirstWebApplication.Controllers
 {
+    /// <summary>
+    /// Controller for home page and general site functionality
+    /// </summary>
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -16,6 +19,10 @@ namespace FirstWebApplication.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Displays the home page with a time-based greeting
+        /// </summary>
+        /// <returns>The home page view</returns>
         public IActionResult Index()
         {
             var hour = DateTime.Now.Hour;
@@ -33,12 +40,21 @@ namespace FirstWebApplication.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Displays the data form view
+        /// </summary>
+        /// <returns>The data form view</returns>
         [HttpGet]
         public IActionResult DataForm()
         {
             return View();
         }
 
+        /// <summary>
+        /// Processes the data form submission
+        /// </summary>
+        /// <param name="obstacledata">The obstacle data from the form</param>
+        /// <returns>The overview view with obstacle data</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult DataForm(ObstacleData obstacledata)
@@ -46,17 +62,29 @@ namespace FirstWebApplication.Controllers
             return View("Overview", obstacledata);
         }
 
+        /// <summary>
+        /// Displays the privacy page
+        /// </summary>
+        /// <returns>The privacy view</returns>
         public IActionResult Privacy()
         {
             return View();
         }
 
+        /// <summary>
+        /// Displays the about us page
+        /// </summary>
+        /// <returns>The about us view</returns>
         public IActionResult OmOss()
         {
             return View();
         }
         
 
+        /// <summary>
+        /// Displays error page with error details
+        /// </summary>
+        /// <returns>The error view with error details</returns>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

@@ -1,14 +1,18 @@
 namespace FirstWebApplication.Models
 {
-    // ViewModel som brukes til å vise feilmeldinger i applikasjonen
-    // Vises typisk når noe går galt i HomeController -> Error()
+    /// <summary>
+    /// ViewModel used to display error messages in the application. Typically shown when something goes wrong in HomeController -> Error()
+    /// </summary>
     public class ErrorViewModel
     {
-        // ID som identifiserer den aktuelle forespørselen.
-        // Kan brukes til feilsøking og sporing i logger.
+        /// <summary>
+        /// ID that identifies the current request. Can be used for debugging and tracking in logs
+        /// </summary>
         public string? RequestId { get; set; }
 
-        // Returnerer true hvis RequestId eksisterer (ikke er null eller tom)
+        /// <summary>
+        /// Returns true if RequestId exists (is not null or empty)
+        /// </summary>
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
 }

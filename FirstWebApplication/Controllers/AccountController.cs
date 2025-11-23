@@ -1,18 +1,17 @@
-using FirstWebApplication.Constants;
 using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
-//using FirstWebApplication.NewFolder;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
-using System.Reflection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Linq;
 
 namespace FirstWebApplication.Controllers
 {
+    /// <summary>
+    /// Controller for authentication and account management. Handles user registration, login, logout, and password reset
+    /// </summary>
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -32,6 +31,11 @@ namespace FirstWebApplication.Controllers
             _logger = logger;
         }
         
+        
+        /// <summary>
+        /// Displays the user registration form
+        /// </summary>
+        /// <returns>The registration view</returns>
         [HttpGet]
         public IActionResult Register()
         {
@@ -39,20 +43,16 @@ namespace FirstWebApplication.Controllers
             return View();
         }
         
-
+        /// <summary>
+        /// Processes user registration. New users must be approved by an admin before they can log in
+        /// </summary>
+        /// <param name="registerViewModel">The registration data from the form</param>
+        /// <returns>Redirects to confirmation page on success, or returns the registration view with errors</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
-            if (!OrganizationOptions.All.Contains(registerViewModel.Organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
-            {
-                ModelState.AddModelError(nameof(registerViewModel.Organization), "Velg en gyldig organisasjon.");
-            }
-            else
-            {
-                registerViewModel.Organization = OrganizationOptions.All.First(o =>
-                    string.Equals(o, registerViewModel.Organization, StringComparison.OrdinalIgnoreCase));
-            }
+            registerViewModel.Organization = ValidateAndNormalizeOrganization(registerViewModel.Organization, nameof(registerViewModel.Organization));
 
             if (!ModelState.IsValid)
             {
@@ -60,7 +60,7 @@ namespace FirstWebApplication.Controllers
                 return View(registerViewModel);
             }
             
-            //lager new user
+            // Create new user
             var applicationUser = new ApplicationUser
             {
                 UserName = registerViewModel.Username,
@@ -81,46 +81,37 @@ namespace FirstWebApplication.Controllers
             }
             else
             {
-                // Detect password-related errors
-                var pwErrors = identityResult.Errors.Where(e =>
-                    (!string.IsNullOrEmpty(e.Code) && e.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrEmpty(e.Description) && e.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0)
-                ).ToList();
-
-                if (pwErrors.Any())
-                {
-                    ModelState.AddModelError(nameof(registerViewModel.Password), "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
-                    foreach (var pe in pwErrors)
-                    {
-                        var friendly = TranslatePasswordError(pe.Description, _userManager.Options.Password);
-                        ModelState.AddModelError(nameof(registerViewModel.Password), friendly);
-                    }
-                }
-
-                // Keep other identity errors as form-level messages
-                var otherErrors = identityResult.Errors.Except(pwErrors).ToList();
-                foreach (var err in otherErrors)
-                {
-                    ModelState.AddModelError(string.Empty, err.Description);
-                }
-
+                AddIdentityErrorsToModelState(identityResult.Errors, nameof(registerViewModel.Password));
                 PopulateRegisterViewData();
                 return View(registerViewModel);
             }
         }
-
+        
+        /// <summary>
+        /// Displays registration confirmation page
+        /// </summary>
+        /// <returns>The registration confirmation view</returns>
         [HttpGet]
         public IActionResult RegisterConfirmation()
         {
             return View();
         }
         
+        /// <summary>
+        /// Displays the login form
+        /// </summary>
+        /// <returns>The login view</returns>
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
         
+        /// <summary>
+        /// Processes user login. Only approved users can log in. Redirects to appropriate page based on user role.
+        /// </summary>
+        /// <param name="model">The login credentials</param>
+        /// <returns>Redirects to appropriate page based on role, or returns login view with errors</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -173,20 +164,33 @@ namespace FirstWebApplication.Controllers
             // Pilots and other approved users go to Map page (register obstacle site)
             return RedirectToAction("Map", "Map");
         }
-
+        
+        /// <summary>
+        /// Logs out the current user and clears the session
+        /// </summary>
+        /// <returns>Redirects to the home page</returns>
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
-
+        
+        /// <summary>
+        /// Displays the forgot password form
+        /// </summary>
+        /// <returns>The forgot password view</returns>
         [HttpGet]
         public IActionResult ForgotPassword()
         {
             return View();
         }
-
+        
+        /// <summary>
+        /// Initiates password reset process. Generates a reset token and sends it via email (in production).
+        /// </summary>
+        /// <param name="model">The forgot password form data containing the email address</param>
+        /// <returns>Redirects to confirmation page</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
@@ -213,33 +217,43 @@ namespace FirstWebApplication.Controllers
                 protocol: Request.Scheme);
 
             // In development, log the email content
-            // In production, you would send this via email service
+            // Would send this via email service
             if (_environment.IsDevelopment())
             {
                 _logger.LogInformation("Password Reset Email for {Email}: {CallbackUrl}", user.Email, callbackUrl);
             }
 
-            // TODO: Send email here using your email service
+            //TODO: Send email here using your email service
             // For now, we'll just redirect to confirmation page
             // In production, implement IEmailSender and send the email
 
             return RedirectToAction(nameof(ForgotPasswordConfirmation));
         }
 
+        
+        /// <summary>
+        /// Displays confirmation page after password reset request has been submitted
+        /// </summary>
+        /// <returns>The forgot password confirmation view</returns>
         [HttpGet]
         public IActionResult ForgotPasswordConfirmation()
         {
             return View();
         }
-
+        
+        /// <summary>
+        /// Displays the password reset form with the provided token and email
+        /// </summary>
+        /// <param name="token">The password reset token</param>
+        /// <param name="email">The user's email address</param>
+        /// <returns>The reset password view, or error view if token/email is invalid</returns>
         [HttpGet]
         public IActionResult ResetPassword(string token, string email)
         {
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
             {
                 ModelState.AddModelError(string.Empty, "Ugyldig tilbakestillingslink.");
-                ViewBag.PasswordRequirements = BuildPasswordRequirements();
-                ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+                PopulatePasswordViewData();
                 return View();
             }
 
@@ -249,11 +263,15 @@ namespace FirstWebApplication.Controllers
                 Token = token
             };
 
-            ViewBag.PasswordRequirements = BuildPasswordRequirements();
-            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+            PopulatePasswordViewData();
             return View(model);
         }
-
+        
+        /// <summary>
+        /// Processes password reset with the provided token and new password
+        /// </summary>
+        /// <param name="model">The reset password form data containing token, email, and new password</param>
+        /// <returns>Redirects to confirmation page on success, or returns reset password view with errors</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
@@ -278,31 +296,8 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
             }
 
-            // Detect password-related errors
-            var pwErrors = result.Errors.Where(e =>
-                (!string.IsNullOrEmpty(e.Code) && e.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrEmpty(e.Description) && e.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0)
-            ).ToList();
-
-            if (pwErrors.Any())
-            {
-                ModelState.AddModelError(nameof(model.Password), "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
-                foreach (var pe in pwErrors)
-                {
-                    var friendly = TranslatePasswordError(pe.Description, _userManager.Options.Password);
-                    ModelState.AddModelError(nameof(model.Password), friendly);
-                }
-            }
-
-            // Keep other identity errors as form-level messages
-            var otherErrors = result.Errors.Except(pwErrors).ToList();
-            foreach (var err in otherErrors)
-            {
-                ModelState.AddModelError(string.Empty, err.Description);
-            }
-
-            ViewBag.PasswordRequirements = BuildPasswordRequirements();
-            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+            AddIdentityErrorsToModelState(result.Errors, nameof(model.Password));
+            PopulatePasswordViewData();
             return View(model);
         }
 
@@ -314,9 +309,50 @@ namespace FirstWebApplication.Controllers
 
         private void PopulateRegisterViewData()
         {
+            PopulatePasswordViewData();
+            ViewBag.OrganizationOptions = OrganizationOptions.All;
+        }
+
+        private void PopulatePasswordViewData()
+        {
             ViewBag.PasswordRequirements = BuildPasswordRequirements();
             ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
-            ViewBag.OrganizationOptions = OrganizationOptions.All;
+        }
+
+        private string? ValidateAndNormalizeOrganization(string? organization, string propertyName)
+        {
+            if (!OrganizationOptions.All.Contains(organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(propertyName, "Velg en gyldig organisasjon.");
+                return organization;
+            }
+            
+            return OrganizationOptions.All.First(o =>
+                string.Equals(o, organization, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void AddIdentityErrorsToModelState(IEnumerable<IdentityError> errors, string passwordPropertyName)
+        {
+            var pwErrors = errors.Where(e =>
+                (!string.IsNullOrEmpty(e.Code) && e.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(e.Description) && e.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0)
+            ).ToList();
+
+            if (pwErrors.Any())
+            {
+                ModelState.AddModelError(passwordPropertyName, "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
+                foreach (var pe in pwErrors)
+                {
+                    var friendly = TranslatePasswordError(pe.Description, _userManager.Options.Password);
+                    ModelState.AddModelError(passwordPropertyName, friendly);
+                }
+            }
+
+            var otherErrors = errors.Except(pwErrors).ToList();
+            foreach (var err in otherErrors)
+            {
+                ModelState.AddModelError(string.Empty, err.Description);
+            }
         }
 
         private IEnumerable<string> BuildPasswordRequirements()

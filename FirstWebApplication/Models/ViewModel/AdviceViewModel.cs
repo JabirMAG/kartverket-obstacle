@@ -1,5 +1,8 @@
 ﻿namespace FirstWebApplication.Models.ViewModel
 {
+    /// <summary>
+    /// ViewModel for feedback/advice form submission
+    /// </summary>
     public class AdviceViewModel
     {
         public int ViewadviceID { get; set; }

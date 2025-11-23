@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using FirstWebApplication.Constants;
 
 namespace FirstWebApplication.Models.AdminViewModels
 {
+    /// <summary>
+    /// ViewModel for creating a new user account by admin
+    /// </summary>
     public class CreateUserVm
     {
         [Required]
@@ -16,11 +18,14 @@ namespace FirstWebApplication.Models.AdminViewModels
         [Required, MinLength(6)]
         public string Password { get; set; } = default!;
 
+        /// <summary>
+        /// Default role selection
+        /// </summary>
         [Display(Name = "Rolle")]
-        public string Role { get; set; } = "Pilot"; // standardvalg
+        public string Role { get; set; } = "Pilot";
 
         [Required(ErrorMessage = "Organisasjon er påkrevd")]
         [Display(Name = "Organisasjon")]
-        public string Organization { get; set; } = OrganizationOptions.Kartverket;
+        public string Organization { get; set; } = Models.OrganizationOptions.Kartverket;
     }
 }

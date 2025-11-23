@@ -5,16 +5,21 @@ using System.Linq;
 
 namespace FirstWebApplication.DataContext.Seeders
 {
+    /// <summary>
+    /// Seeds the database with initial roles and admin user on application startup
+    /// </summary>
     public static class AuthDbSeeder
     {
+        /// <summary>
+        /// Seeds the database with default roles and admin user
+        /// </summary>
+        /// <param name="serviceProvider">The service provider to get required services</param>
         public static async Task SeedAsync(IServiceProvider serviceProvider)
         {
             var context = serviceProvider.GetRequiredService<ApplicationDBContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-
-            // Seed Roles
             string[] roleNames = { "Pilot", "Admin", "Registerfører" };
             foreach (var roleName in roleNames)
             {
@@ -24,7 +29,6 @@ namespace FirstWebApplication.DataContext.Seeders
                 }
             }
 
-            // Seed Admin User
             var adminEmail = "admin@kartverket.com";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -43,19 +47,16 @@ namespace FirstWebApplication.DataContext.Seeders
 
                 if (result.Succeeded)
                 {
-                    // Only assign Admin role to the admin user
                     await userManager.AddToRoleAsync(adminUser, "Admin");
                 }
             }
             else
             {
-                // Ensure existing admin user only has Admin role
                 var existingRoles = await userManager.GetRolesAsync(adminUser);
                 if (!existingRoles.Contains("Admin"))
                 {
                     await userManager.AddToRoleAsync(adminUser, "Admin");
                 }
-                // Remove any non-Admin roles
                 var rolesToRemove = existingRoles.Where(r => r != "Admin").ToList();
                 if (rolesToRemove.Any())
                 {

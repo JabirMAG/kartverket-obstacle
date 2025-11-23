@@ -1,32 +1,186 @@
-# kartverket-obstacle
-Applikasjon for rapportering og validering av hindring i luftrommet. Piloter kan sende inn rapporter, og registerfører hos NRL kan validere og godkjenne eller avslå dem. Formålet er å øke flysikkerheten ved å ha et oppdatert register over hindringer.
+# Semesterproject for Kartverket re. Aviation Obstacles Grp. 18
 
-Bygget med ASP.NET Core MVC, Entity framwork core, MySQL/MariaDB, og kjørbart i Docker.
+## Application Setup
 
-## Arkitekturmodell
-Applikasjonen følger (Model-View-Controller) mønsteret:
-**Model**
-Domeneklasser og validering (Advice, ObstacleData, errorViewModel).
-**View**
-Razor Views for presentasjon (skjema for hindringer, feedback, oversiktssider, kart).
-**Controller**
-Forretningslogikk og ruting (HomeController, AdviceController, ObstacleController, FormController, MapController).
-**Database**
-MySQL/MariaDB, håndtert via Entity Framwork Core (ApplicationDBContext + migrasjoner).
+The technologies used in this application are as follows:
 
-### Dataflyt
-1. Bruker åpner nettsiden (Home -->Index).
-2. Piloter kan sende inn hindringsdata (ObstacleController --> Dataform).
-   -Skjema valideres (modellattributter som Required, Range).
-   -Gyldige data sendes til (Overview-siden).
-3. Tilbakemeldinger sendes via adviceController --> FeedbackForm, og lagres i database ( Feedback-tabellen).
-4. Registerfører kan validere og behandle innkomne rapporter (fremtidig utvidelse).
+- **Docker**: For building and running the application and the database.
+- **MariaDB**: Relational database used for data storage.
+- **ASP.NET Core MVC**: Application built with the .NET 9 MVC framework.
+- **IDE**: Visual Studio or Rider.
 
-### Drift 
-Applikasjonen kjøres i Docker for enkel drift og portabilitet.
-Docker-compose kan brukes til å starte både web-applikasjon og database i egne containere.
--**Web-applikasjon** kjører på'mcr.microsoft.com/dotnet/aspnet:9.0'
--**Database** kjører i 'mariadb'
--Kommunikasjon skjer via Docker-nettverket 
+## How to Run the Application - Windows
 
-[![.NET Tests](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml/badge.svg)](https://github.com/JabirMAG/kartverket-obstacle/actions/workflows/dotnet.yml)
+To run the application on Windows, follow these steps:
+
+1. Install Docker on the machine that will run the application.
+2. Clone the repository to your local system.
+3. Open the application in Visual Studio or Rider.
+4. Run the application using Docker Compose to start both the web application and the database in separate containers.
+
+## How to Run the Application - Mac
+
+The application can run on macOS.
+
+To start the database and the application using Docker, run the following commands in the project directory in the terminal:
+
+```bash
+docker compose down -v
+docker compose build
+docker compose up -d
+```
+
+After the containers are running, start the application locally through your IDE:
+
+- Run "FirstWebApplication: http" inside Visual Studio or Rider.
+- This will launch the web application with a working connection to the MariaDB database running in Docker.
+
+## Application Features
+
+This is an obstacle reporting and validation system for airspace safety, with role-based workflows for pilots, registrars, and administrators.
+
+### User Administration & Authentication
+
+- User registration with approval workflow
+- Login/Logout
+- Password reset (forgot password)
+- User approval/rejection by administrators
+- Role-based access control (Admin, Registerfører, Pilot)
+
+### User Management
+
+- Create users
+- View all users with roles and approval status
+- Assign/remove roles (Pilot, Registerfører, Admin)
+- Delete users
+- View user details (email, organization, desired role)
+- Default admin account protection
+
+### Obstacle Reporting & Management
+
+- Interactive map for obstacle reporting
+- Quick save obstacle (geometry only)
+- Full obstacle submission (name, height, description, geometry)
+- View obstacle overview/details
+
+### Obstacle Status Management
+
+- Under treatment (1)
+- Approved (2)
+- Rejected (3) - automatically archived
+- Automatic report generation when obstacles are created
+
+### Pilot Features
+
+- View own obstacles
+- View obstacle details and associated reports
+- Update obstacles (only when status is "Under treatment")
+- Receive notifications about comments on obstacles
+
+### Registrar Features
+
+- View all obstacles and reports
+- Update obstacle status
+- Add comments/reports to obstacles
+- View detailed obstacle information
+- View archived reports (rejected obstacles)
+
+### Admin Features
+
+- Admin dashboard
+- View all obstacle reports
+- Update obstacle status
+- Archive/reject obstacles
+- Restore archived obstacles with new status
+- Add comments to obstacles
+- View archived reports
+- User management (see User Administration above)
+
+### Notifications System
+
+- View notifications (comments on user's obstacles)
+- Real-time notification count (unread)
+- Filter out auto-generated comments
+- Group notifications by obstacle
+
+### Feedback System
+
+- Submit feedback form
+- Thank you confirmation page
+
+### General Features
+
+- Home page with time-based greeting
+- Privacy page
+- About us page
+- Error handling
+- Responsive design
+- CSRF protection
+- Security headers
+- Session management
+
+### Data Management
+
+- Archive rejected obstacles
+- Restore archived obstacles
+- Organization-based user categorization
+- GeoJSON geometry support for obstacles
+
+## MVC
+
+MVC (Model-View-Controller) separates an application into three parts:
+
+- **Model**: Data and business logic
+- **View**: User interface and presentation
+- **Controller**: Handles requests, coordinates Model and View, and returns responses
+
+There is a clear separation of concerns, easier maintenance, and better testability. In ASP.NET Core MVC, Controllers process HTTP requests, Models represent data entities, and Views are Razor templates that render HTML.
+
+## Entity Framework
+
+Entity Framework Core is an ORM that lets the application work with the MySQL/MariaDB database using C# objects instead of SQL. It maps models like `ObstacleData`, `RapportData`, and `ApplicationUser` to database tables and handles queries, updates, and migrations.
+
+**Database communication**: The application uses `ApplicationDBContext` (configured in `Program.cs`) to interact with the database. EF translates LINQ queries from repositories (e.g., `ObstacleRepository`, `UserRepository`) into SQL, executes them against MySQL/MariaDB, and maps results back to model objects. Database schema changes are managed through EF migrations (e.g., `InitialCreate`, `CombineArchivedTables`).
+
+## Migrations
+
+Migrations are version-controlled database schema changes managed by Entity Framework Core. They define how the database structure evolves over time, such as creating tables for obstacles, reports, and users. In this application, migrations like `InitialCreate` and `CombineArchivedTables` are applied to keep the MySQL/MariaDB database schema in sync with the model definitions.
+
+## Domain Models
+
+Domain models represent core business entities and map directly to database tables. In this application, models include:
+
+- **ObstacleData**: Obstacles with geometry, height, status
+- **RapportData**: Reports/comments on obstacles
+- **ApplicationUser**: User accounts with roles
+- **ArchivedReport**: Rejected obstacles
+
+These models contain validation attributes, relationships, and business logic, and are defined in the `Models` folder.
+
+## View Models
+
+View models are data transfer objects used to pass data between controllers and views, separate from domain models. They handle form input, display formatting, and role-specific data combinations.
+
+Examples include:
+- **RegisterViewModel**: Registration form
+- **LoginViewModel**: Login credentials
+- **RegistrarViewModel**: Combines obstacles and reports for the registrar view
+- **UserWithRolesVm**: User data with role information for admin management
+
+## Repositories
+
+Repositories abstract database operations and provide a clean interface for data access. They encapsulate Entity Framework queries and operations, making controllers independent of database implementation details.
+
+This application uses repositories like:
+- **ObstacleRepository**: CRUD for obstacles
+- **UserRepository**: User management
+- **RegistrarRepository**: Report handling
+- **ArchiveRepository**: Archiving rejected obstacles
+
+All repositories implement interfaces for testability and dependency injection.
+
+## Database
+
+The application uses MySQL/MariaDB as the database, managed through Entity Framework Core's `ApplicationDBContext`. The context defines `DbSet` properties for `ObstaclesData`, `Rapports`, `ArchivedReports`, and `Feedback`, and configures relationships (e.g., obstacles to reports, obstacles to users) with cascade delete rules.
+
+The database connection is configured in `appsettings.json` and can run in Docker containers for easy deployment and portability.

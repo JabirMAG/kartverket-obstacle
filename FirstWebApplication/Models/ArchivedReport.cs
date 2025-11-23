@@ -2,13 +2,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FirstWebApplication.Models
 {
-    // ArchivedReport representerer en arkivert hindring som har status "Rejected"
+    /// <summary>
+    /// Represents an archived obstacle that has status "Rejected"
+    /// </summary>
     public class ArchivedReport
     {
         [Key]
         public int ArchivedReportId { get; set; }
 
-        // Original ObstacleId fra ObstaclesData tabellen
+        /// <summary>
+        /// Original ObstacleId from ObstaclesData table
+        /// </summary>
         public int OriginalObstacleId { get; set; }
 
         [MaxLength(100)]
@@ -23,14 +27,19 @@ namespace FirstWebApplication.Models
         [Required]
         public string GeometryGeoJson { get; set; } = string.Empty;
 
-        // Status er alltid 3 (Rejected) for arkiverte rapporter
+        /// <summary>
+        /// Status is always 3 (Rejected) for archived reports
+        /// </summary>
         public int ObstacleStatus { get; set; } = 3;
 
-        // Dato for når rapporten ble arkivert
+        /// <summary>
+        /// Date when the report was archived
+        /// </summary>
         public DateTime ArchivedDate { get; set; } = DateTime.UtcNow;
 
-        // Alle rapport-kommentarer lagret som JSON array
-        // Format: ["comment1", "comment2", ...]
+        /// <summary>
+        /// All report comments stored as JSON array. Format: ["comment1", "comment2", ...]
+        /// </summary>
         public string RapportComments { get; set; } = "[]";
     }
 }

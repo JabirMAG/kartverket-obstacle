@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace FirstWebApplication.Controllers
 {
+    /// <summary>
+    /// Controller for pilot functionality. Handles viewing and updating of obstacles owned by the logged-in pilot.
+    /// </summary>
     [Authorize(Roles = "Pilot")]
     public class PilotController : Controller
     {
@@ -25,6 +28,10 @@ namespace FirstWebApplication.Controllers
             _userManager = userManager;
         }
 
+        /// <summary>
+        /// Displays overview of all obstacles owned by the logged-in pilot
+        /// </summary>
+        /// <returns>The pilot's obstacles overview view, or Unauthorized if user is not logged in</returns>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -35,6 +42,11 @@ namespace FirstWebApplication.Controllers
             return View(myObstacles);
         }
 
+        /// <summary>
+        /// Displays details of a specific obstacle and its associated reports. Only obstacles owned by the logged-in pilot can be viewed.
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle to view</param>
+        /// <returns>The obstacle details view, or redirects to index if obstacle not found or not owned by user</returns>
         [HttpGet]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
@@ -57,6 +69,14 @@ namespace FirstWebApplication.Controllers
             return View(obstacle);
         }
 
+        /// <summary>
+        /// Updates an obstacle. Only obstacles with status "Under treatment" (1) can be updated.
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle to update</param>
+        /// <param name="obstacleName">The new name for the obstacle</param>
+        /// <param name="obstacleDescription">The new description for the obstacle</param>
+        /// <param name="obstacleHeight">The new height for the obstacle</param>
+        /// <returns>Redirects to obstacle details page</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacle(int obstacleId, string obstacleName, string obstacleDescription, double obstacleHeight)
@@ -83,7 +103,7 @@ namespace FirstWebApplication.Controllers
 
             await _obstacleRepository.UpdateObstacles(obstacle);
 
-            // Legg igjen en kommentar om at piloten oppdaterte
+            // Add a comment that the pilot updated the obstacle
             await _registrarRepository.AddRapport(new RapportData
             {
                 ObstacleId = obstacle.ObstacleId,
