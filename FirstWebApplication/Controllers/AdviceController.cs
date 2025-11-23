@@ -14,14 +14,14 @@ namespace FirstWebApplication.Controllers
             _adviceRepository = adviceRepository;
         }
 
-        // GET: Viser skjemaet
+      
         [HttpGet]
         public IActionResult FeedbackForm()
         {
             return View(new AdviceViewModel());
         }
 
-        // POST: Behandler innsending av skjemaet
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FeedbackForm(AdviceViewModel model)
@@ -46,7 +46,7 @@ namespace FirstWebApplication.Controllers
             });
         }
 
-        // GET: Viser takk-siden
+       
         [HttpGet]
         public IActionResult ThankForm(string email, string message)
         {
