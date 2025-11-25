@@ -27,7 +27,7 @@
             width: min(420px, calc(100% - 40px));
         }
 
-        .location-button-container #use-current-location {
+  /*       .location-button-container #use-current-location {
             background-color: #ff6b00 !important;
             background-image: linear-gradient(145deg, #ff7a00, #ff4d00) !important;
             color: #fff !important;
@@ -40,31 +40,159 @@
             border-radius: 999px !important;
             box-shadow: 0 10px 24px rgba(255, 107, 0, 0.4) !important;
             width: 100% !important;
+        } */
+
+        .map-wrapper {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            height: 80vh;
+        }
+
+        .map-wrapper .map-container {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .draw-buttons-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 160px;
+            height: fit-content;
+        }
+        
+        .draw-button {
+            display: block;
+            width: 100%;
+            padding: 16px 24px;
+            background-color: #a8d5ba;
+            border: 2px solid #95c9a8;
+            color: #212529;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .draw-button:hover {
+            background-color: #95c9a8;
+            border-color: #82b896;
+            color: #212529;
+        }
+        
+        .draw-button.active {
+            background-color: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+            font-weight: 700;
+        }
+        
+        /* Override external CSS for use-current-location button */
+        #use-current-location.draw-button {
+            background-color: #a8d5ba !important;
+            background-image: none !important;
+            color: #212529 !important;
+            border: 2px solid #95c9a8 !important;
+            padding: 16px 24px !important;
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            line-height: 1.5 !important;
+            letter-spacing: normal !important;
+            text-transform: none !important;
+            border-radius: 6px !important;
+            box-shadow: none !important;
+            width: 100% !important;
+        }
+        
+        #use-current-location.draw-button:hover {
+            background-color: #95c9a8 !important;
+            background-image: none !important;
+            border-color: #82b896 !important;
+            color: #212529 !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        #use-current-location.draw-button:active {
+            background-color: #95c9a8 !important;
+            background-image: none !important;
+            color: #212529 !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        @@media (min-width: 768px) and (max-width: 1024px) {
+            .map-wrapper {
+                flex-direction: column;
+            }
+            
+            .map-wrapper .map-container {
+                width: 100%;
+            }
+            
+            .draw-buttons-container {
+                flex-direction: row;
+                width: 100%;
+                min-width: auto;
+                justify-content: center;
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .draw-button {
+                flex: 1;
+                max-width: 250px;
+                margin: 0;
+                padding: 20px 28px;
+                font-size: 18px;
+                font-weight: 700;
+            }
+            
+            #use-current-location.draw-button {
+                padding: 20px 28px !important;
+                font-size: 18px !important;
+                font-weight: 700 !important;
+            }
         }
     </style>
 
 </head>
 <body>
-    <div class="map-container">
-        <div id="map"></div>
-        
-        <!-- Button positioned over the map -->
-        <div class="location-button-container">
-            <button id="use-current-location" class="use-current-location-btn">
-                Bruk nåværende posisjon
-            </button>
+    <div class="map-wrapper">
+        <div class="map-container">
+            <div id="map"></div>
+
+            <!-- Info om rapporterte hindringer -->
+            <div class="pending-info-container">
+                <div class="legend-item">
+                    <span class="pending-marker-example"></span>
+                    <span>Rapporter under behandling</span>
+                </div>
+                <div class="legend-item">
+                    <span class="approved-marker-example"></span>
+                    <span>Godkjente rapporter</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Info om rapporterte hindringer -->
-        <div class="pending-info-container">
-            <div class="legend-item">
-                <span class="pending-marker-example"></span>
-                <span>Rapporter under behandling</span>
-            </div>
-            <div class="legend-item">
-                <span class="approved-marker-example"></span>
-                <span>Godkjente rapporter</span>
-            </div>
+        <!-- Drawing buttons positioned next to the map -->
+        <div class="draw-buttons-container">
+            <button id="draw-point-btn" class="draw-button" title="Tegn punkt">
+                Punkt
+            </button>
+            <button id="draw-line-btn" class="draw-button" title="Tegn linje">
+                Linje
+            </button>
+            <button id="use-current-location" class="draw-button">
+                Nåværende posisjon
+            </button>
         </div>
     </div>
 
@@ -220,23 +348,46 @@
                 });
             }
 
-            // Leaflet.draw-kontroll
-            const drawControl = new L.Control.Draw({
-                draw: {
-                    polygon: false,
-                    polyline: true,
-                    marker: true,
-                    circle: false,
-                    rectangle: false,
-                    circlemarker: false
-                },
-                edit: {
-                    featureGroup: drawnItems,
-                    edit: false,
-                    remove: false
+            // Custom drawing buttons - remove default draw control
+            let currentDrawHandler = null;
+            
+            // Function to stop current drawing
+            function stopDrawing() {
+                if (currentDrawHandler) {
+                    map.removeLayer(currentDrawHandler);
+                    currentDrawHandler = null;
                 }
+            }
+            
+            // Point button handler
+            document.getElementById('draw-point-btn').addEventListener('click', function() {
+                stopDrawing();
+                currentDrawHandler = new L.Draw.Marker(map, {
+                    icon: new L.Icon.Default()
+                });
+                currentDrawHandler.enable();
+                
+                // Update button states
+                document.getElementById('draw-point-btn').classList.add('active');
+                document.getElementById('draw-line-btn').classList.remove('active');
             });
-            map.addControl(drawControl);
+            
+            // Line button handler
+            document.getElementById('draw-line-btn').addEventListener('click', function() {
+                stopDrawing();
+                currentDrawHandler = new L.Draw.Polyline(map, {
+                    allowIntersection: false,
+                    shapeOptions: {
+                        color: '#ff6b00',
+                        weight: 4
+                    }
+                });
+                currentDrawHandler.enable();
+                
+                // Update button states
+                document.getElementById('draw-line-btn').classList.add('active');
+                document.getElementById('draw-point-btn').classList.remove('active');
+            });
 
             // Lagre siste tegnede lags GeoJSON
             let lastGeoJsonString = "";
@@ -622,6 +773,14 @@
 
             // Hendelse når en ny form er tegnet
             map.on(L.Draw.Event.CREATED, function (e) {
+                // Stop drawing and reset button states
+                if (currentDrawHandler) {
+                    currentDrawHandler.disable();
+                    currentDrawHandler = null;
+                }
+                document.getElementById('draw-point-btn').classList.remove('active');
+                document.getElementById('draw-line-btn').classList.remove('active');
+                
                 const layer = e.layer;
                 drawnItems.addLayer(layer);
 
