@@ -93,6 +93,20 @@ namespace FirstWebApplication.Controllers
             return View("AdminArchivedReports", archivedReports);
         }
         
+        [Authorize(Roles = "Admin")] // Kun admin får tilgang
+        [HttpGet("admin/feedback")]
+        public async Task<IActionResult> Feedback()
+        {
+            // Hent alle feedback fra databasen
+            var feedbacks = await _context.Feedback
+                .ToListAsync();
+
+            // Send listen til viewet
+            return View("AdminFeedback", feedbacks);
+        }
+
+        
+        
         /// <summary>
         /// Restores an archived report back to active obstacles with a new status
         /// </summary>
