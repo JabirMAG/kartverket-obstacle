@@ -34,6 +34,11 @@ builder.Services.AddScoped<IArchiveRepository, ArchiveRepository>();
 /// Database setup: Configure MySQL connection with retry logic
 /// </summary>
 var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
+if (string.IsNullOrEmpty(conn))
+{
+    throw new InvalidOperationException("Connection string 'DatabaseConnection' is not configured.");
+}
+
 var serverVersion = new MySqlServerVersion(new Version(11, 8, 3));
 
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
@@ -110,7 +115,7 @@ using (var scope = app.Services.CreateScope())
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await AuthDbSeeder.SeedAsync(services);
+    AuthDbSeeder.SeedAsync(services).GetAwaiter().GetResult();
 }
 
 /// <summary>
