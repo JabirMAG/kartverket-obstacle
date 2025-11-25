@@ -69,10 +69,21 @@ namespace Kartverket.Tests.Controllers
         }
 
         [Fact]
-        public void Login_Get_ReturnsView()
+        public async Task Login_Get_ReturnsView()
         {
+            // Arrange
+            var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            var claimsPrincipal = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity());
+            httpContext.User = claimsPrincipal;
+            _controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
+            {
+                HttpContext = httpContext
+            };
+            _mockSignInManager.Setup(x => x.IsSignedIn(claimsPrincipal))
+                .Returns(false);
+
             // Act
-            var result = _controller.Login();
+            var result = await _controller.Login();
 
             // Assert
             Assert.NotNull(result);

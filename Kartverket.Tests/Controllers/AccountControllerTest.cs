@@ -159,10 +159,21 @@ namespace Kartverket.Tests.Controllers
         /// Tests that Login GET returns a view with status 200
         /// </summary>
         [Fact]
-        public void Login_Get_ShouldReturnView_WithStatus200()
+        public async Task Login_Get_ShouldReturnView_WithStatus200()
         {
+            // Arrange
+            var httpContext = new DefaultHttpContext();
+            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity());
+            httpContext.User = claimsPrincipal;
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+            _signInManagerMock.Setup(x => x.IsSignedIn(claimsPrincipal))
+                .Returns(false);
+
             // Act
-            var result = _controller.Login();
+            var result = await _controller.Login();
 
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
