@@ -106,6 +106,7 @@ namespace FirstWebApplication.Controllers
         }
 
         
+        
         /// <summary>
         /// Restores an archived report back to active obstacles with a new status
         /// </summary>
