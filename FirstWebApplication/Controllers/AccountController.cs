@@ -98,12 +98,36 @@ namespace FirstWebApplication.Controllers
         }
         
         /// <summary>
-        /// Displays the login form
+        /// Displays the login form. If user is already logged in, redirects to their role-specific view.
         /// </summary>
-        /// <returns>The login view</returns>
+        /// <returns>The login view, or redirects to role-specific view if already logged in</returns>
         [HttpGet]
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
+            // If user is already signed in, redirect to their role-specific view
+            if (_signInManager.IsSignedIn(User))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    // Check user role and redirect to appropriate page
+                    var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                    if (isAdmin)
+                    {
+                        return RedirectToAction("Dashboard", "Admin");
+                    }
+
+                    var isRegisterforer = await _userManager.IsInRoleAsync(user, "Registerfører");
+                    if (isRegisterforer)
+                    {
+                        return RedirectToAction("Registrar", "Registrar");
+                    }
+
+                    // Pilots and other approved users go to Map page (register obstacle site)
+                    return RedirectToAction("Map", "Map");
+                }
+            }
+            
             return View();
         }
         
