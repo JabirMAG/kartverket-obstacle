@@ -193,6 +193,8 @@ namespace FirstWebApplication.Migrations
 
                     b.HasKey("ObstacleId");
 
+                    b.HasIndex("OwnerUserId");
+
                     b.ToTable("ObstaclesData");
                 });
 
@@ -349,6 +351,16 @@ namespace FirstWebApplication.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("FirstWebApplication.Models.ObstacleData", b =>
+                {
+                    b.HasOne("FirstWebApplication.Models.ApplicationUser", "OwnerUser")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("OwnerUser");
                 });
 
             modelBuilder.Entity("FirstWebApplication.Models.RapportData", b =>
