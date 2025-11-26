@@ -14,6 +14,7 @@ services:
       - ConnectionStrings__DatabaseConnection=Server=mariadbcontainer;Database=KartverketDB;User=root;Password=Mammaerbest1;
     depends_on:
       - mariadbcontainer
+    restart: always
 
   mariadbcontainer:
     image: mariadb:latest
