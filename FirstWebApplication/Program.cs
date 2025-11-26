@@ -152,11 +152,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();
 // Configure to listen on all network interfaces for iPad access
-if (app.Environment.IsDevelopment())
-{
-    app.Urls.Clear();
-    app.Urls.Add("http://0.0.0.0:5193");
-}
+
+//if (app.Environment.IsDevelopment())
+//{
+//    app.Urls.Clear();
+//    app.Urls.Add("http://0.0.0.0:5193");
+//}
 
 /// <summary>
 /// Routing: Configure default MVC routing
