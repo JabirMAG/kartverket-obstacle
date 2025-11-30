@@ -1,3 +1,4 @@
+/* Kart-container og map */
 .map-container {
     position: relative;
     width: 100%;
@@ -9,14 +10,14 @@
     height: 100%;
 }
 
+/* Knapper for nåværende posisjon */
 .location-button-container {
     position: absolute;
     bottom: 90px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1000;
-    width: calc(100% - 60px);
-    max-width: 420px;
+    z-index: 1100; /* beholdt høyere z-index for å vises over andre elementer */
+    width: min(420px, calc(100% - 40px));
 }
 
 .use-current-location-btn,
@@ -36,37 +37,38 @@
     width: 100% !important;
 }
 
-.use-current-location-btn:hover,
-#use-current-location:hover {
-    background-color: #ff7f1a !important;
-    background-image: linear-gradient(145deg, #ff8a1f, #ff5b0d) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 10px 24px rgba(255, 107, 0, 0.4) !important;
-}
+    .use-current-location-btn:hover,
+    #use-current-location:hover {
+        background-color: #ff7f1a !important;
+        background-image: linear-gradient(145deg, #ff8a1f, #ff5b0d) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 10px 24px rgba(255, 107, 0, 0.4) !important;
+    }
 
-.use-current-location-btn:active,
-#use-current-location:active {
-    background-color: #e55f00 !important;
-    background-image: linear-gradient(145deg, #e55f00, #c14f00) !important;
-    transform: translateY(1px) !important;
-    box-shadow: 0 4px 12px rgba(153, 68, 0, 0.45) !important;
-}
+    .use-current-location-btn:active,
+    #use-current-location:active {
+        background-color: #e55f00 !important;
+        background-image: linear-gradient(145deg, #e55f00, #c14f00) !important;
+        transform: translateY(1px) !important;
+        box-shadow: 0 4px 12px rgba(153, 68, 0, 0.45) !important;
+    }
 
-.use-current-location-btn:focus-visible,
-#use-current-location:focus-visible {
-    outline: 4px solid rgba(255, 139, 51, 0.45);
-    outline-offset: 4px;
-}
+    .use-current-location-btn:focus-visible,
+    #use-current-location:focus-visible {
+        outline: 4px solid rgba(255, 139, 51, 0.45);
+        outline-offset: 4px;
+    }
 
-.use-current-location-btn:disabled,
-#use-current-location:disabled {
-    background-color: #f2a870;
-    background-image: none;
-    color: rgba(255, 255, 255, 0.8);
-    box-shadow: none;
-    transform: none;
-}
+    .use-current-location-btn:disabled,
+    #use-current-location:disabled {
+        background-color: #f2a870;
+        background-image: none;
+        color: rgba(255, 255, 255, 0.8);
+        box-shadow: none;
+        transform: none;
+    }
 
+/* Legende og markører */
 .pending-info-container {
     position: absolute;
     bottom: 10px;
@@ -79,11 +81,11 @@
     font-size: 12px;
 }
 
-.pending-marker-example {
+.pending-marker-example,
+.approved-marker-example {
     display: inline-block;
     width: 12px;
     height: 12px;
-    background-color: #ff9800;
     border-radius: 50%;
     border: 2px solid white;
     box-shadow: 0 1px 2px rgba(0,0,0,0.3);
@@ -91,22 +93,19 @@
     vertical-align: middle;
 }
 
+.pending-marker-example {
+    background-color: #ff9800;
+}
+
 .approved-marker-example {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
     background-color: #4caf50;
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    margin-right: 5px;
-    vertical-align: middle;
 }
 
 .legend-item {
     margin-bottom: 5px;
 }
 
+/* Overlay for hindringer */
 .obstacle-overlay {
     position: absolute;
     top: 10%;
@@ -122,59 +121,156 @@
     display: none;
 }
 
-/* Styling for Leaflet Draw Control - større og mer iPad-vennlig */
+/* Map wrapper og draw-knapper */
+.map-wrapper {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    height: 80vh;
+}
+
+    .map-wrapper .map-container {
+        flex: 1;
+        min-width: 0;
+    }
+
+.draw-buttons-container {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 160px;
+    height: fit-content;
+}
+
+.draw-button {
+    display: block;
+    width: 100%;
+    padding: 16px 24px;
+    background-color: #a8d5ba;
+    border: 2px solid #95c9a8;
+    color: #212529;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+    .draw-button:hover {
+        background-color: #95c9a8;
+        border-color: #82b896;
+    }
+
+    .draw-button.active {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+
+/* Override for bruk-nåværende-posisjon-knapp */
+#use-current-location.draw-button {
+    background-color: #a8d5ba !important;
+    background-image: none !important;
+    color: #212529 !important;
+    border: 2px solid #95c9a8 !important;
+    padding: 16px 24px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    line-height: 1.5 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+}
+
+    #use-current-location.draw-button:hover,
+    #use-current-location.draw-button:active {
+        background-color: #95c9a8 !important;
+        background-image: none !important;
+        border-color: #82b896 !important;
+        color: #212529 !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+/* Responsiv styling for iPad */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .map-wrapper {
+        flex-direction: column;
+    }
+
+        .map-wrapper .map-container {
+            width: 100%;
+        }
+
+    .draw-buttons-container {
+        flex-direction: row;
+        width: 100%;
+        min-width: auto;
+        justify-content: center;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .draw-button {
+        flex: 1;
+        max-width: 250px;
+        padding: 20px 28px;
+        font-size: 18px;
+    }
+
+    #use-current-location.draw-button {
+        padding: 20px 28px !important;
+        font-size: 18px !important;
+    }
+}
+
+/* Leaflet Draw Control - større ikoner og bedre touch targets */
 :root {
     --map-control-size: clamp(64px, 10vw, 110px);
     --map-control-font: clamp(28px, 4vw, 40px);
     --map-control-radius: 14px;
 }
 
-.leaflet-draw-toolbar {
+.leaflet-draw-toolbar,
+.leaflet-draw-toolbar-top {
     margin-top: 10px;
 }
 
-.leaflet-draw-toolbar a,
-.leaflet-control-zoom a,
-.leaflet-bar a {
-    background-color: #ffffff;
-    border: none;
-    border-radius: var(--map-control-radius);
-    width: var(--map-control-size);
-    height: var(--map-control-size);
-    line-height: var(--map-control-size);
-    font-size: var(--map-control-font);
-    margin: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.22);
-    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
+    .leaflet-draw-toolbar a,
+    .leaflet-control-zoom a,
+    .leaflet-bar a {
+        background-color: #fff;
+        border: none;
+        border-radius: var(--map-control-radius);
+        width: var(--map-control-size);
+        height: var(--map-control-size);
+        line-height: var(--map-control-size);
+        font-size: var(--map-control-font);
+        margin: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    }
 
-.leaflet-draw-toolbar a:hover {
-    background-color: rgb(255, 255, 255);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
+        .leaflet-draw-toolbar a:hover {
+            transform: translateY(-1px);
+        }
 
-.leaflet-draw-toolbar a:active {
-    background-color: rgb(136, 212, 114);
-    transform: translateY(1px);
-}
+        .leaflet-draw-toolbar a:active {
+            transform: translateY(1px);
+        }
 
-/* Større ikoner for bedre synlighet */
-.leaflet-draw-toolbar .leaflet-draw-draw-marker,
-.leaflet-draw-toolbar .leaflet-draw-draw-polyline {
-    font-size: calc(var(--map-control-font) + 6px);
-}
-
-/* Styling for draw control container */
-.leaflet-draw {
-    font-size: 16px;
-}
-
-/* Større touch targets for iPad */
+/* Touch targets for iPad */
 @media (hover: none) and (pointer: coarse) {
     :root {
         --map-control-size: clamp(88px, 12vw, 140px);
@@ -188,32 +284,22 @@
     }
 }
 
-/* Styling for draw toolbar når den er aktiv */
-.leaflet-draw-toolbar-top {
-    margin-top: 10px;
-}
-
-.leaflet-draw-toolbar-top .leaflet-draw-toolbar {
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-}
-
-/* Fjerne standard Leaflet styling som kan konflikte */
+/* Draw actions styling */
 .leaflet-draw-toolbar .leaflet-draw-actions {
     background-color: white;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.leaflet-draw-toolbar .leaflet-draw-actions a {
-    background-color: #f5f5f5;
-    color: #333;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    font-size: 18px;
-}
+    .leaflet-draw-toolbar .leaflet-draw-actions a {
+        background-color: #f5f5f5;
+        color: #333;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        font-size: 18px;
+    }
 
-.leaflet-draw-toolbar .leaflet-draw-actions a:hover {
-    background-color: #e0e0e0;
-}
+        .leaflet-draw-toolbar .leaflet-draw-actions a:hover {
+            background-color: #e0e0e0;
+        }
