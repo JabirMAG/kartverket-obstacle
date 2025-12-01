@@ -76,10 +76,14 @@
                             <span></span>
                             <span></span>
                         </span>
-                        <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none;">
-                            <span id="notification-count">0</span>
-                            <span class="visually-hidden">nye varslinger</span>
-                        </span>
+                        @* Only show notification badge for pilots*@
+                        @if (SignInManager.IsSignedIn(User) && isPilot)
+                        {
+                            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none;">
+                                <span id="notification-count">0</span>
+                                <span class="visually-hidden">nye varslinger</span>
+                            </span>
+                        }
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         @if (!SignInManager.IsSignedIn(User))
@@ -145,7 +149,8 @@
     @await Html.PartialAsync("_Scripts")  <!-- Include JS -->
     @RenderSection("Scripts", required: false)  <!-- Optional page-specific scripts -->
     
-    @if (SignInManager.IsSignedIn(User))
+    @* Only load notification script for pilots *@
+    @if (SignInManager.IsSignedIn(User) && isPilot)
     {
         <script>
             // Hent notification count når siden lastes

@@ -1,6 +1,7 @@
 using FirstWebApplication.Controllers;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
+using FirstWebApplication.Services;
 using Kartverket.Tests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -20,6 +21,7 @@ namespace Kartverket.Tests.Controllers
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
         private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
+        private readonly Mock<IPilotHelperService> _pilotHelperServiceMock;
         private readonly VarslingController _controller;
 
         public VarslingControllerTest()
@@ -29,11 +31,13 @@ namespace Kartverket.Tests.Controllers
                 store.Object, null, null, null, null, null, null, null, null);
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
+            _pilotHelperServiceMock = new Mock<IPilotHelperService>();
 
             _controller = new VarslingController(
                 _registrarRepositoryMock.Object,
                 _obstacleRepositoryMock.Object,
-                _userManagerMock.Object);
+                _userManagerMock.Object,
+                _pilotHelperServiceMock.Object);
 
             // Setup controller context with user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -113,16 +117,23 @@ namespace Kartverket.Tests.Controllers
         public async Task Details_ShouldReturnView_WithObstacleAndReports()
         {
             // Arrange
-            var obstacle = TestDataBuilder.CreateValidObstacle();
+            var user = new ApplicationUser { Id = "user-id" };
+            var obstacle = TestDataBuilder.CreateValidObstacle("user-id");
             obstacle.ObstacleId = 1;
             var rapports = new List<RapportData>
             {
                 TestDataBuilder.CreateValidRapport(1, "Comment")
             };
 
-            _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
+            // Mock that user is a Pilot (required by [Authorize(Roles = "Pilot")])
+            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
+                .ReturnsAsync(true);
+
+            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(1, "user-id"))
                 .ReturnsAsync(obstacle);
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
+            _pilotHelperServiceMock.Setup(x => x.GetObstacleRapportsAsync(1))
                 .ReturnsAsync(rapports);
 
             // Setup TempData
@@ -220,8 +231,11 @@ namespace Kartverket.Tests.Controllers
             session.SetInt32($"LastViewedRapportId_{user.Id}", 10); // Using extension method
             _controller.ControllerContext.HttpContext.Session = session;
 
+            // Mock that user is a Pilot (required by GetNotificationCount check)
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
+            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
+                .ReturnsAsync(true);
             _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("user-id"))
                 .ReturnsAsync(new List<ObstacleData> { obstacle });
             _registrarRepositoryMock.Setup(x => x.GetAllRapports())
