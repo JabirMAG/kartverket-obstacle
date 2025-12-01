@@ -177,7 +177,12 @@ namespace FirstWebApplication.Controllers
 
             await _context.SaveChangesAsync();
 
-            var statusText = newStatus == 1 ? "Under behandling" : "Godkjent";
+            string statusText;
+            if (newStatus == 1)
+                statusText = "Under behandling";
+            else
+                statusText = "Godkjent";
+
             TempData["Success"] = $"Hindring '{archivedReport.ObstacleName}' er gjenopprettet med status '{statusText}' og {rapportComments.Count} rapport(er) er lagt til.";
             
             return RedirectToAction(nameof(ArchivedReports));
@@ -350,9 +355,14 @@ namespace FirstWebApplication.Controllers
                 await EnsureRoleExistsAsync(model.Role);
 
                 var result = await _userManager.AddToRoleAsync(user, model.Role);
-                TempData[result.Succeeded ? "Success" : "Error"] =
-                    result.Succeeded ? $"La til rolle {model.Role} for {user.Email}." :
-                    string.Join(", ", result.Errors.Select(e => e.Description));
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = $"La til rolle {model.Role} for {user.Email}.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                }
 
                 return RedirectToAction(nameof(ManageUsers));
             });
@@ -370,9 +380,14 @@ namespace FirstWebApplication.Controllers
             return await ExecuteUserAction(model.UserId, async user =>
             {
                 var result = await _userManager.RemoveFromRoleAsync(user, model.Role);
-                TempData[result.Succeeded ? "Success" : "Error"] =
-                    result.Succeeded ? $"Fjernet rolle {model.Role} for {user.Email}." :
-                    string.Join(", ", result.Errors.Select(e => e.Description));
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = $"Fjernet rolle {model.Role} for {user.Email}.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                }
 
                 return RedirectToAction(nameof(ManageUsers));
             });
@@ -390,9 +405,14 @@ namespace FirstWebApplication.Controllers
             return await ExecuteUserAction(UserId, async user =>
             {
                 var deleteResult = await _userRepository.DeleteAsync(user);
-                TempData[deleteResult.Succeeded ? "Success" : "Error"] =
-                    deleteResult.Succeeded ? $"Bruker {user.Email} er slettet." :
-                    string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+                if (deleteResult.Succeeded)
+                {
+                    TempData["Success"] = $"Bruker {user.Email} er slettet.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+                }
 
                 return RedirectToAction(nameof(ManageUsers));
             });
@@ -444,7 +464,16 @@ namespace FirstWebApplication.Controllers
                     }
                 }
 
-                TempData["Success"] = $"Bruker {user.Email} er godkjent{(string.IsNullOrEmpty(user.DesiredRole) ? "" : $" og tildelt rolle {user.DesiredRole}")}.";
+                string successMessage;
+                if (string.IsNullOrEmpty(user.DesiredRole))
+                {
+                    successMessage = $"Bruker {user.Email} er godkjent.";
+                }
+                else
+                {
+                    successMessage = $"Bruker {user.Email} er godkjent og tildelt rolle {user.DesiredRole}.";
+                }
+                TempData["Success"] = successMessage;
                 return RedirectToAction(nameof(ManageUsers));
             });
         }
@@ -462,9 +491,14 @@ namespace FirstWebApplication.Controllers
             {
                 user.IaApproved = false;
                 var result = await _userRepository.UpdateAsync(user);
-                TempData[result.Succeeded ? "Success" : "Error"] =
-                    result.Succeeded ? $"Bruker {user.Email} er avvist." :
-                    string.Join(", ", result.Errors.Select(e => e.Description));
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = $"Bruker {user.Email} er avvist.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                }
 
                 return RedirectToAction(nameof(ManageUsers));
             });

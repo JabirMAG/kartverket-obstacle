@@ -1,4 +1,3 @@
-using FirstWebApplication.DataContext;
 using FirstWebApplication.Repositories;
 using FirstWebApplication.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -56,48 +55,12 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> QuickSaveObstacle(ObstacleData obstacledata)
         {
-            // Set default values first for fields that can be skipped (database doesn't allow null)
-            // This must be done explicitly because empty form fields can come in as null
-            obstacledata.ObstacleName = obstacledata.ObstacleName ?? string.Empty;
-            obstacledata.ObstacleDescription = obstacledata.ObstacleDescription ?? string.Empty;
-            // ObstacleHeight is already 0 as default for double, so it doesn't need to be set
-
-            // Remove validation errors for the three fields that can be skipped
-            ModelState.Remove(nameof(ObstacleData.ObstacleName));
-            ModelState.Remove(nameof(ObstacleData.ObstacleHeight));
-            ModelState.Remove(nameof(ObstacleData.ObstacleDescription));
-
-            // Validate only GeometryGeoJson (required field)
-            if (string.IsNullOrEmpty(obstacledata.GeometryGeoJson))
+            if (!ValidateQuickSave(obstacledata))
             {
-                ModelState.AddModelError(nameof(ObstacleData.GeometryGeoJson), "Geometry (GeoJSON) is required.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return ReturnPartialViewIfAjax("_ObstacleFormPartial", obstacledata);
+                return PartialView("_ObstacleFormPartial", obstacledata);
             }
             
-            // Set owner of the obstacle (logged-in pilot)
-            await SetObstacleOwner(obstacledata);
-
-            // Save the obstacle (with empty values for the three fields)
-            var savedObstacle = await _obstacleRepository.AddObstacle(obstacledata);
-            
-            // Create automatic report when obstacle is created
-            var obstacleName = string.IsNullOrEmpty(savedObstacle.ObstacleName) ? "Ikke navngitt" : savedObstacle.ObstacleName;
-            var heightInfo = savedObstacle.ObstacleHeight > 0 ? $"Høyde: {savedObstacle.ObstacleHeight}m. " : "";
-            var descriptionInfo = !string.IsNullOrEmpty(savedObstacle.ObstacleDescription) ? savedObstacle.ObstacleDescription : "";
-            
-            var rapport = new RapportData
-            {
-                ObstacleId = savedObstacle.ObstacleId,
-                RapportComment = $"Hindring '{obstacleName}' ble hurtiglagret. {heightInfo}{descriptionInfo}"
-            };
-            
-            await _registrarRepository.AddRapport(rapport);
-            
-            return ReturnJsonOrViewIfAjax(savedObstacle.ObstacleId, obstacledata);
+            return await SaveObstacleAndCreateReport(obstacledata, GenerateQuickSaveReportMessage);
         }
 
         /// <summary>
@@ -111,25 +74,38 @@ namespace FirstWebApplication.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return ReturnPartialViewIfAjax("_ObstacleFormPartial", obstacledata);
+                return PartialView("_ObstacleFormPartial", obstacledata);
             }
             
+            return await SaveObstacleAndCreateReport(obstacledata, GenerateSubmitReportMessage);
+        }
+
+        /// <summary>
+        /// Helper method to save obstacle, create report, and return appropriate response
+        /// </summary>
+        /// <param name="obstacleData">The obstacle data to save</param>
+        /// <param name="generateReportMessage">Function to generate the report message based on the saved obstacle</param>
+        /// <returns>JSON response if AJAX, otherwise returns overview view</returns>
+        private async Task<IActionResult> SaveObstacleAndCreateReport(
+            ObstacleData obstacleData,
+            Func<ObstacleData, string> generateReportMessage)
+        {
             // Set owner of the obstacle (logged-in pilot)
-            await SetObstacleOwner(obstacledata);
+            await SetObstacleOwner(obstacleData);
 
             // Save the obstacle
-            var savedObstacle = await _obstacleRepository.AddObstacle(obstacledata);
-            
+            var savedObstacle = await _obstacleRepository.AddObstacle(obstacleData);
+
             // Create automatic report when obstacle is created
             var rapport = new RapportData
             {
                 ObstacleId = savedObstacle.ObstacleId,
-                RapportComment = $"Hindring '{savedObstacle.ObstacleName}' ble sendt inn. Høyde: {savedObstacle.ObstacleHeight}m. {savedObstacle.ObstacleDescription}"
+                RapportComment = generateReportMessage(savedObstacle)
             };
-            
+
             await _registrarRepository.AddRapport(rapport);
-            
-            return ReturnJsonOrViewIfAjax(savedObstacle.ObstacleId, obstacledata);
+
+            return ReturnJsonOrViewIfAjax(savedObstacle.ObstacleId, savedObstacle);
         }
 
         /// <summary>
@@ -139,17 +115,6 @@ namespace FirstWebApplication.Controllers
         private bool IsAjaxRequest()
         {
             return Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
-        }
-
-        /// <summary>
-        /// Helper method to return partial view if AJAX, otherwise regular view
-        /// </summary>
-        /// <param name="viewName">The name of the partial view to return</param>
-        /// <param name="model">The model to pass to the view</param>
-        /// <returns>The partial view</returns>
-        private IActionResult ReturnPartialViewIfAjax(string viewName, object model)
-        {
-            return PartialView(viewName, model);
         }
 
         /// <summary>
@@ -169,15 +134,87 @@ namespace FirstWebApplication.Controllers
         /// Helper method to return JSON if AJAX request, otherwise return view
         /// </summary>
         /// <param name="obstacleId">The ID of the obstacle</param>
-        /// <param name="obstacle">The obstacle data</param>
+        /// <param name="savedObstacle">The saved obstacle data</param>
         /// <returns>JSON response if AJAX, otherwise returns overview view</returns>
-        private IActionResult ReturnJsonOrViewIfAjax(int obstacleId, ObstacleData obstacle)
+        private IActionResult ReturnJsonOrViewIfAjax(int obstacleId, ObstacleData savedObstacle)
         {
             if (IsAjaxRequest())
             {
                 return Json(new { success = true, redirectUrl = Url.Action("Overview", "Obstacle", new { id = obstacleId }) });
             }
-            return View("Overview", obstacle);
+            return View("Overview", savedObstacle);
+        }
+
+        /// <summary>
+        /// Validates obstacle data for quick save (only geometry is required)
+        /// </summary>
+        /// <param name="obstacleData">The obstacle data to validate</param>
+        /// <returns>True if valid, false otherwise</returns>
+        private bool ValidateQuickSave(ObstacleData obstacleData)
+        {
+            // Set default values for fields that can be skipped (database doesn't allow null)
+            obstacleData.ObstacleName = obstacleData.ObstacleName ?? string.Empty;
+            obstacleData.ObstacleDescription = obstacleData.ObstacleDescription ?? string.Empty;
+
+            // Remove validation errors for fields that can be skipped
+            var fieldsToSkip = new[] 
+            { 
+                nameof(ObstacleData.ObstacleName), 
+                nameof(ObstacleData.ObstacleHeight), 
+                nameof(ObstacleData.ObstacleDescription) 
+            };
+            
+            foreach (var field in fieldsToSkip)
+            {
+                ModelState.Remove(field);
+            }
+
+            // Validate only GeometryGeoJson (required field)
+            if (string.IsNullOrEmpty(obstacleData.GeometryGeoJson))
+            {
+                ModelState.AddModelError(nameof(ObstacleData.GeometryGeoJson), "Geometry (GeoJSON) is required.");
+                return false;
+            }
+
+            return ModelState.IsValid;
+        }
+
+        /// <summary>
+        /// Generates report message for quick save operation
+        /// </summary>
+        /// <param name="obstacle">The saved obstacle</param>
+        /// <returns>Formatted report message</returns>
+        private string GenerateQuickSaveReportMessage(ObstacleData obstacle)
+        {
+            string obstacleName;
+            if (string.IsNullOrEmpty(obstacle.ObstacleName))
+                obstacleName = "Ikke navngitt";
+            else
+                obstacleName = obstacle.ObstacleName;
+
+            string heightInfo;
+            if (obstacle.ObstacleHeight > 0)
+                heightInfo = $"Høyde: {obstacle.ObstacleHeight}m. ";
+            else
+                heightInfo = "";
+
+            string descriptionInfo;
+            if (!string.IsNullOrEmpty(obstacle.ObstacleDescription))
+                descriptionInfo = obstacle.ObstacleDescription;
+            else
+                descriptionInfo = "";
+
+            return $"Hindring '{obstacleName}' ble hurtiglagret. {heightInfo}{descriptionInfo}";
+        }
+
+        /// <summary>
+        /// Generates report message for full submit operation
+        /// </summary>
+        /// <param name="obstacle">The saved obstacle</param>
+        /// <returns>Formatted report message</returns>
+        private string GenerateSubmitReportMessage(ObstacleData obstacle)
+        {
+            return $"Hindring '{obstacle.ObstacleName}' ble sendt inn. Høyde: {obstacle.ObstacleHeight}m. {obstacle.ObstacleDescription}";
         }
     }
 }
