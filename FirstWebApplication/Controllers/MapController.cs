@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FirstWebApplication.Controllers
 {
@@ -10,6 +13,11 @@ namespace FirstWebApplication.Controllers
     public class MapController : Controller
     {
         private readonly IObstacleRepository _obstacleRepository;
+
+        // Obstacle status constants
+        private const int StatusPending = 1;      // Under behandling
+        private const int StatusApproved = 2;     // Godkjent
+        private const int StatusRejected = 3;     // Avslått
 
         public MapController(IObstacleRepository obstacleRepository)
         {
@@ -23,10 +31,9 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> Map()
         {
-            // Get all pending (status = 1) and approved (status = 2) obstacles to display on map
-            var allObstacles = await _obstacleRepository.GetAllObstacles();
-            var reportedObstacles = allObstacles.Where(o => o.ObstacleStatus == 1 || o.ObstacleStatus == 2).ToList();
+            var reportedObstacles = await GetReportedObstaclesAsync();
             
+            // Pass obstacles to view via ViewBag (required by Map.cshtml JavaScript serialization)
             ViewBag.ReportedObstacles = reportedObstacles;
             
             var obstacleData = new ObstacleData();
@@ -34,16 +41,62 @@ namespace FirstWebApplication.Controllers
         }
 
         /// <summary>
-        /// Returns JSON data of all pending obstacles (status = 1) for map display
+        /// Returns JSON data of all pending obstacles for map display
         /// </summary>
         /// <returns>JSON array of pending obstacles</returns>
         [HttpGet]
         public async Task<IActionResult> GetPendingObstacles()
         {
-            // Get all pending obstacles (status = 1) for checking
-            var allObstacles = await _obstacleRepository.GetAllObstacles();
-            var pendingObstacles = allObstacles.Where(o => o.ObstacleStatus == 1)
-                .Select(o => new {
+            var pendingObstacles = await GetPendingObstaclesAsync();
+            var pendingObstaclesJson = MapToJsonFormat(pendingObstacles);
+            
+            return Json(pendingObstaclesJson);
+        }
+
+        /// <summary>
+        /// Gets all obstacles from the repository (cached for reuse within same request)
+        /// </summary>
+        /// <returns>List of all obstacles</returns>
+        private async Task<List<ObstacleData>> GetAllObstaclesAsync()
+        {
+            var obstacles = await _obstacleRepository.GetAllObstacles();
+            return obstacles.ToList();
+        }
+
+        /// <summary>
+        /// Gets all obstacles that are pending or approved (status 1 or 2)
+        /// </summary>
+        /// <returns>List of reported obstacles</returns>
+        private async Task<List<ObstacleData>> GetReportedObstaclesAsync()
+        {
+            var allObstacles = await GetAllObstaclesAsync();
+            return allObstacles
+                .Where(o => o.ObstacleStatus == StatusPending || o.ObstacleStatus == StatusApproved)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Gets all pending obstacles (status 1)
+        /// </summary>
+        /// <returns>List of pending obstacles</returns>
+        private async Task<List<ObstacleData>> GetPendingObstaclesAsync()
+        {
+            var allObstacles = await GetAllObstaclesAsync();
+            return allObstacles
+                .Where(o => o.ObstacleStatus == StatusPending)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Maps ObstacleData to JSON-friendly format with lowercase property names
+        /// </summary>
+        /// <param name="obstacles">List of obstacles to map</param>
+        /// <returns>List of anonymous objects in JSON format</returns>
+        private static List<object> MapToJsonFormat(IEnumerable<ObstacleData> obstacles)
+        {
+            return obstacles
+                .Select(o => new
+                {
                     id = o.ObstacleId,
                     name = o.ObstacleName,
                     height = o.ObstacleHeight,
@@ -51,9 +104,7 @@ namespace FirstWebApplication.Controllers
                     status = o.ObstacleStatus,
                     geometryGeoJson = o.GeometryGeoJson
                 })
-                .ToList();
-            
-            return Json(pendingObstacles);
+                .ToList<object>();
         }
     }
 }

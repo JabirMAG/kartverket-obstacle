@@ -3,9 +3,11 @@ using FirstWebApplication.Models.ViewModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using System;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
 
 namespace FirstWebApplication.Controllers
 {
@@ -18,6 +20,24 @@ namespace FirstWebApplication.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<AccountController> _logger;
+
+        // Role name constants - avoids hardcoded strings and makes code more maintainable
+        private const string RoleAdmin = "Admin";
+        private const string RoleRegistrar = "Registerfører";
+        
+        // Redirect action constants - centralizes redirect targets for easier maintenance
+        private const string ActionMap = "Map";
+        private const string ActionDashboard = "Dashboard";
+        private const string ActionRegistrar = "Registrar";
+        private const string ControllerMap = "Map";
+        private const string ControllerAdmin = "Admin";
+        private const string ControllerRegistrar = "Registrar";
+        
+        // Error messages - centralizes messages for consistency
+        private const string ErrorInvalidCredentials = "Ugyldig brukernavn eller passord.";
+        private const string ErrorAccountNotApproved = "Din konto er ikke godkjent ennå. Vent til en administrator har godkjent kontoen din.";
+        private const string ErrorInvalidResetLink = "Ugyldig tilbakestillingslink.";
+        private const string ErrorInvalidOrganization = "Velg en gyldig organisasjon.";
 
         public AccountController(
             UserManager<ApplicationUser> userManager, 
@@ -52,7 +72,10 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
-            registerViewModel.Organization = ValidateAndNormalizeOrganization(registerViewModel.Organization, nameof(registerViewModel.Organization));
+            // Validate and normalize organization (case-insensitive matching)
+            registerViewModel.Organization = ValidateAndNormalizeOrganization(
+                registerViewModel.Organization, 
+                nameof(registerViewModel.Organization));
 
             if (!ModelState.IsValid)
             {
@@ -60,31 +83,30 @@ namespace FirstWebApplication.Controllers
                 return View(registerViewModel);
             }
             
-            // Create new user
-            var applicationUser = new ApplicationUser
+            // Create new user - not approved until admin approves
+            var newUser = new ApplicationUser
             {
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
                 DesiredRole = registerViewModel.DesiredRole,
-                IaApproved = false,
+                IaApproved = false, // Requires admin approval
                 Organization = registerViewModel.Organization
             };
             
-            var identityResult = await _userManager.CreateAsync(applicationUser, registerViewModel.Password);
+            var createResult = await _userManager.CreateAsync(newUser, registerViewModel.Password);
 
-            if (identityResult.Succeeded)
+            if (!createResult.Succeeded)
             {
-                TempData["Message"] =
-                    "Takk for registreringen! Du vil motta e-post når en administrator har godkjent kontoen din";
-                return RedirectToAction("RegisterConfirmation");
-               
-            }
-            else
-            {
-                AddIdentityErrorsToModelState(identityResult.Errors, nameof(registerViewModel.Password));
+                // Add error messages from Identity (password requirements, etc.)
+                AddIdentityErrorsToModelState(createResult.Errors, nameof(registerViewModel.Password));
                 PopulateRegisterViewData();
                 return View(registerViewModel);
             }
+
+            // Success - redirect to confirmation page
+            TempData["Message"] = 
+                "Takk for registreringen! Du vil motta e-post når en administrator har godkjent kontoen din";
+            return RedirectToAction("RegisterConfirmation");
         }
         
         /// <summary>
@@ -104,27 +126,12 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> Login()
         {
-            // If user is already signed in, redirect to their role-specific view
             if (_signInManager.IsSignedIn(User))
             {
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null)
                 {
-                    // Check user role and redirect to appropriate page
-                    var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                    if (isAdmin)
-                    {
-                        return RedirectToAction("Dashboard", "Admin");
-                    }
-
-                    var isRegisterforer = await _userManager.IsInRoleAsync(user, "Registerfører");
-                    if (isRegisterforer)
-                    {
-                        return RedirectToAction("Registrar", "Registrar");
-                    }
-
-                    // Pilots and other approved users go to Map page (register obstacle site)
-                    return RedirectToAction("Map", "Map");
+                    return await RedirectToRoleBasedActionAsync(user);
                 }
             }
             
@@ -143,50 +150,36 @@ namespace FirstWebApplication.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // Find user by username only
+            // Find user and validate that it exists and is approved
             var user = await _userManager.FindByNameAsync(model.Username);
-
-            if (user == null)
+            if (user == null || !user.IaApproved)
             {
-                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
-                return View(model);
-            }
-
-            // Check if user is approved before allowing login
-            if (!user.IaApproved)
-            {
-                ModelState.AddModelError(string.Empty, "Din konto er ikke godkjent ennå. Vent til en administrator har godkjent kontoen din.");
+                // Use generic error message to avoid revealing if user exists
+                if (user != null && !user.IaApproved)
+                {
+                    ModelState.AddModelError(string.Empty, ErrorAccountNotApproved);
+                }
+                else
+                {
+                    AddLoginError();
+                }
                 return View(model);
             }
 
             // Attempt to sign in
-            var result = await _signInManager.PasswordSignInAsync(
+            var signInResult = await _signInManager.PasswordSignInAsync(
                 user.UserName!, 
                 model.Password, 
                 isPersistent: false, 
                 lockoutOnFailure: false);
 
-            if (!result.Succeeded)
+            if (!signInResult.Succeeded)
             {
-                ModelState.AddModelError(string.Empty, "Ugyldig brukernavn eller passord.");
+                AddLoginError();
                 return View(model);
             }
 
-            // Check user role and redirect to appropriate page
-            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-            if (isAdmin)
-            {
-                return RedirectToAction("Dashboard", "Admin");
-            }
-
-            var isRegisterforer = await _userManager.IsInRoleAsync(user, "Registerfører");
-            if (isRegisterforer)
-            {
-                return RedirectToAction("Registrar", "Registrar");
-            }
-
-            // Pilots and other approved users go to Map page (register obstacle site)
-            return RedirectToAction("Map", "Map");
+            return await RedirectToRoleBasedActionAsync(user);
         }
         
         /// <summary>
@@ -222,39 +215,31 @@ namespace FirstWebApplication.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await FindUserByEmailAsync(model.Email);
+            // Don't reveal that user doesn't exist - always redirect to confirmation
             if (user == null)
             {
-                // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
             }
 
-            // Generate password reset token
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            // Generate and encode reset token
+            var encodedToken = await GenerateEncodedPasswordResetTokenAsync(user);
+            
+            // Create reset URL
+            var callbackUrl = CreatePasswordResetUrl(encodedToken, user.Email!);
 
-            // Create reset password URL
-            var callbackUrl = Url.Action(
-                action: nameof(ResetPassword),
-                controller: "Account",
-                values: new { token, email = user.Email },
-                protocol: Request.Scheme);
-
-            // In development, log the email content
-            // Would send this via email service
+            // Log in development (in production this is sent via email)
             if (_environment.IsDevelopment())
             {
                 _logger.LogInformation("Password Reset Email for {Email}: {CallbackUrl}", user.Email, callbackUrl);
             }
 
-            //TODO: Send email here using your email service
-            // For now, we'll just redirect to confirmation page
-            // In production, implement IEmailSender and send the email
+            // TODO: Send email here via email service
+            // In production: implement IEmailSender and send the email
 
             return RedirectToAction(nameof(ForgotPasswordConfirmation));
         }
 
-        
         /// <summary>
         /// Displays confirmation page after password reset request has been submitted
         /// </summary>
@@ -276,7 +261,7 @@ namespace FirstWebApplication.Controllers
         {
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
             {
-                ModelState.AddModelError(string.Empty, "Ugyldig tilbakestillingslink.");
+                ModelState.AddModelError(string.Empty, ErrorInvalidResetLink);
                 PopulatePasswordViewData();
                 return View();
             }
@@ -301,20 +286,22 @@ namespace FirstWebApplication.Controllers
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                PopulatePasswordViewData();
                 return View(model);
+            }
 
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await FindUserByEmailAsync(model.Email);
+            // Don't reveal that user doesn't exist - always redirect to confirmation
             if (user == null)
             {
-                // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
             }
 
-            // Decode the token
-            var tokenBytes = WebEncoders.Base64UrlDecode(model.Token);
-            var token = Encoding.UTF8.GetString(tokenBytes);
+            // Decode token from Base64Url
+            var decodedToken = DecodePasswordResetToken(model.Token);
 
-            var result = await _userManager.ResetPasswordAsync(user, token, model.Password);
+            var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.Password);
             if (result.Succeeded)
             {
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
@@ -325,29 +312,45 @@ namespace FirstWebApplication.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Displays confirmation page after password has been successfully reset
+        /// </summary>
+        /// <returns>The reset password confirmation view</returns>
         [HttpGet]
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
         }
 
+        /// <summary>
+        /// Populates ViewBag with data needed for the registration form
+        /// </summary>
         private void PopulateRegisterViewData()
         {
             PopulatePasswordViewData();
             ViewBag.OrganizationOptions = OrganizationOptions.All;
         }
 
+        /// <summary>
+        /// Populates ViewBag with password requirements and policy for display in form
+        /// </summary>
         private void PopulatePasswordViewData()
         {
             ViewBag.PasswordRequirements = BuildPasswordRequirements();
             ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
         }
 
+        /// <summary>
+        /// Validates and normalizes organization name (case-insensitive matching)
+        /// </summary>
+        /// <param name="organization">The organization name to validate</param>
+        /// <param name="propertyName">The name of the model property for error handling</param>
+        /// <returns>Normalized organization name or original value if invalid</returns>
         private string? ValidateAndNormalizeOrganization(string? organization, string propertyName)
         {
             if (!OrganizationOptions.All.Contains(organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
             {
-                ModelState.AddModelError(propertyName, "Velg en gyldig organisasjon.");
+                ModelState.AddModelError(propertyName, ErrorInvalidOrganization);
                 return organization;
             }
             
@@ -355,47 +358,85 @@ namespace FirstWebApplication.Controllers
                 string.Equals(o, organization, StringComparison.OrdinalIgnoreCase));
         }
 
+        /// <summary>
+        /// Adds Identity errors to ModelState, separating password errors from other errors
+        /// </summary>
+        /// <param name="errors">The Identity errors to add</param>
+        /// <param name="passwordPropertyName">The name of the password property for error targeting</param>
         private void AddIdentityErrorsToModelState(IEnumerable<IdentityError> errors, string passwordPropertyName)
         {
-            var pwErrors = errors.Where(e =>
-                (!string.IsNullOrEmpty(e.Code) && e.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrEmpty(e.Description) && e.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0)
-            ).ToList();
+            var passwordErrors = errors
+                .Where(e => IsPasswordError(e))
+                .ToList();
 
-            if (pwErrors.Any())
+            var otherErrors = errors.Except(passwordErrors).ToList();
+
+            if (passwordErrors.Any())
             {
-                ModelState.AddModelError(passwordPropertyName, "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
-                foreach (var pe in pwErrors)
+                ModelState.AddModelError(passwordPropertyName, 
+                    "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
+                
+                foreach (var error in passwordErrors)
                 {
-                    var friendly = TranslatePasswordError(pe.Description, _userManager.Options.Password);
-                    ModelState.AddModelError(passwordPropertyName, friendly);
+                    var friendlyMessage = TranslatePasswordError(error.Description, _userManager.Options.Password);
+                    ModelState.AddModelError(passwordPropertyName, friendlyMessage);
                 }
             }
 
-            var otherErrors = errors.Except(pwErrors).ToList();
-            foreach (var err in otherErrors)
+            foreach (var error in otherErrors)
             {
-                ModelState.AddModelError(string.Empty, err.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
             }
         }
 
+        /// <summary>
+        /// Determines if an Identity error is related to password validation
+        /// </summary>
+        /// <param name="error">The Identity error to check</param>
+        /// <returns>True if the error is password-related, false otherwise</returns>
+        private static bool IsPasswordError(IdentityError error)
+        {
+            return (!string.IsNullOrEmpty(error.Code) && 
+                    error.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
+                   (!string.IsNullOrEmpty(error.Description) && 
+                    error.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        /// <summary>
+        /// Builds a list of password requirements based on configured settings
+        /// </summary>
+        /// <returns>List of password requirements to display to the user</returns>
         private IEnumerable<string> BuildPasswordRequirements()
         {
             var opts = _userManager.Options.Password;
-            var reqs = new List<string>
+            var requirements = new List<string>
             {
                 $"Minimum lengde: {opts.RequiredLength} tegn"
             };
 
-            if (opts.RequireDigit) reqs.Add("Minst ett siffer (0-9)");
-            if (opts.RequireLowercase) reqs.Add("Minst en liten bokstav (a-z)");
-            if (opts.RequireUppercase) reqs.Add("Minst en stor bokstav (A-Z)");
-            if (opts.RequireNonAlphanumeric) reqs.Add("Minst ett ikke-alfanumerisk tegn (f.eks. !, @, #)");
-            if (opts.RequiredUniqueChars > 1) reqs.Add($"Minst {opts.RequiredUniqueChars} unike tegn");
+            // Add requirements based on configuration
+            if (opts.RequireDigit)
+                requirements.Add("Minst ett siffer (0-9)");
+            
+            if (opts.RequireLowercase)
+                requirements.Add("Minst en liten bokstav (a-z)");
+            
+            if (opts.RequireUppercase)
+                requirements.Add("Minst en stor bokstav (A-Z)");
+            
+            if (opts.RequireNonAlphanumeric)
+                requirements.Add("Minst ett ikke-alfanumerisk tegn (f.eks. !, @, #)");
+            
+            if (opts.RequiredUniqueChars > 1)
+                requirements.Add($"Minst {opts.RequiredUniqueChars} unike tegn");
 
-            return reqs;
+            return requirements;
         }
 
+        /// <summary>
+        /// Builds an object with password policy settings for use in frontend
+        /// </summary>
+        /// <returns>Anonymous object with password policy settings</returns>
         private object BuildPasswordPolicyObject()
         {
             var opts = _userManager.Options.Password;
@@ -410,42 +451,202 @@ namespace FirstWebApplication.Controllers
             };
         }
 
+        /// <summary>
+        /// Translates Identity error messages to Norwegian, user-friendly messages
+        /// </summary>
+        /// <param name="description">Original error message from Identity</param>
+        /// <param name="opts">Password settings to retrieve default values</param>
+        /// <returns>Norwegian, user-friendly error message</returns>
         private string TranslatePasswordError(string? description, PasswordOptions opts)
         {
             if (string.IsNullOrEmpty(description))
                 return "Passordet oppfyller ett eller flere krav.";
 
-            var d = description.ToLowerInvariant();
+            var lowerDescription = description.ToLowerInvariant();
 
-            if (d.Contains("at least") && d.Contains("characters"))
+            // Check length requirement
+            if (lowerDescription.Contains("at least") && lowerDescription.Contains("characters"))
             {
-                var digits = System.Text.RegularExpressions.Regex.Match(d, @"\d+").Value;
-                if (!string.IsNullOrEmpty(digits))
-                    return $"Passordet må være minst {digits} tegn langt.";
-                return $"Passordet må være minst {opts.RequiredLength} tegn langt.";
+                return GetLengthErrorMessage(lowerDescription, opts.RequiredLength);
             }
 
-            if (d.Contains("uppercase") || d.Contains("upper-case") || d.Contains("store bokstav"))
+            // Check specific character requirements
+            if (IsUppercaseError(lowerDescription))
                 return "Må inneholde minst en stor bokstav (A-Z).";
 
-            if (d.Contains("lowercase") || d.Contains("lower-case") || d.Contains("liten bokstav"))
+            if (IsLowercaseError(lowerDescription))
                 return "Må inneholde minst en liten bokstav (a-z).";
 
-            if (d.Contains("digit") || d.Contains("siffer") || d.Contains("number"))
+            if (IsDigitError(lowerDescription))
                 return "Må inneholde minst ett siffer (0-9).";
 
-            if (d.Contains("non alphanumeric") || d.Contains("non-alphanumeric") || d.Contains("ikke-alfanumerisk"))
+            if (IsNonAlphanumericError(lowerDescription))
                 return "Må inneholde minst ett ikke-alfanumerisk tegn (f.eks. !, @, #).";
 
-            if (d.Contains("unique") || d.Contains("unike"))
+            if (lowerDescription.Contains("unique") || lowerDescription.Contains("unike"))
             {
-                var digits = System.Text.RegularExpressions.Regex.Match(d, @"\d+").Value;
-                if (!string.IsNullOrEmpty(digits))
-                    return $"Må inneholde minst {digits} unike tegn.";
-                return $"Må inneholde minst {opts.RequiredUniqueChars} unike tegn.";
+                return GetUniqueCharsErrorMessage(lowerDescription, opts.RequiredUniqueChars);
             }
 
+            // Fallback: return original message with prefix
             return "Passordfeil: " + description;
+        }
+
+        /// <summary>
+        /// Extracts and formats length requirement error message
+        /// </summary>
+        /// <param name="description">The error description containing length information</param>
+        /// <param name="defaultLength">The default length if not found in description</param>
+        /// <returns>Formatted Norwegian error message for length requirement</returns>
+        private static string GetLengthErrorMessage(string description, int defaultLength)
+        {
+            var digits = Regex.Match(description, @"\d+").Value;
+            var length = !string.IsNullOrEmpty(digits) ? digits : defaultLength.ToString();
+            return $"Passordet må være minst {length} tegn langt.";
+        }
+
+        /// <summary>
+        /// Extracts and formats unique characters requirement error message
+        /// </summary>
+        /// <param name="description">The error description containing unique characters information</param>
+        /// <param name="defaultUniqueChars">The default unique characters count if not found in description</param>
+        /// <returns>Formatted Norwegian error message for unique characters requirement</returns>
+        private static string GetUniqueCharsErrorMessage(string description, int defaultUniqueChars)
+        {
+            var digits = Regex.Match(description, @"\d+").Value;
+            var uniqueChars = !string.IsNullOrEmpty(digits) ? digits : defaultUniqueChars.ToString();
+            return $"Må inneholde minst {uniqueChars} unike tegn.";
+        }
+
+        /// <summary>
+        /// Checks if error description indicates uppercase letter requirement
+        /// </summary>
+        /// <param name="description">The error description to check</param>
+        /// <returns>True if error is about uppercase requirement</returns>
+        private static bool IsUppercaseError(string description)
+        {
+            return description.Contains("uppercase") || 
+                   description.Contains("upper-case") || 
+                   description.Contains("store bokstav");
+        }
+
+        /// <summary>
+        /// Checks if error description indicates lowercase letter requirement
+        /// </summary>
+        /// <param name="description">The error description to check</param>
+        /// <returns>True if error is about lowercase requirement</returns>
+        private static bool IsLowercaseError(string description)
+        {
+            return description.Contains("lowercase") || 
+                   description.Contains("lower-case") || 
+                   description.Contains("liten bokstav");
+        }
+
+        /// <summary>
+        /// Checks if error description indicates digit requirement
+        /// </summary>
+        /// <param name="description">The error description to check</param>
+        /// <returns>True if error is about digit requirement</returns>
+        private static bool IsDigitError(string description)
+        {
+            return description.Contains("digit") || 
+                   description.Contains("siffer") || 
+                   description.Contains("number");
+        }
+
+        /// <summary>
+        /// Checks if error description indicates non-alphanumeric character requirement
+        /// </summary>
+        /// <param name="description">The error description to check</param>
+        /// <returns>True if error is about non-alphanumeric requirement</returns>
+        private static bool IsNonAlphanumericError(string description)
+        {
+            return description.Contains("non alphanumeric") || 
+                   description.Contains("non-alphanumeric") || 
+                   description.Contains("ikke-alfanumerisk");
+        }
+
+        /// <summary>
+        /// Adds standard error message for invalid login
+        /// </summary>
+        private void AddLoginError()
+        {
+            ModelState.AddModelError(string.Empty, ErrorInvalidCredentials);
+        }
+
+        /// <summary>
+        /// Generates and encodes password reset token to Base64Url format
+        /// </summary>
+        /// <param name="user">The user who should receive the reset token</param>
+        /// <returns>Encoded token that can be used in URL</returns>
+        private async Task<string> GenerateEncodedPasswordResetTokenAsync(ApplicationUser user)
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+        }
+
+        /// <summary>
+        /// Decodes password reset token from Base64Url format
+        /// </summary>
+        /// <param name="encodedToken">The encoded token from URL</param>
+        /// <returns>Decoded token that can be used in ResetPasswordAsync</returns>
+        private static string DecodePasswordResetToken(string encodedToken)
+        {
+            var tokenBytes = WebEncoders.Base64UrlDecode(encodedToken);
+            return Encoding.UTF8.GetString(tokenBytes);
+        }
+
+        /// <summary>
+        /// Creates full URL for password reset
+        /// </summary>
+        /// <param name="token">The encoded reset token</param>
+        /// <param name="email">The user's email address</param>
+        /// <returns>Full URL that can be sent in email</returns>
+        private string CreatePasswordResetUrl(string token, string email)
+        {
+            return Url.Action(
+                action: nameof(ResetPassword),
+                controller: "Account",
+                values: new { token, email },
+                protocol: Request.Scheme)!;
+        }
+
+        /// <summary>
+        /// Finds a user by email address. Returns null if user doesn't exist.
+        /// Used in password reset flow where we don't want to reveal user existence.
+        /// </summary>
+        /// <param name="email">The email address to search for</param>
+        /// <returns>The user if found, or null if not found</returns>
+        private async Task<ApplicationUser?> FindUserByEmailAsync(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
+        }
+
+        /// <summary>
+        /// Redirects user to the appropriate page based on their role
+        /// </summary>
+        /// <param name="user">The user to redirect</param>
+        /// <returns>Redirect result to role-specific page</returns>
+        private async Task<IActionResult> RedirectToRoleBasedActionAsync(ApplicationUser user)
+        {
+            if (user == null)
+            {
+                return RedirectToAction(ActionMap, ControllerMap);
+            }
+
+            if (await _userManager.IsInRoleAsync(user, RoleAdmin))
+            {
+                return RedirectToAction(ActionDashboard, ControllerAdmin);
+            }
+
+            if (await _userManager.IsInRoleAsync(user, RoleRegistrar))
+            {
+                return RedirectToAction(ActionRegistrar, ControllerRegistrar);
+            }
+
+            // Pilots and other approved users go to Map page
+            return RedirectToAction(ActionMap, ControllerMap);
         }
     }
 }
+

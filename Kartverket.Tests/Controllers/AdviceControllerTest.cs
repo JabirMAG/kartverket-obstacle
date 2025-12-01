@@ -107,7 +107,81 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
-            Assert.NotNull(_controller.ViewBag.adviceMessage);
+            var model = Assert.IsType<Advice>(viewResult.Model);
+            Assert.Equal(email, model.Email);
+            Assert.Equal(message, model.adviceMessage);
+        }
+
+        /// <summary>
+        /// Tests that ThankForm redirects to FeedbackForm when email is null
+        /// </summary>
+        [Fact]
+        public void ThankForm_ShouldRedirect_WhenEmailIsNull()
+        {
+            // Arrange
+            string email = null;
+            string message = "Test message";
+
+            // Act
+            var result = _controller.ThankForm(email, message);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("FeedbackForm", redirectResult.ActionName);
+        }
+
+        /// <summary>
+        /// Tests that ThankForm redirects to FeedbackForm when message is null
+        /// </summary>
+        [Fact]
+        public void ThankForm_ShouldRedirect_WhenMessageIsNull()
+        {
+            // Arrange
+            string email = "test@example.com";
+            string message = null;
+
+            // Act
+            var result = _controller.ThankForm(email, message);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("FeedbackForm", redirectResult.ActionName);
+        }
+
+        /// <summary>
+        /// Tests that ThankForm redirects to FeedbackForm when email is empty
+        /// </summary>
+        [Fact]
+        public void ThankForm_ShouldRedirect_WhenEmailIsEmpty()
+        {
+            // Arrange
+            string email = string.Empty;
+            string message = "Test message";
+
+            // Act
+            var result = _controller.ThankForm(email, message);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("FeedbackForm", redirectResult.ActionName);
+        }
+
+        /// <summary>
+        /// Tests that ThankForm redirects to FeedbackForm when message is empty
+        /// </summary>
+        [Fact]
+        public void ThankForm_ShouldRedirect_WhenMessageIsEmpty()
+        {
+            // Arrange
+            string email = "test@example.com";
+            string message = string.Empty;
+
+            // Act
+            var result = _controller.ThankForm(email, message);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("FeedbackForm", redirectResult.ActionName);
         }
     }
 }
