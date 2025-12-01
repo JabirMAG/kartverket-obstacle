@@ -39,6 +39,12 @@ After the containers are running, start the application locally through your IDE
 
 This is an obstacle reporting and validation system for airspace safety, with role-based workflows for pilots, registrars, and administrators.
 
+### Seeded Administrator Login
+E-Mail: Admin@Kartverket.com
+Password: Admin123!
+This seeded Admin User has the ability to create other users/approve those who register.
+
+
 ### User Administration & Authentication
 
 - User registration with approval workflow
