@@ -1,33 +1,4 @@
-/* Precise green sampled from your image: #00973D */
-.btn-green-custom {
-    background-color: #00973D !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(0,0,0,0.08) !important;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
-    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
-}
-
-.btn-green-custom:hover {
-    background-color: #007a2e !important; /* slightly darker on hover */
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.12) !important;
-}
-
-.btn-green-custom:active {
-    transform: translateY(0);
-}
-
-.btn-green-custom:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 6px rgba(0,151,61,0.12) !important; /* subtle focus ring */
-}
-
-.btn-green-custom[disabled] {
-    opacity: 0.9 !important;
-    cursor: not-allowed !important;
-    filter: grayscale(0) !important;
-}
-
+/* Wrapper for overlay og container */
 .obstacle-form-overlay {
     position: fixed;
     top: 0;
@@ -49,6 +20,7 @@
     overflow-y: auto;
 }
 
+/* Advarsel */
 #pending-obstacle-warning {
     background-color: #fff3cd;
     border-color: #ffc107;
@@ -59,66 +31,71 @@
     border-left: 4px solid #ffc107;
 }
 
-#pending-obstacle-warning .warning-text {
-    display: block;
-    line-height: 1.5;
+    #pending-obstacle-warning .warning-text {
+        display: block;
+        line-height: 1.5;
+    }
+
+.hidden {
+    display: none !important;
 }
 
-/* Styling for knappene - større og med mer mellomrom */
+/* Knapp-wrapper */
 .obstacle-form-buttons {
     gap: 20px !important;
     margin-top: 32px;
     margin-bottom: 16px;
 }
 
-.obstacle-form-buttons .btn {
-    padding: 16px 32px !important;
-    font-size: 16px !important;
-    font-weight: 700 !important;
-    min-width: 140px !important;
-    border-radius: 10px !important;
-    transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
-    text-transform: none !important;
-    letter-spacing: 0.3px !important;
-    white-space: nowrap !important;
-}
+    /* Felles knapp-stiler */
+    .obstacle-form-buttons .btn,
+    .btn-cancel-custom,
+    .btn-orange-custom,
+    .btn-green-custom {
+        padding: 16px 32px !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        min-width: 140px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+        text-transform: none !important;
+        letter-spacing: 0.3px !important;
+        white-space: nowrap !important;
+    }
 
-/* Rød knapp for Avbryt */
-#cancel-obstacle-button.btn-cancel-custom,
-.obstacle-form-buttons .btn-cancel-custom {
+/* Avbryt-knapp (rød) */
+.btn-cancel-custom,
+#cancel-obstacle-button.btn-cancel-custom {
     background-color: #dc3545 !important;
-    background-image: none !important;
     color: #ffffff !important;
     border: none !important;
     border-color: transparent !important;
     box-shadow: 0 6px 16px rgba(220, 53, 69, 0.35) !important;
 }
 
-#cancel-obstacle-button.btn-cancel-custom:hover,
-.obstacle-form-buttons .btn-cancel-custom:hover {
-    background-color: #c82333 !important;
-    background-image: none !important;
-    color: #ffffff !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.45) !important;
-}
+    .btn-cancel-custom:hover,
+    #cancel-obstacle-button.btn-cancel-custom:hover {
+        background-color: #c82333 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(220, 53, 69, 0.45) !important;
+    }
 
-#cancel-obstacle-button.btn-cancel-custom:active,
-.obstacle-form-buttons .btn-cancel-custom:active {
-    background-color: #bd2130 !important;
-    background-image: none !important;
-    transform: translateY(0);
-}
+    .btn-cancel-custom:active,
+    #cancel-obstacle-button.btn-cancel-custom:active {
+        background-color: #bd2130 !important;
+        transform: translateY(0);
+    }
 
-#cancel-obstacle-button.btn-cancel-custom:focus,
-.obstacle-form-buttons .btn-cancel-custom:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 5px rgba(220, 53, 69, 0.3) !important;
-}
+    .btn-cancel-custom:focus,
+    #cancel-obstacle-button.btn-cancel-custom:focus {
+        outline: none !important;
+        box-shadow: 0 0 0 5px rgba(220, 53, 69, 0.3) !important;
+    }
 
-/* Oransje knapp for Hurtigknapp */
-#obstacle-quick-save-button.btn-orange-custom,
-.obstacle-form-buttons .btn-orange-custom {
+/* Hurtiglagre-knapp (oransje) */
+.btn-orange-custom,
+#obstacle-quick-save-button.btn-orange-custom {
     background-color: #ff6b00 !important;
     background-image: linear-gradient(145deg, #ff7a00, #ff4d00) !important;
     color: #ffffff !important;
@@ -127,78 +104,69 @@
     box-shadow: 0 6px 16px rgba(255, 107, 0, 0.35) !important;
 }
 
-#obstacle-quick-save-button.btn-orange-custom:hover,
-.obstacle-form-buttons .btn-orange-custom:hover {
-    background-color: #ff7f1a !important;
-    background-image: linear-gradient(145deg, #ff8a1f, #ff5b0d) !important;
-    color: #ffffff !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 107, 0, 0.45) !important;
-}
+    .btn-orange-custom:hover,
+    #obstacle-quick-save-button.btn-orange-custom:hover {
+        background-color: #ff7f1a !important;
+        background-image: linear-gradient(145deg, #ff8a1f, #ff5b0d) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 0, 0.45) !important;
+    }
 
-#obstacle-quick-save-button.btn-orange-custom:active,
-.obstacle-form-buttons .btn-orange-custom:active {
-    background-color: #e55f00 !important;
-    background-image: linear-gradient(145deg, #e55f00, #c14f00) !important;
-    transform: translateY(0);
-}
+    .btn-orange-custom:active,
+    #obstacle-quick-save-button.btn-orange-custom:active {
+        background-color: #e55f00 !important;
+        background-image: linear-gradient(145deg, #e55f00, #c14f00) !important;
+        transform: translateY(0);
+    }
 
-#obstacle-quick-save-button.btn-orange-custom:focus,
-.obstacle-form-buttons .btn-orange-custom:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 5px rgba(255, 107, 0, 0.3) !important;
-}
+    .btn-orange-custom:focus,
+    #obstacle-quick-save-button.btn-orange-custom:focus {
+        outline: none !important;
+        box-shadow: 0 0 0 5px rgba(255, 107, 0, 0.3) !important;
+    }
 
-/* Oppdatert grønn knapp for Send inn - større */
-#obstacle-submit-button.btn-green-custom,
-.obstacle-form-buttons .btn-green-custom {
+/* Send inn-knapp (grønn) */
+.btn-green-custom,
+#obstacle-submit-button.btn-green-custom {
     background-color: #00973D !important;
-    background-image: none !important;
     color: #ffffff !important;
     border: none !important;
     border-color: transparent !important;
     box-shadow: 0 6px 16px rgba(0, 151, 61, 0.35) !important;
     padding: 18px 36px !important;
     font-size: 20px !important;
-    font-weight: 700 !important;
     min-width: 180px !important;
-    border-radius: 10px !important;
-    transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
 }
 
-#obstacle-submit-button.btn-green-custom:hover,
-.obstacle-form-buttons .btn-green-custom:hover {
-    background-color: #007a2e !important;
-    background-image: none !important;
-    color: #ffffff !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 151, 61, 0.45) !important;
-}
+    .btn-green-custom:hover,
+    #obstacle-submit-button.btn-green-custom:hover {
+        background-color: #007a2e !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 151, 61, 0.45) !important;
+    }
 
-#obstacle-submit-button.btn-green-custom:active,
-.obstacle-form-buttons .btn-green-custom:active {
-    background-color: #006624 !important;
-    background-image: none !important;
-    transform: translateY(0);
-}
+    .btn-green-custom:active,
+    #obstacle-submit-button.btn-green-custom:active {
+        background-color: #006624 !important;
+        transform: translateY(0);
+    }
 
-#obstacle-submit-button.btn-green-custom:focus,
-.obstacle-form-buttons .btn-green-custom:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 5px rgba(0, 151, 61, 0.3) !important;
-}
+    .btn-green-custom:focus,
+    #obstacle-submit-button.btn-green-custom:focus {
+        outline: none !important;
+        box-shadow: 0 0 0 5px rgba(0, 151, 61, 0.3) !important;
+    }
 
-/* Responsive for iPad og større skjermer */
+/* Responsive */
 @media (min-width: 768px) {
     .obstacle-form-buttons .btn {
         padding: 18px 36px !important;
         font-size: 18px !important;
         min-width: 160px !important;
     }
-    
+
     .obstacle-form-buttons {
         gap: 24px !important;
         margin-top: 40px;
     }
 }
-
