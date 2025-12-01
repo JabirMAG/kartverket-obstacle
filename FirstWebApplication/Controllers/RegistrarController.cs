@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Text.Json;
 
 namespace FirstWebApplication.Controllers
 {
@@ -60,10 +58,9 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status, string returnUrl = null)
         {
-            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            var obstacle = await GetObstacleOrRedirect(obstacleId);
             if (obstacle == null)
             {
-                TempData["Error"] = "Fant ikke hindring.";
                 return RedirectToAction(nameof(Registrar));
             }
 
@@ -106,15 +103,11 @@ namespace FirstWebApplication.Controllers
         public async Task<IActionResult> AddRapport(int obstacleId, string rapportComment)
         {
             if (string.IsNullOrWhiteSpace(rapportComment))
-                return RedirectToAction(nameof(Registrar));
-
-            var rapport = new RapportData
             {
-                ObstacleId = obstacleId,
-                RapportComment = rapportComment
-            };
+                return RedirectToAction(nameof(Registrar));
+            }
 
-            await _registrarRepository.AddRapport(rapport);
+            await AddRapportToObstacle(obstacleId, rapportComment);
             return RedirectToAction(nameof(Registrar));
         }
 
@@ -126,10 +119,9 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
-            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            var obstacle = await GetObstacleOrRedirect(obstacleId);
             if (obstacle == null)
             {
-                TempData["Error"] = "Fant ikke hindring.";
                 return RedirectToAction(nameof(Registrar));
             }
 
@@ -158,29 +150,15 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
             }
 
-            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            var obstacle = await GetObstacleOrRedirect(obstacleId);
             if (obstacle == null)
             {
-                TempData["Error"] = "Fant ikke hindring.";
                 return RedirectToAction(nameof(Registrar));
             }
 
-            var rapport = new RapportData
-            {
-                ObstacleId = obstacleId,
-                RapportComment = comment
-            };
-
-            await _registrarRepository.AddRapport(rapport);
+            await AddRapportToObstacle(obstacleId, comment);
             TempData["Success"] = "Kommentar lagt til.";
             return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ShowObstacle(ObstacleData obstacledata)
-        {
-            return View("Registrar", obstacledata);
         }
 
         /// <summary>
@@ -195,6 +173,38 @@ namespace FirstWebApplication.Controllers
                 .ToListAsync();
             
             return View("RegistrarArchivedReports", archivedReports);
+        }
+
+        /// <summary>
+        /// Helper method to get obstacle by ID or redirect with error if not found
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle to get</param>
+        /// <returns>The obstacle if found, null if not found (after redirecting)</returns>
+        private async Task<ObstacleData?> GetObstacleOrRedirect(int obstacleId)
+        {
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            if (obstacle == null)
+            {
+                TempData["Error"] = "Fant ikke hindring.";
+                return null;
+            }
+            return obstacle;
+        }
+
+        /// <summary>
+        /// Helper method to add a report/comment to an obstacle
+        /// </summary>
+        /// <param name="obstacleId">The ID of the obstacle</param>
+        /// <param name="comment">The comment text to add</param>
+        private async Task AddRapportToObstacle(int obstacleId, string comment)
+        {
+            var rapport = new RapportData
+            {
+                ObstacleId = obstacleId,
+                RapportComment = comment
+            };
+
+            await _registrarRepository.AddRapport(rapport);
         }
     }
 }

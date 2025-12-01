@@ -244,23 +244,6 @@ namespace Kartverket.Tests.Controllers
         }
 
         /// <summary>
-        /// Tests that ShowObstacle returns view with obstacle
-        /// </summary>
-        [Fact]
-        public void ShowObstacle_ShouldReturnView_WithObstacle()
-        {
-            // Arrange
-            var obstacle = TestDataBuilder.CreateValidObstacle();
-
-            // Act
-            var result = _controller.ShowObstacle(obstacle);
-
-            // Assert
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal("Registrar", viewResult.ViewName);
-        }
-
-        /// <summary>
         /// Tests that ArchivedReports returns view with archived reports
         /// </summary>
         [Fact]

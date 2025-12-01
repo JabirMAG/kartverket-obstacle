@@ -177,7 +177,12 @@ namespace FirstWebApplication.Controllers
 
             await _context.SaveChangesAsync();
 
-            var statusText = newStatus == 1 ? "Under behandling" : "Godkjent";
+            string statusText;
+            if (newStatus == 1)
+                statusText = "Under behandling";
+            else
+                statusText = "Godkjent";
+
             TempData["Success"] = $"Hindring '{archivedReport.ObstacleName}' er gjenopprettet med status '{statusText}' og {rapportComments.Count} rapport(er) er lagt til.";
             
             return RedirectToAction(nameof(ArchivedReports));
@@ -331,42 +336,36 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(ManageUsers));
             }
 
-            var user = await _userRepository.GetByIdAsync(model.UserId);
-            if (user == null)
+            return await ExecuteUserAction(model.UserId, async user =>
             {
-                TempData["Error"] = "Fant ikke bruker.";
+                // Enforce single-role rule: user must have no roles before assigning a new one
+                var existingRoles = await _userManager.GetRolesAsync(user);
+                if (existingRoles.Any())
+                {
+                    TempData["Error"] = "Brukeren har allerede en rolle. Fjern eksisterende rolle før du legger til en ny.";
+                    return RedirectToAction(nameof(ManageUsers));
+                }
+
+                if (!IsAllowedAssignableRole(model.Role) && model.Role != "Admin")
+                {
+                    TempData["Error"] = "Ugyldig rolle.";
+                    return RedirectToAction(nameof(ManageUsers));
+                }
+
+                await EnsureRoleExistsAsync(model.Role);
+
+                var result = await _userManager.AddToRoleAsync(user, model.Role);
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = $"La til rolle {model.Role} for {user.Email}.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                }
+
                 return RedirectToAction(nameof(ManageUsers));
-            }
-
-            // Protect default admin account from any changes
-            if (IsDefaultAdmin(user))
-            {
-                return RedirectToActionWithError(nameof(ManageUsers), $"Kan ikke endre standard administrator ({DefaultAdminEmail}).");
-            }
-
-            // Enforce single-role rule: user must have no roles before assigning a new one
-            var existingRoles = await _userManager.GetRolesAsync(user);
-            if (existingRoles.Any())
-            {
-                TempData["Error"] = "Brukeren har allerede en rolle. Fjern eksisterende rolle før du legger til en ny.";
-                return RedirectToAction(nameof(ManageUsers));
-            }
-
-            if (!AllowedAssignableRoles.Contains(model.Role) && model.Role != "Admin")
-            {
-                TempData["Error"] = "Ugyldig rolle.";
-                return RedirectToAction(nameof(ManageUsers));
-            }
-
-            if (!await _roleManager.RoleExistsAsync(model.Role))
-                await _roleManager.CreateAsync(new IdentityRole(model.Role));
-
-            var result = await _userManager.AddToRoleAsync(user, model.Role);
-            TempData[result.Succeeded ? "Success" : "Error"] =
-                result.Succeeded ? $"La til rolle {model.Role} for {user.Email}." :
-                string.Join(", ", result.Errors.Select(e => e.Description));
-
-            return RedirectToAction(nameof(ManageUsers));
+            });
         }
         
         /// <summary>
@@ -378,25 +377,20 @@ namespace FirstWebApplication.Controllers
         [HttpPost("remove-role")]
         public async Task<IActionResult> RemoveRole(AssignRoleVm model)
         {
-            var user = await _userRepository.GetByIdAsync(model.UserId);
-            if (user == null)
+            return await ExecuteUserAction(model.UserId, async user =>
             {
-                TempData["Error"] = "Fant ikke bruker.";
+                var result = await _userManager.RemoveFromRoleAsync(user, model.Role);
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = $"Fjernet rolle {model.Role} for {user.Email}.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                }
+
                 return RedirectToAction(nameof(ManageUsers));
-            }
-
-            // Protect default admin account from any changes
-            if (IsDefaultAdmin(user))
-            {
-                return RedirectToActionWithError(nameof(ManageUsers), $"Kan ikke endre standard administrator ({DefaultAdminEmail}).");
-            }
-
-            var result = await _userManager.RemoveFromRoleAsync(user, model.Role);
-            TempData[result.Succeeded ? "Success" : "Error"] =
-                result.Succeeded ? $"Fjernet rolle {model.Role} for {user.Email}." :
-                string.Join(", ", result.Errors.Select(e => e.Description));
-
-            return RedirectToAction(nameof(ManageUsers));
+            });
         }
         
         /// <summary>
@@ -408,31 +402,20 @@ namespace FirstWebApplication.Controllers
         [HttpPost("delete-user")]
         public async Task<IActionResult> DeleteUser(string UserId)
         {
-            if (string.IsNullOrEmpty(UserId))
+            return await ExecuteUserAction(UserId, async user =>
             {
-                TempData["Error"] = "Ugyldig forespørsel.";
+                var deleteResult = await _userRepository.DeleteAsync(user);
+                if (deleteResult.Succeeded)
+                {
+                    TempData["Success"] = $"Bruker {user.Email} er slettet.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+                }
+
                 return RedirectToAction(nameof(ManageUsers));
-            }
-
-            var user = await _userRepository.GetByIdAsync(UserId);
-            if (user == null)
-            {
-                TempData["Error"] = "Fant ikke bruker.";
-                return RedirectToAction(nameof(ManageUsers));
-            }
-
-            // Protect default admin account from deletion
-            if (IsDefaultAdmin(user))
-            {
-                return RedirectToActionWithError(nameof(ManageUsers), $"Kan ikke slette standard administrator ({DefaultAdminEmail}).");
-            }
-
-            var deleteResult = await _userRepository.DeleteAsync(user);
-            TempData[deleteResult.Succeeded ? "Success" : "Error"] =
-                deleteResult.Succeeded ? $"Bruker {user.Email} er slettet." :
-                string.Join(", ", deleteResult.Errors.Select(e => e.Description));
-
-            return RedirectToAction(nameof(ManageUsers));
+            });
         }
         
         /// <summary>
@@ -444,30 +427,17 @@ namespace FirstWebApplication.Controllers
         [HttpPost("approve-user")]
         public async Task<IActionResult> ApproveUser(string UserId)
         {
-            if (string.IsNullOrEmpty(UserId))
+            return await ExecuteUserAction(UserId, async user =>
             {
-                TempData["Error"] = "Ugyldig forespørsel.";
-                return RedirectToAction(nameof(ManageUsers));
-            }
+                user.IaApproved = true;
+                var result = await _userRepository.UpdateAsync(user);
 
-            var user = await _userRepository.GetByIdAsync(UserId);
-            if (user == null)
-            {
-                TempData["Error"] = "Fant ikke bruker.";
-                return RedirectToAction(nameof(ManageUsers));
-            }
+                if (!result.Succeeded)
+                {
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return RedirectToAction(nameof(ManageUsers));
+                }
 
-            // Protect default admin account from changes
-            if (IsDefaultAdmin(user))
-            {
-                return RedirectToActionWithError(nameof(ManageUsers), $"Kan ikke endre standard administrator ({DefaultAdminEmail}).");
-            }
-
-            user.IaApproved = true;
-            var result = await _userRepository.UpdateAsync(user);
-            
-            if (result.Succeeded)
-            {
                 // Reload user from database to ensure we have the latest data
                 user = await _userRepository.GetByIdAsync(UserId);
                 if (user == null)
@@ -475,41 +445,37 @@ namespace FirstWebApplication.Controllers
                     TempData["Error"] = "Fant ikke bruker etter oppdatering.";
                     return RedirectToAction(nameof(ManageUsers));
                 }
-                
+
                 // Assign the DesiredRole if the user has one and doesn't already have a role
                 if (!string.IsNullOrEmpty(user.DesiredRole))
                 {
                     var existingRoles = await _userManager.GetRolesAsync(user);
-                    if (!existingRoles.Any())
+                    if (!existingRoles.Any() && IsAllowedAssignableRole(user.DesiredRole))
                     {
-                        // Check if the desired role is allowed
-                        if (AllowedAssignableRoles.Contains(user.DesiredRole))
+                        await EnsureRoleExistsAsync(user.DesiredRole);
+
+                        // Assign the role
+                        var roleResult = await _userManager.AddToRoleAsync(user, user.DesiredRole);
+                        if (!roleResult.Succeeded)
                         {
-                            // Ensure the role exists
-                            if (!await _roleManager.RoleExistsAsync(user.DesiredRole))
-                            {
-                                await _roleManager.CreateAsync(new IdentityRole(user.DesiredRole));
-                            }
-                            
-                            // Assign the role
-                            var roleResult = await _userManager.AddToRoleAsync(user, user.DesiredRole);
-                            if (!roleResult.Succeeded)
-                            {
-                                TempData["Error"] = $"Bruker {user.Email} er godkjent, men kunne ikke tildele rolle: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}.";
-                                return RedirectToAction(nameof(ManageUsers));
-                            }
+                            TempData["Error"] = $"Bruker {user.Email} er godkjent, men kunne ikke tildele rolle: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}.";
+                            return RedirectToAction(nameof(ManageUsers));
                         }
                     }
                 }
-                
-                TempData["Success"] = $"Bruker {user.Email} er godkjent{(string.IsNullOrEmpty(user.DesiredRole) ? "" : $" og tildelt rolle {user.DesiredRole}")}.";
-            }
-            else
-            {
-                TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
-            }
 
-            return RedirectToAction(nameof(ManageUsers));
+                string successMessage;
+                if (string.IsNullOrEmpty(user.DesiredRole))
+                {
+                    successMessage = $"Bruker {user.Email} er godkjent.";
+                }
+                else
+                {
+                    successMessage = $"Bruker {user.Email} er godkjent og tildelt rolle {user.DesiredRole}.";
+                }
+                TempData["Success"] = successMessage;
+                return RedirectToAction(nameof(ManageUsers));
+            });
         }
         
         /// <summary>
@@ -521,32 +487,21 @@ namespace FirstWebApplication.Controllers
         [HttpPost("reject-user")]
         public async Task<IActionResult> RejectUser(string UserId)
         {
-            if (string.IsNullOrEmpty(UserId))
+            return await ExecuteUserAction(UserId, async user =>
             {
-                TempData["Error"] = "Ugyldig forespørsel.";
+                user.IaApproved = false;
+                var result = await _userRepository.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = $"Bruker {user.Email} er avvist.";
+                }
+                else
+                {
+                    TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                }
+
                 return RedirectToAction(nameof(ManageUsers));
-            }
-
-            var user = await _userRepository.GetByIdAsync(UserId);
-            if (user == null)
-            {
-                TempData["Error"] = "Fant ikke bruker.";
-                return RedirectToAction(nameof(ManageUsers));
-            }
-
-            // Protect default admin account from changes
-            if (IsDefaultAdmin(user))
-            {
-                return RedirectToActionWithError(nameof(ManageUsers), $"Kan ikke endre standard administrator ({DefaultAdminEmail}).");
-            }
-
-            user.IaApproved = false;
-            var result = await _userRepository.UpdateAsync(user);
-            TempData[result.Succeeded ? "Success" : "Error"] =
-                result.Succeeded ? $"Bruker {user.Email} er avvist." :
-                string.Join(", ", result.Errors.Select(e => e.Description));
-
-            return RedirectToAction(nameof(ManageUsers));
+            });
         }
         
         /// <summary>
@@ -601,7 +556,7 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
-            if (!AllowedAssignableRoles.Contains(model.Role))
+            if (!IsAllowedAssignableRole(model.Role))
             {
                 ModelState.AddModelError(nameof(model.Role), "Ugyldig rolle.");
                 PopulateCreateUserViewData();
@@ -647,9 +602,7 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
-            if (!await _roleManager.RoleExistsAsync(model.Role))
-                await _roleManager.CreateAsync(new IdentityRole(model.Role));
-
+            await EnsureRoleExistsAsync(model.Role);
             await _userManager.AddToRoleAsync(user, model.Role);
 
             TempData["Success"] = $"Opprettet bruker {model.Email} med rolle {model.Role}.";
@@ -662,6 +615,51 @@ namespace FirstWebApplication.Controllers
             ViewBag.PasswordRequirements = BuildPasswordRequirements();
             ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
             ViewBag.OrganizationOptions = OrganizationOptions.All;
+        }
+
+        private static bool IsAllowedAssignableRole(string? role)
+        {
+            return !string.IsNullOrWhiteSpace(role) &&
+                   AllowedAssignableRoles.Contains(role);
+        }
+
+        private Task<IActionResult> ExecuteUserAction(string userId, Func<ApplicationUser, Task<IActionResult>> action)
+        {
+            return ExecuteUserAction(userId, action, nameof(ManageUsers));
+        }
+
+        private async Task<IActionResult> ExecuteUserAction(
+            string userId,
+            Func<ApplicationUser, Task<IActionResult>> action,
+            string redirectAction)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToActionWithError(redirectAction, "Ugyldig forespørsel.");
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToActionWithError(redirectAction, "Fant ikke bruker.");
+            }
+
+            if (IsDefaultAdmin(user))
+            {
+                return RedirectToActionWithError(redirectAction, $"Kan ikke endre standard administrator ({DefaultAdminEmail}).");
+            }
+
+            return await action(user);
+        }
+
+        private async Task EnsureRoleExistsAsync(string role)
+        {
+            if (await _roleManager.RoleExistsAsync(role))
+            {
+                return;
+            }
+
+            await _roleManager.CreateAsync(new IdentityRole(role));
         }
 
         private IEnumerable<string> BuildPasswordRequirements()
