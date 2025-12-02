@@ -41,7 +41,7 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
             
-            var advice = MapToAdvice(model);
+            var advice = _adviceRepository.MapFromViewModel(model);
             await _adviceRepository.AddAdvice(advice);
             
             return RedirectToAction(nameof(ThankForm), new { email = model.ViewEmail, message = model.ViewadviceMessage });
@@ -63,27 +63,9 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(FeedbackForm));
             }
 
-            var advice = new Advice
-            {
-                Email = email,
-                adviceMessage = message
-            };
+            var advice = _adviceRepository.CreateFromEmailAndMessage(email, message);
 
             return View(advice);
-        }
-
-        /// <summary>
-        /// Maps AdviceViewModel to Advice model
-        /// </summary>
-        /// <param name="model">The ViewModel containing feedback data</param>
-        /// <returns>Advice entity ready for database storage</returns>
-        private static Advice MapToAdvice(AdviceViewModel model)
-        {
-            return new Advice
-            {
-                adviceMessage = model.ViewadviceMessage,
-                Email = model.ViewEmail
-            };
         }
     }
 }

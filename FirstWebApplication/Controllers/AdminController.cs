@@ -1,7 +1,6 @@
 ﻿using FirstWebApplication.Models;
 using FirstWebApplication.Models.AdminViewModels;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.DataContext;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 
 namespace FirstWebApplication.Controllers
 {
@@ -23,10 +21,8 @@ namespace FirstWebApplication.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IRegistrarRepository _registrarRepository;
         private readonly IObstacleRepository _obstacleRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ApplicationDBContext _context;
         private readonly IArchiveRepository _archiveRepository;
+        private readonly IAdviceRepository _adviceRepository;
 
         private static readonly string[] AllowedAssignableRoles = new[] { "Pilot", "Registerfører" };
         private const string DefaultAdminEmail = "admin@kartverket.com";
@@ -35,18 +31,14 @@ namespace FirstWebApplication.Controllers
             IUserRepository userRepository,
             IRegistrarRepository registrarRepository,
             IObstacleRepository obstacleRepository,
-            UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            ApplicationDBContext context,
-            IArchiveRepository archiveRepository)
+            IArchiveRepository archiveRepository,
+            IAdviceRepository adviceRepository)
         {
             _userRepository = userRepository;
             _registrarRepository = registrarRepository;
             _obstacleRepository = obstacleRepository;
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _context = context;
             _archiveRepository = archiveRepository;
+            _adviceRepository = adviceRepository;
         }
         
         /// <summary>
@@ -86,9 +78,7 @@ namespace FirstWebApplication.Controllers
         [HttpGet("archived-reports")]
         public async Task<IActionResult> ArchivedReports()
         {
-            var archivedReports = await _context.ArchivedReports
-                .OrderByDescending(ar => ar.ArchivedDate)
-                .ToListAsync();
+            var archivedReports = await _archiveRepository.GetAllArchivedReportsAsync();
             
             return View("AdminArchivedReports", archivedReports);
         }
@@ -98,8 +88,7 @@ namespace FirstWebApplication.Controllers
         public async Task<IActionResult> Feedback()
         {
             // Hent alle feedback fra databasen
-            var feedbacks = await _context.Feedback
-                .ToListAsync();
+            var feedbacks = await _adviceRepository.GetAllAdvice();
 
             // Send listen til viewet
             return View("AdminFeedback", feedbacks);
@@ -124,8 +113,7 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(ArchivedReports));
             }
 
-            var archivedReport = await _context.ArchivedReports
-                .FirstOrDefaultAsync(ar => ar.ArchivedReportId == archivedReportId);
+            var archivedReport = await _archiveRepository.GetArchivedReportByIdAsync(archivedReportId);
 
             if (archivedReport == null)
             {
@@ -133,57 +121,22 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(ArchivedReports));
             }
 
-            // Create new ObstacleData from ArchivedReport
-            var restoredObstacle = new ObstacleData
-            {
-                ObstacleName = archivedReport.ObstacleName,
-                ObstacleHeight = archivedReport.ObstacleHeight,
-                ObstacleDescription = archivedReport.ObstacleDescription,
-                GeometryGeoJson = archivedReport.GeometryGeoJson,
-                ObstacleStatus = newStatus,
-                OwnerUserId = null // We don't have OwnerUserId in ArchivedReport, so set to null
-            };
-
-            // Put the obstacle in the database - AddObstacle returns obstacle with ObstacleId
-            var savedObstacle = await _obstacleRepository.AddObstacle(restoredObstacle);
-
-            // Parse and create RapportData entries from RapportComments
-            List<string> rapportComments = new List<string>();
             try
             {
-                if (!string.IsNullOrEmpty(archivedReport.RapportComments))
-                {
-                    rapportComments = JsonSerializer.Deserialize<List<string>>(archivedReport.RapportComments) ?? new List<string>();
-                }
+                var rapportCount = await _archiveRepository.RestoreArchivedReportAsync(archivedReportId, newStatus);
+
+                string statusText;
+                if (newStatus == 1)
+                    statusText = "Under behandling";
+                else
+                    statusText = "Godkjent";
+
+                TempData["Success"] = $"Hindring '{archivedReport.ObstacleName}' er gjenopprettet med status '{statusText}' og {rapportCount} rapport(er) er lagt til.";
             }
-            catch
+            catch (InvalidOperationException ex)
             {
-                rapportComments = new List<string>();
+                TempData["Error"] = ex.Message;
             }
-
-            // Create RapportData for each comment
-            foreach (var comment in rapportComments)
-            {
-                var rapport = new RapportData
-                {
-                    ObstacleId = savedObstacle.ObstacleId,
-                    RapportComment = comment
-                };
-                await _context.Rapports.AddAsync(rapport);
-            }
-
-            // Delete from ArchivedReport
-            _context.ArchivedReports.Remove(archivedReport);
-
-            await _context.SaveChangesAsync();
-
-            string statusText;
-            if (newStatus == 1)
-                statusText = "Under behandling";
-            else
-                statusText = "Godkjent";
-
-            TempData["Success"] = $"Hindring '{archivedReport.ObstacleName}' er gjenopprettet med status '{statusText}' og {rapportComments.Count} rapport(er) er lagt til.";
             
             return RedirectToAction(nameof(ArchivedReports));
         }
@@ -221,7 +174,7 @@ namespace FirstWebApplication.Controllers
             }
             
             // Redirect back to the details page if returnUrl is set, otherwise to reports
-            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DetaljerOmRapport"))
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("AdminObstacleDetails"))
             {
                 // If status is Rejected, redirect to reports since the obstacle is deleted
                 if (status == 3)
@@ -255,7 +208,7 @@ namespace FirstWebApplication.Controllers
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View("DetaljerOmRapport", obstacle);
+            return View("AdminObstacleDetails", obstacle);
         }
         
         /// <summary>
@@ -304,7 +257,7 @@ namespace FirstWebApplication.Controllers
             var vm = new List<UserWithRolesVm>();
             foreach (var u in users)
             {
-                var roles = await _userManager.GetRolesAsync(u);
+                var roles = await _userRepository.GetRolesAsync(u);
                 vm.Add(new UserWithRolesVm
                 {
                     Id = u.Id,
@@ -339,7 +292,7 @@ namespace FirstWebApplication.Controllers
             return await ExecuteUserAction(model.UserId, async user =>
             {
                 // Enforce single-role rule: user must have no roles before assigning a new one
-                var existingRoles = await _userManager.GetRolesAsync(user);
+                var existingRoles = await _userRepository.GetRolesAsync(user);
                 if (existingRoles.Any())
                 {
                     TempData["Error"] = "Brukeren har allerede en rolle. Fjern eksisterende rolle før du legger til en ny.";
@@ -352,9 +305,9 @@ namespace FirstWebApplication.Controllers
                     return RedirectToAction(nameof(ManageUsers));
                 }
 
-                await EnsureRoleExistsAsync(model.Role);
+                await _userRepository.EnsureRoleExistsAsync(model.Role);
 
-                var result = await _userManager.AddToRoleAsync(user, model.Role);
+                var result = await _userRepository.AddToRoleAsync(user, model.Role);
                 if (result.Succeeded)
                 {
                     TempData["Success"] = $"La til rolle {model.Role} for {user.Email}.";
@@ -379,7 +332,7 @@ namespace FirstWebApplication.Controllers
         {
             return await ExecuteUserAction(model.UserId, async user =>
             {
-                var result = await _userManager.RemoveFromRoleAsync(user, model.Role);
+                var result = await _userRepository.RemoveFromRoleAsync(user, model.Role);
                 if (result.Succeeded)
                 {
                     TempData["Success"] = $"Fjernet rolle {model.Role} for {user.Email}.";
@@ -449,13 +402,13 @@ namespace FirstWebApplication.Controllers
                 // Assign the DesiredRole if the user has one and doesn't already have a role
                 if (!string.IsNullOrEmpty(user.DesiredRole))
                 {
-                    var existingRoles = await _userManager.GetRolesAsync(user);
+                    var existingRoles = await _userRepository.GetRolesAsync(user);
                     if (!existingRoles.Any() && IsAllowedAssignableRole(user.DesiredRole))
                     {
-                        await EnsureRoleExistsAsync(user.DesiredRole);
+                        await _userRepository.EnsureRoleExistsAsync(user.DesiredRole);
 
                         // Assign the role
-                        var roleResult = await _userManager.AddToRoleAsync(user, user.DesiredRole);
+                        var roleResult = await _userRepository.AddToRoleAsync(user, user.DesiredRole);
                         if (!roleResult.Succeeded)
                         {
                             TempData["Error"] = $"Bruker {user.Email} er godkjent, men kunne ikke tildele rolle: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}.";
@@ -524,14 +477,14 @@ namespace FirstWebApplication.Controllers
         [HttpPost("create-user")]
         public async Task<IActionResult> CreateUser(CreateUserVm model)
         {
-            if (!OrganizationOptions.All.Contains(model.Organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+            var normalizedOrganization = _userRepository.ValidateAndNormalizeOrganization(model.Organization);
+            if (normalizedOrganization == null)
             {
                 ModelState.AddModelError(nameof(model.Organization), "Velg en gyldig organisasjon.");
             }
             else
             {
-                model.Organization = OrganizationOptions.All.First(o =>
-                    string.Equals(o, model.Organization, StringComparison.OrdinalIgnoreCase));
+                model.Organization = normalizedOrganization;
             }
 
             if (!ModelState.IsValid)
@@ -548,7 +501,7 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
-            var existingUsername = await _userManager.FindByNameAsync(model.Username);
+            var existingUsername = await _userRepository.GetByNameAsync(model.Username);
             if (existingUsername != null)
             {
                 ModelState.AddModelError(nameof(model.Username), "Brukernavnet er allerede i bruk.");
@@ -586,9 +539,10 @@ namespace FirstWebApplication.Controllers
                     ModelState.AddModelError(nameof(model.Password), "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
 
                     // Mssages near the password field so non-programmers understand
+                    var passwordOptions = _userRepository.GetPasswordOptions();
                     foreach (var pe in pwErrors)
                     {
-                        var friendly = TranslatePasswordError(pe.Description, _userManager.Options.Password);
+                        var friendly = TranslatePasswordError(pe.Description, passwordOptions);
                         ModelState.AddModelError(nameof(model.Password), friendly);
                     }
                 }
@@ -602,8 +556,8 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
-            await EnsureRoleExistsAsync(model.Role);
-            await _userManager.AddToRoleAsync(user, model.Role);
+            await _userRepository.EnsureRoleExistsAsync(model.Role);
+            await _userRepository.AddToRoleAsync(user, model.Role);
 
             TempData["Success"] = $"Opprettet bruker {model.Email} med rolle {model.Role}.";
             return RedirectToAction(nameof(ManageUsers));
@@ -611,10 +565,11 @@ namespace FirstWebApplication.Controllers
 
         private void PopulateCreateUserViewData()
         {
+            var passwordOptions = _userRepository.GetPasswordOptions();
             ViewBag.AssignableRoles = AllowedAssignableRoles;
-            ViewBag.PasswordRequirements = BuildPasswordRequirements();
-            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
-            ViewBag.OrganizationOptions = OrganizationOptions.All;
+            ViewBag.PasswordRequirements = BuildPasswordRequirements(passwordOptions);
+            ViewBag.PasswordPolicy = BuildPasswordPolicyObject(passwordOptions);
+            ViewBag.OrganizationOptions = _userRepository.GetAllOrganizations();
         }
 
         private static bool IsAllowedAssignableRole(string? role)
@@ -652,19 +607,8 @@ namespace FirstWebApplication.Controllers
             return await action(user);
         }
 
-        private async Task EnsureRoleExistsAsync(string role)
+        private static IEnumerable<string> BuildPasswordRequirements(PasswordOptions opts)
         {
-            if (await _roleManager.RoleExistsAsync(role))
-            {
-                return;
-            }
-
-            await _roleManager.CreateAsync(new IdentityRole(role));
-        }
-
-        private IEnumerable<string> BuildPasswordRequirements()
-        {
-            var opts = _userManager.Options.Password;
             var reqs = new List<string>
             {
                 $"Minimum lengde: {opts.RequiredLength} tegn"
@@ -679,9 +623,8 @@ namespace FirstWebApplication.Controllers
             return reqs;
         }
 
-        private object BuildPasswordPolicyObject()
+        private static object BuildPasswordPolicyObject(PasswordOptions opts)
         {
-            var opts = _userManager.Options.Password;
             return new
             {
                 opts.RequiredLength,

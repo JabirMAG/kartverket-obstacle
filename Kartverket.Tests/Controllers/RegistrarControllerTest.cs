@@ -183,7 +183,7 @@ namespace Kartverket.Tests.Controllers
 
             _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
                 .ReturnsAsync(obstacle);
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
+            _registrarRepositoryMock.Setup(x => x.GetRapportsByObstacleId(1))
                 .ReturnsAsync(rapports);
 
             // Act

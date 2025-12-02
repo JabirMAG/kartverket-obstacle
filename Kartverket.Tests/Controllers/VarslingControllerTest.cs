@@ -1,7 +1,6 @@
 using FirstWebApplication.Controllers;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.Services;
 using Kartverket.Tests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +20,6 @@ namespace Kartverket.Tests.Controllers
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
         private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
-        private readonly Mock<IPilotHelperService> _pilotHelperServiceMock;
         private readonly VarslingController _controller;
 
         public VarslingControllerTest()
@@ -31,13 +29,11 @@ namespace Kartverket.Tests.Controllers
                 store.Object, null, null, null, null, null, null, null, null);
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
-            _pilotHelperServiceMock = new Mock<IPilotHelperService>();
 
             _controller = new VarslingController(
                 _registrarRepositoryMock.Object,
                 _obstacleRepositoryMock.Object,
-                _userManagerMock.Object,
-                _pilotHelperServiceMock.Object);
+                _userManagerMock.Object);
 
             // Setup controller context with user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -131,9 +127,9 @@ namespace Kartverket.Tests.Controllers
             _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
                 .ReturnsAsync(true);
 
-            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(1, "user-id"))
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "user-id"))
                 .ReturnsAsync(obstacle);
-            _pilotHelperServiceMock.Setup(x => x.GetObstacleRapportsAsync(1))
+            _registrarRepositoryMock.Setup(x => x.GetRapportsByObstacleId(1))
                 .ReturnsAsync(rapports);
 
             // Setup TempData

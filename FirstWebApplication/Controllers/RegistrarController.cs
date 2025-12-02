@@ -1,11 +1,8 @@
 ﻿using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.DataContext;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace FirstWebApplication.Controllers
 {
@@ -17,14 +14,25 @@ namespace FirstWebApplication.Controllers
     {
         private readonly IObstacleRepository _obstacleRepository;
         private readonly IRegistrarRepository _registrarRepository;
-        private readonly ApplicationDBContext _context;
         private readonly IArchiveRepository _archiveRepository;
 
-        public RegistrarController(IObstacleRepository obstacleRepository, IRegistrarRepository registrarRepository, ApplicationDBContext context, IArchiveRepository archiveRepository)
+        // Obstacle status constants
+        private const int StatusRejected = 3;     // Avslått
+
+        // Error messages
+        private const string ErrorObstacleNotFound = "Fant ikke hindring.";
+        private const string ErrorCommentEmpty = "Kommentar kan ikke være tom.";
+
+        // Success messages
+        private const string SuccessCommentAdded = "Kommentar lagt til.";
+
+        public RegistrarController(
+            IObstacleRepository obstacleRepository, 
+            IRegistrarRepository registrarRepository, 
+            IArchiveRepository archiveRepository)
         {
             _obstacleRepository = obstacleRepository;
             _registrarRepository = registrarRepository;
-            _context = context;
             _archiveRepository = archiveRepository;
         }
 
@@ -48,7 +56,7 @@ namespace FirstWebApplication.Controllers
         }
 
         /// <summary>
-        /// Updates the status of an obstacle. If status is 3 (Rejected), the obstacle is archived.
+        /// Updates the status of an obstacle. If status is Rejected (3), the obstacle is archived.
         /// </summary>
         /// <param name="obstacleId">The ID of the obstacle to update</param>
         /// <param name="status">The new status for the obstacle</param>
@@ -58,31 +66,33 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status, string returnUrl = null)
         {
-            var obstacle = await GetObstacleOrRedirect(obstacleId);
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
             if (obstacle == null)
             {
+                TempData["Error"] = ErrorObstacleNotFound;
                 return RedirectToAction(nameof(Registrar));
             }
 
-            obstacle.ObstacleStatus = status;
-            
-            // If status is Rejected (3), archive the obstacle and all reports
-            if (status == 3)
+            // If status is Rejected, archive the obstacle and all reports
+            if (status == StatusRejected)
             {
                 var archivedReportCount = await _archiveRepository.ArchiveObstacleAsync(obstacle);
                 TempData["Success"] = $"Hindring '{obstacle.ObstacleName}' er avvist og arkivert sammen med {archivedReportCount} rapport(er).";
             }
             else
             {
-                await _obstacleRepository.UpdateObstacles(obstacle);
-                TempData["Success"] = $"Status for hindring '{obstacle.ObstacleName}' er oppdatert.";
+                var updatedObstacle = await _obstacleRepository.UpdateObstacleStatus(obstacleId, status);
+                if (updatedObstacle != null)
+                {
+                    TempData["Success"] = $"Status for hindring '{updatedObstacle.ObstacleName}' er oppdatert.";
+                }
             }
 
             // Redirect back to details page if returnUrl is set, otherwise to reports
-            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DetaljerOmRapport"))
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("RegistrarObstacleDetails"))
             {
                 // If status is Rejected, redirect to reports since the obstacle is deleted
-                if (status == 3)
+                if (status == StatusRejected)
                 {
                     return RedirectToAction(nameof(Registrar));
                 }
@@ -93,21 +103,30 @@ namespace FirstWebApplication.Controllers
         }
 
         /// <summary>
-        /// Adds a new report/comment to an obstacle
+        /// Adds a new report/comment to an obstacle. Comment is optional - if empty, method returns without error.
         /// </summary>
         /// <param name="obstacleId">The ID of the obstacle</param>
-        /// <param name="rapportComment">The comment text to add</param>
+        /// <param name="rapportComment">The comment text to add (optional)</param>
         /// <returns>Redirects to registrar page</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddRapport(int obstacleId, string rapportComment)
         {
+            // If comment is empty, silently return without error
             if (string.IsNullOrWhiteSpace(rapportComment))
             {
                 return RedirectToAction(nameof(Registrar));
             }
 
-            await AddRapportToObstacle(obstacleId, rapportComment);
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+            if (obstacle == null)
+            {
+                TempData["Error"] = ErrorObstacleNotFound;
+                return RedirectToAction(nameof(Registrar));
+            }
+
+            await _registrarRepository.AddRapportToObstacle(obstacleId, rapportComment);
+            TempData["Success"] = SuccessCommentAdded;
             return RedirectToAction(nameof(Registrar));
         }
 
@@ -119,19 +138,19 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
-            var obstacle = await GetObstacleOrRedirect(obstacleId);
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
             if (obstacle == null)
             {
+                TempData["Error"] = ErrorObstacleNotFound;
                 return RedirectToAction(nameof(Registrar));
             }
 
-            var rapports = await _registrarRepository.GetAllRapports();
-            var obstacleRapports = rapports.Where(r => r.ObstacleId == obstacleId).ToList();
+            var obstacleRapports = await _registrarRepository.GetRapportsByObstacleId(obstacleId);
 
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View("DetaljerOmRapport", obstacle);
+            return View("RegistrarObstacleDetails", obstacle);
         }
 
         /// <summary>
@@ -146,18 +165,19 @@ namespace FirstWebApplication.Controllers
         {
             if (string.IsNullOrWhiteSpace(comment))
             {
-                TempData["Error"] = "Kommentar kan ikke være tom.";
+                TempData["Error"] = ErrorCommentEmpty;
                 return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
             }
 
-            var obstacle = await GetObstacleOrRedirect(obstacleId);
+            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
             if (obstacle == null)
             {
+                TempData["Error"] = ErrorObstacleNotFound;
                 return RedirectToAction(nameof(Registrar));
             }
 
-            await AddRapportToObstacle(obstacleId, comment);
-            TempData["Success"] = "Kommentar lagt til.";
+            await _registrarRepository.AddRapportToObstacle(obstacleId, comment);
+            TempData["Success"] = SuccessCommentAdded;
             return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
         }
 
@@ -168,43 +188,8 @@ namespace FirstWebApplication.Controllers
         [HttpGet("archived-reports")]
         public async Task<IActionResult> ArchivedReports()
         {
-            var archivedReports = await _context.ArchivedReports
-                .OrderByDescending(ar => ar.ArchivedDate)
-                .ToListAsync();
-            
+            var archivedReports = await _archiveRepository.GetAllArchivedReportsAsync();
             return View("RegistrarArchivedReports", archivedReports);
-        }
-
-        /// <summary>
-        /// Helper method to get obstacle by ID or redirect with error if not found
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to get</param>
-        /// <returns>The obstacle if found, null if not found (after redirecting)</returns>
-        private async Task<ObstacleData?> GetObstacleOrRedirect(int obstacleId)
-        {
-            var obstacle = await _obstacleRepository.GetElementById(obstacleId);
-            if (obstacle == null)
-            {
-                TempData["Error"] = "Fant ikke hindring.";
-                return null;
-            }
-            return obstacle;
-        }
-
-        /// <summary>
-        /// Helper method to add a report/comment to an obstacle
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle</param>
-        /// <param name="comment">The comment text to add</param>
-        private async Task AddRapportToObstacle(int obstacleId, string comment)
-        {
-            var rapport = new RapportData
-            {
-                ObstacleId = obstacleId,
-                RapportComment = comment
-            };
-
-            await _registrarRepository.AddRapport(rapport);
         }
     }
 }

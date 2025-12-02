@@ -1,12 +1,10 @@
 using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
+using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using System;
 using System.Linq;
-using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 
 namespace FirstWebApplication.Controllers
@@ -16,7 +14,7 @@ namespace FirstWebApplication.Controllers
     /// </summary>
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserRepository _userRepository;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<AccountController> _logger;
@@ -40,12 +38,12 @@ namespace FirstWebApplication.Controllers
         private const string ErrorInvalidOrganization = "Velg en gyldig organisasjon.";
 
         public AccountController(
-            UserManager<ApplicationUser> userManager, 
+            IUserRepository userRepository, 
             SignInManager<ApplicationUser> signInManager,
             IWebHostEnvironment environment,
             ILogger<AccountController> logger)
         {
-            _userManager = userManager;
+            _userRepository = userRepository;
             _signInManager = signInManager;
             _environment = environment;
             _logger = logger;
@@ -73,9 +71,15 @@ namespace FirstWebApplication.Controllers
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
             // Validate and normalize organization (case-insensitive matching)
-            registerViewModel.Organization = ValidateAndNormalizeOrganization(
-                registerViewModel.Organization, 
-                nameof(registerViewModel.Organization));
+            var normalizedOrganization = _userRepository.ValidateAndNormalizeOrganization(registerViewModel.Organization);
+            if (normalizedOrganization == null)
+            {
+                ModelState.AddModelError(nameof(registerViewModel.Organization), ErrorInvalidOrganization);
+            }
+            else
+            {
+                registerViewModel.Organization = normalizedOrganization;
+            }
 
             if (!ModelState.IsValid)
             {
@@ -93,7 +97,7 @@ namespace FirstWebApplication.Controllers
                 Organization = registerViewModel.Organization
             };
             
-            var createResult = await _userManager.CreateAsync(newUser, registerViewModel.Password);
+            var createResult = await _userRepository.CreateAsync(newUser, registerViewModel.Password);
 
             if (!createResult.Succeeded)
             {
@@ -128,7 +132,7 @@ namespace FirstWebApplication.Controllers
         {
             if (_signInManager.IsSignedIn(User))
             {
-                var user = await _userManager.GetUserAsync(User);
+                var user = await _userRepository.GetUserAsync(User);
                 if (user != null)
                 {
                     return await RedirectToRoleBasedActionAsync(user);
@@ -151,7 +155,7 @@ namespace FirstWebApplication.Controllers
                 return View(model);
 
             // Find user and validate that it exists and is approved
-            var user = await _userManager.FindByNameAsync(model.Username);
+            var user = await _userRepository.GetByNameAsync(model.Username);
             if (user == null || !user.IaApproved)
             {
                 // Use generic error message to avoid revealing if user exists
@@ -215,7 +219,7 @@ namespace FirstWebApplication.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await FindUserByEmailAsync(model.Email);
+            var user = await _userRepository.GetByEmailAsync(model.Email);
             // Don't reveal that user doesn't exist - always redirect to confirmation
             if (user == null)
             {
@@ -223,7 +227,7 @@ namespace FirstWebApplication.Controllers
             }
 
             // Generate and encode reset token
-            var encodedToken = await GenerateEncodedPasswordResetTokenAsync(user);
+            var encodedToken = await _userRepository.GenerateEncodedPasswordResetTokenAsync(user);
             
             // Create reset URL
             var callbackUrl = CreatePasswordResetUrl(encodedToken, user.Email!);
@@ -291,17 +295,14 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
-            var user = await FindUserByEmailAsync(model.Email);
+            var user = await _userRepository.GetByEmailAsync(model.Email);
             // Don't reveal that user doesn't exist - always redirect to confirmation
             if (user == null)
             {
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
             }
 
-            // Decode token from Base64Url
-            var decodedToken = DecodePasswordResetToken(model.Token);
-
-            var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.Password);
+            var result = await _userRepository.ResetPasswordAsync(user, model.Token, model.Password);
             if (result.Succeeded)
             {
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
@@ -328,7 +329,7 @@ namespace FirstWebApplication.Controllers
         private void PopulateRegisterViewData()
         {
             PopulatePasswordViewData();
-            ViewBag.OrganizationOptions = OrganizationOptions.All;
+            ViewBag.OrganizationOptions = _userRepository.GetAllOrganizations();
         }
 
         /// <summary>
@@ -336,27 +337,11 @@ namespace FirstWebApplication.Controllers
         /// </summary>
         private void PopulatePasswordViewData()
         {
-            ViewBag.PasswordRequirements = BuildPasswordRequirements();
-            ViewBag.PasswordPolicy = BuildPasswordPolicyObject();
+            var passwordOptions = _userRepository.GetPasswordOptions();
+            ViewBag.PasswordRequirements = BuildPasswordRequirements(passwordOptions);
+            ViewBag.PasswordPolicy = BuildPasswordPolicyObject(passwordOptions);
         }
 
-        /// <summary>
-        /// Validates and normalizes organization name (case-insensitive matching)
-        /// </summary>
-        /// <param name="organization">The organization name to validate</param>
-        /// <param name="propertyName">The name of the model property for error handling</param>
-        /// <returns>Normalized organization name or original value if invalid</returns>
-        private string? ValidateAndNormalizeOrganization(string? organization, string propertyName)
-        {
-            if (!OrganizationOptions.All.Contains(organization ?? string.Empty, StringComparer.OrdinalIgnoreCase))
-            {
-                ModelState.AddModelError(propertyName, ErrorInvalidOrganization);
-                return organization;
-            }
-            
-            return OrganizationOptions.All.First(o =>
-                string.Equals(o, organization, StringComparison.OrdinalIgnoreCase));
-        }
 
         /// <summary>
         /// Adds Identity errors to ModelState, separating password errors from other errors
@@ -365,6 +350,7 @@ namespace FirstWebApplication.Controllers
         /// <param name="passwordPropertyName">The name of the password property for error targeting</param>
         private void AddIdentityErrorsToModelState(IEnumerable<IdentityError> errors, string passwordPropertyName)
         {
+            var passwordOptions = _userRepository.GetPasswordOptions();
             var passwordErrors = errors
                 .Where(e => IsPasswordError(e))
                 .ToList();
@@ -378,7 +364,7 @@ namespace FirstWebApplication.Controllers
                 
                 foreach (var error in passwordErrors)
                 {
-                    var friendlyMessage = TranslatePasswordError(error.Description, _userManager.Options.Password);
+                    var friendlyMessage = TranslatePasswordError(error.Description, passwordOptions);
                     ModelState.AddModelError(passwordPropertyName, friendlyMessage);
                 }
             }
@@ -405,10 +391,10 @@ namespace FirstWebApplication.Controllers
         /// <summary>
         /// Builds a list of password requirements based on configured settings
         /// </summary>
+        /// <param name="opts">Password options configuration</param>
         /// <returns>List of password requirements to display to the user</returns>
-        private IEnumerable<string> BuildPasswordRequirements()
+        private static IEnumerable<string> BuildPasswordRequirements(PasswordOptions opts)
         {
-            var opts = _userManager.Options.Password;
             var requirements = new List<string>
             {
                 $"Minimum lengde: {opts.RequiredLength} tegn"
@@ -436,10 +422,10 @@ namespace FirstWebApplication.Controllers
         /// <summary>
         /// Builds an object with password policy settings for use in frontend
         /// </summary>
+        /// <param name="opts">Password options configuration</param>
         /// <returns>Anonymous object with password policy settings</returns>
-        private object BuildPasswordPolicyObject()
+        private static object BuildPasswordPolicyObject(PasswordOptions opts)
         {
-            var opts = _userManager.Options.Password;
             return new
             {
                 opts.RequiredLength,
@@ -574,27 +560,6 @@ namespace FirstWebApplication.Controllers
             ModelState.AddModelError(string.Empty, ErrorInvalidCredentials);
         }
 
-        /// <summary>
-        /// Generates and encodes password reset token to Base64Url format
-        /// </summary>
-        /// <param name="user">The user who should receive the reset token</param>
-        /// <returns>Encoded token that can be used in URL</returns>
-        private async Task<string> GenerateEncodedPasswordResetTokenAsync(ApplicationUser user)
-        {
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-        }
-
-        /// <summary>
-        /// Decodes password reset token from Base64Url format
-        /// </summary>
-        /// <param name="encodedToken">The encoded token from URL</param>
-        /// <returns>Decoded token that can be used in ResetPasswordAsync</returns>
-        private static string DecodePasswordResetToken(string encodedToken)
-        {
-            var tokenBytes = WebEncoders.Base64UrlDecode(encodedToken);
-            return Encoding.UTF8.GetString(tokenBytes);
-        }
 
         /// <summary>
         /// Creates full URL for password reset
@@ -611,16 +576,6 @@ namespace FirstWebApplication.Controllers
                 protocol: Request.Scheme)!;
         }
 
-        /// <summary>
-        /// Finds a user by email address. Returns null if user doesn't exist.
-        /// Used in password reset flow where we don't want to reveal user existence.
-        /// </summary>
-        /// <param name="email">The email address to search for</param>
-        /// <returns>The user if found, or null if not found</returns>
-        private async Task<ApplicationUser?> FindUserByEmailAsync(string email)
-        {
-            return await _userManager.FindByEmailAsync(email);
-        }
 
         /// <summary>
         /// Redirects user to the appropriate page based on their role
@@ -634,12 +589,12 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(ActionMap, ControllerMap);
             }
 
-            if (await _userManager.IsInRoleAsync(user, RoleAdmin))
+            if (await _userRepository.IsInRoleAsync(user, RoleAdmin))
             {
                 return RedirectToAction(ActionDashboard, ControllerAdmin);
             }
 
-            if (await _userManager.IsInRoleAsync(user, RoleRegistrar))
+            if (await _userRepository.IsInRoleAsync(user, RoleRegistrar))
             {
                 return RedirectToAction(ActionRegistrar, ControllerRegistrar);
             }
@@ -649,4 +604,3 @@ namespace FirstWebApplication.Controllers
         }
     }
 }
-

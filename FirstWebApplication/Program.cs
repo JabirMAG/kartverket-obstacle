@@ -29,11 +29,7 @@ builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IArchiveRepository, ArchiveRepository>();
-
-/// <summary>
-/// Register services for dependency injection
-/// </summary>
-builder.Services.AddScoped<FirstWebApplication.Services.IPilotHelperService, FirstWebApplication.Services.PilotHelperService>();
+builder.Services.AddScoped<IGreetingRepository, GreetingRepository>();
 
 /// <summary>
 /// Database setup: Configure MySQL connection with retry logic
