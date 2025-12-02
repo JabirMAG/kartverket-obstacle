@@ -277,7 +277,7 @@ namespace Kartverket.Tests.Controllers
 
             _userRepositoryMock.Setup(x => x.Query())
                 .Returns(users.AsQueryable());
-            _userManagerMock.Setup(x => x.GetRolesAsync(It.IsAny<ApplicationUser>()))
+            _userRepositoryMock.Setup(x => x.GetRolesAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(new List<string>());
 
             // Mock ToListAsync by using TestAsyncQueryable helper or just test the query part
@@ -316,11 +316,11 @@ namespace Kartverket.Tests.Controllers
                 .ReturnsAsync(user);
             _userRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Success);
-            _userManagerMock.Setup(x => x.GetRolesAsync(It.IsAny<ApplicationUser>()))
+            _userRepositoryMock.Setup(x => x.GetRolesAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(new List<string>());
-            _roleManagerMock.Setup(x => x.RoleExistsAsync("Pilot"))
+            _userRepositoryMock.Setup(x => x.RoleExistsAsync("Pilot"))
                 .ReturnsAsync(true);
-            _userManagerMock.Setup(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), "Pilot"))
+            _userRepositoryMock.Setup(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), "Pilot"))
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
@@ -365,13 +365,13 @@ namespace Kartverket.Tests.Controllers
 
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(viewModel.Email))
                 .ReturnsAsync((ApplicationUser?)null);
-            _userManagerMock.Setup(x => x.FindByNameAsync(viewModel.Username))
+            _userRepositoryMock.Setup(x => x.GetByNameAsync(viewModel.Username))
                 .ReturnsAsync((ApplicationUser?)null);
             _userRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), viewModel.Password))
                 .ReturnsAsync(IdentityResult.Success);
-            _roleManagerMock.Setup(x => x.RoleExistsAsync("Pilot"))
+            _userRepositoryMock.Setup(x => x.RoleExistsAsync("Pilot"))
                 .ReturnsAsync(true);
-            _userManagerMock.Setup(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), "Pilot"))
+            _userRepositoryMock.Setup(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), "Pilot"))
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
@@ -447,11 +447,11 @@ namespace Kartverket.Tests.Controllers
 
             _userRepositoryMock.Setup(x => x.GetByIdAsync("user-id"))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.GetRolesAsync(user))
+            _userRepositoryMock.Setup(x => x.GetRolesAsync(user))
                 .ReturnsAsync(new List<string>());
-            _roleManagerMock.Setup(x => x.RoleExistsAsync("Pilot"))
+            _userRepositoryMock.Setup(x => x.RoleExistsAsync("Pilot"))
                 .ReturnsAsync(true);
-            _userManagerMock.Setup(x => x.AddToRoleAsync(user, "Pilot"))
+            _userRepositoryMock.Setup(x => x.AddToRoleAsync(user, "Pilot"))
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
@@ -460,7 +460,7 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("ManageUsers", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.AddToRoleAsync(user, "Pilot"), Times.Once);
+            _userRepositoryMock.Verify(x => x.AddToRoleAsync(user, "Pilot"), Times.Once);
         }
 
         /// <summary>
@@ -475,7 +475,7 @@ namespace Kartverket.Tests.Controllers
 
             _userRepositoryMock.Setup(x => x.GetByIdAsync("user-id"))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.RemoveFromRoleAsync(user, "Pilot"))
+            _userRepositoryMock.Setup(x => x.RemoveFromRoleAsync(user, "Pilot"))
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
@@ -484,7 +484,7 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("ManageUsers", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.RemoveFromRoleAsync(user, "Pilot"), Times.Once);
+            _userRepositoryMock.Verify(x => x.RemoveFromRoleAsync(user, "Pilot"), Times.Once);
         }
 
         /// <summary>
@@ -552,7 +552,7 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("ManageUsers", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
@@ -567,7 +567,7 @@ namespace Kartverket.Tests.Controllers
 
             _userRepositoryMock.Setup(x => x.GetByIdAsync("user-id"))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.GetRolesAsync(user))
+            _userRepositoryMock.Setup(x => x.GetRolesAsync(user))
                 .ReturnsAsync(new List<string> { "ExistingRole" });
 
             // Act
@@ -576,7 +576,7 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("ManageUsers", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
@@ -598,7 +598,7 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("ManageUsers", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.RemoveFromRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(x => x.RemoveFromRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
