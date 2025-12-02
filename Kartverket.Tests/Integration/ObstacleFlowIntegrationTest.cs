@@ -23,6 +23,7 @@ namespace Kartverket.Tests.Integration
         private readonly RegistrarRepository _registrarRepository;
         private readonly ObstacleController _controller;
         private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
+        private readonly Mock<IUserRepository> _userRepositoryMock;
 
         public ObstacleFlowIntegrationTest()
         {
@@ -34,11 +35,11 @@ namespace Kartverket.Tests.Integration
             _userManagerMock = new Mock<UserManager<ApplicationUser>>(
                 store.Object, null, null, null, null, null, null, null, null);
 
-            var userRepositoryMock = new Mock<IUserRepository>();
+            _userRepositoryMock = new Mock<IUserRepository>();
             _controller = new ObstacleController(
                 _obstacleRepository,
                 _registrarRepository,
-                userRepositoryMock.Object);
+                _userRepositoryMock.Object);
 
             _controller.ControllerContext = new ControllerContext
             {
@@ -63,8 +64,7 @@ namespace Kartverket.Tests.Integration
             };
 
             var user = new ApplicationUser { Id = "test-user-id", UserName = "testuser" };
-            var userRepositoryMock = new Mock<IUserRepository>();
-            userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
             // Act - Use controller method

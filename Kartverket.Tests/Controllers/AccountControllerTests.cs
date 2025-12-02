@@ -40,6 +40,10 @@ namespace Kartverket.Tests.Controllers
 
             // Create controller
             var userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+            userRepositoryMock.Setup(x => x.GetAllOrganizations())
+                .Returns(new[] { "Kartverket" });
             _controller = new AccountController(
                 userRepositoryMock.Object,
                 _mockSignInManager.Object,

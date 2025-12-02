@@ -84,10 +84,14 @@ namespace Kartverket.Tests.Controllers
             obstacle.ObstacleId = 1;
             obstacle.ObstacleStatus = 1;
 
+            var updatedObstacle = TestDataBuilder.CreateValidObstacle();
+            updatedObstacle.ObstacleId = 1;
+            updatedObstacle.ObstacleStatus = 2;
+
             _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
                 .ReturnsAsync(obstacle);
-            _obstacleRepositoryMock.Setup(x => x.UpdateObstacles(It.IsAny<ObstacleData>()))
-                .ReturnsAsync(obstacle);
+            _obstacleRepositoryMock.Setup(x => x.UpdateObstacleStatus(1, 2))
+                .ReturnsAsync(updatedObstacle);
 
             // Act
             var result = await _controller.UpdateObstacleStatus(1, 2);
@@ -97,7 +101,7 @@ namespace Kartverket.Tests.Controllers
             Assert.NotNull(redirectResult);
             Assert.Equal("Registrar", redirectResult.ActionName);
             _obstacleRepositoryMock.Verify(x => x.GetElementById(1), Times.Once);
-            _obstacleRepositoryMock.Verify(x => x.UpdateObstacles(It.Is<ObstacleData>(o => o.ObstacleStatus == 2)), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.UpdateObstacleStatus(1, 2), Times.Once);
         }
 
         /// <summary>
@@ -132,9 +136,13 @@ namespace Kartverket.Tests.Controllers
         public async Task AddRapport_ShouldAddRapport_AndRedirect()
         {
             // Arrange
-            var rapport = TestDataBuilder.CreateValidRapport(1, "Test comment");
+            var obstacle = TestDataBuilder.CreateValidObstacle();
+            obstacle.ObstacleId = 1;
 
-            _registrarRepositoryMock.Setup(x => x.AddRapport(It.IsAny<RapportData>()))
+            var rapport = TestDataBuilder.CreateValidRapport(1, "Test comment");
+            _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
+                .ReturnsAsync(obstacle);
+            _registrarRepositoryMock.Setup(x => x.AddRapportToObstacle(1, "Test comment"))
                 .ReturnsAsync(rapport);
 
             // Act
@@ -143,8 +151,8 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Registrar", redirectResult.ActionName);
-            _registrarRepositoryMock.Verify(x => x.AddRapport(It.Is<RapportData>(r => 
-                r.ObstacleId == 1 && r.RapportComment == "Test comment")), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetElementById(1), Times.Once);
+            _registrarRepositoryMock.Verify(x => x.AddRapportToObstacle(1, "Test comment"), Times.Once);
         }
 
         /// <summary>
@@ -202,10 +210,9 @@ namespace Kartverket.Tests.Controllers
             var obstacle = TestDataBuilder.CreateValidObstacle();
             obstacle.ObstacleId = 1;
             var rapport = TestDataBuilder.CreateValidRapport(1, "New comment");
-
             _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
                 .ReturnsAsync(obstacle);
-            _registrarRepositoryMock.Setup(x => x.AddRapport(It.IsAny<RapportData>()))
+            _registrarRepositoryMock.Setup(x => x.AddRapportToObstacle(1, "New comment"))
                 .ReturnsAsync(rapport);
 
             // Act
@@ -214,8 +221,8 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("DetaljerOmRapport", redirectResult.ActionName);
-            _registrarRepositoryMock.Verify(x => x.AddRapport(It.Is<RapportData>(r => 
-                r.ObstacleId == 1 && r.RapportComment == "New comment")), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetElementById(1), Times.Once);
+            _registrarRepositoryMock.Verify(x => x.AddRapportToObstacle(1, "New comment"), Times.Once);
         }
 
         /// <summary>
@@ -246,20 +253,24 @@ namespace Kartverket.Tests.Controllers
         [Fact]
         public async Task ArchivedReports_ShouldReturnView_WithArchivedReports()
         {
-            // Arrange - Note: Testing ArchivedReports requires EF Core test infrastructure
-            // This test verifies the method structure, full test would need in-memory database
-            try
+            // Arrange
+            var archivedReports = new List<ArchivedReport>
             {
-                var result = await _controller.ArchivedReports();
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.NotNull(viewResult.Model);
-            }
-            catch (NullReferenceException)
-            {
-                // Expected when DbSet is not properly mocked
-                // This test verifies the method exists and returns correct type
-                Assert.True(true);
-            }
+                new ArchivedReport { ArchivedReportId = 1, ObstacleName = "Test Obstacle" }
+            };
+
+            _archiveRepositoryMock.Setup(x => x.GetAllArchivedReportsAsync())
+                .ReturnsAsync(archivedReports);
+
+            // Act
+            var result = await _controller.ArchivedReports();
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.NotNull(viewResult);
+            Assert.Equal("RegistrarArchivedReports", viewResult.ViewName);
+            Assert.NotNull(viewResult.Model);
+            _archiveRepositoryMock.Verify(x => x.GetAllArchivedReportsAsync(), Times.Once);
         }
 
         /// <summary>

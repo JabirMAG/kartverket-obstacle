@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Session;
 using Moq;
+using System.Linq;
 using System.Security.Claims;
 using FirstWebApplication.Models.ViewModel;
 
@@ -19,22 +20,19 @@ namespace Kartverket.Tests.Controllers
     {
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
-        private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
+        private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly VarslingController _controller;
 
         public VarslingControllerTest()
         {
-            var store = new Mock<IUserStore<ApplicationUser>>();
-            _userManagerMock = new Mock<UserManager<ApplicationUser>>(
-                store.Object, null, null, null, null, null, null, null, null);
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
+            _userRepositoryMock = new Mock<IUserRepository>();
 
-            var userRepositoryMock = new Mock<IUserRepository>();
             _controller = new VarslingController(
                 _registrarRepositoryMock.Object,
                 _obstacleRepositoryMock.Object,
-                userRepositoryMock.Object);
+                _userRepositoryMock.Object);
 
             // Setup controller context with user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -64,15 +62,16 @@ namespace Kartverket.Tests.Controllers
             {
                 TestDataBuilder.CreateValidRapport(1, "Manual comment")
             };
+            rapports[0].RapportID = 1;
+            rapports[0].Obstacle = obstacle;
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("user-id"))
-                .ReturnsAsync(new List<ObstacleData> { obstacle });
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleIdsByOwner("user-id"))
+                .ReturnsAsync(new HashSet<int> { 1 });
+            _registrarRepositoryMock.Setup(x => x.GetRapportsForUserObstacles(It.IsAny<HashSet<int>>()))
                 .ReturnsAsync(rapports);
-            _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
-                .ReturnsAsync(obstacle);
+            // Note: GetElementById is not called since obstacle is already included in rapport
 
             // Act
             var result = await _controller.Index();
@@ -81,8 +80,8 @@ namespace Kartverket.Tests.Controllers
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
             Assert.NotNull(viewResult.Model);
-            _userManagerMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
-            _obstacleRepositoryMock.Verify(x => x.GetObstaclesByOwner("user-id"), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetObstacleIdsByOwner("user-id"), Times.Once);
         }
 
         /// <summary>
@@ -92,7 +91,7 @@ namespace Kartverket.Tests.Controllers
         public async Task Index_ShouldReturnEmptyList_WhenUserIsNull()
         {
             // Arrange
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync((ApplicationUser?)null);
 
             // Act
@@ -103,8 +102,8 @@ namespace Kartverket.Tests.Controllers
             Assert.NotNull(viewResult);
             var model = Assert.IsAssignableFrom<IEnumerable<VarslingViewModel>>(viewResult.Model);
             Assert.Empty(model);
-            _userManagerMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
-            _obstacleRepositoryMock.Verify(x => x.GetObstaclesByOwner(It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetObstacleIdsByOwner(It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
@@ -123,9 +122,9 @@ namespace Kartverket.Tests.Controllers
             };
 
             // Mock that user is a Pilot (required by [Authorize(Roles = "Pilot")])
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
                 .ReturnsAsync(true);
 
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "user-id"))
@@ -181,12 +180,14 @@ namespace Kartverket.Tests.Controllers
             };
             rapports[0].RapportID = 10;
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("user-id"))
-                .ReturnsAsync(new List<ObstacleData> { obstacle });
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
-                .ReturnsAsync(rapports);
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
+                .ReturnsAsync(true);
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleIdsByOwner("user-id"))
+                .ReturnsAsync(new HashSet<int> { 1 });
+            _registrarRepositoryMock.Setup(x => x.GetUnreadNotificationsCount(It.IsAny<HashSet<int>>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
 
             // Act
             var result = await _controller.GetNotificationCount();
@@ -195,7 +196,7 @@ namespace Kartverket.Tests.Controllers
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.NotNull(jsonResult);
             Assert.NotNull(jsonResult.Value);
-            _userManagerMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
         }
 
         /// <summary>
@@ -229,14 +230,15 @@ namespace Kartverket.Tests.Controllers
             _controller.ControllerContext.HttpContext.Session = session;
 
             // Mock that user is a Pilot (required by GetNotificationCount check)
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Pilot"))
                 .ReturnsAsync(true);
-            _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("user-id"))
-                .ReturnsAsync(new List<ObstacleData> { obstacle });
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
-                .ReturnsAsync(rapports);
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleIdsByOwner("user-id"))
+                .ReturnsAsync(new HashSet<int> { 1 });
+            // GetNotificationCount uses GetUnreadNotificationsCount, not GetRapportsForUserObstacles
+            _registrarRepositoryMock.Setup(x => x.GetUnreadNotificationsCount(It.IsAny<HashSet<int>>(), 10))
+                .ReturnsAsync(1); // Only one unread notification (RapportID 15 > 10, and RapportID 5 is filtered)
 
             // Act
             var result = await _controller.GetNotificationCount();
@@ -266,22 +268,27 @@ namespace Kartverket.Tests.Controllers
             
             var rapports = new List<RapportData>
             {
-                TestDataBuilder.CreateValidRapport(1, "Hindring 'Test' ble sendt inn. Høyde: 10"), // Auto-generated
+                TestDataBuilder.CreateValidRapport(1, "Hindring 'Test' ble sendt inn. Høyde: 10"), // Auto-generated - will be filtered by GetRapportsForUserObstacles
                 TestDataBuilder.CreateValidRapport(1, "Manual comment from admin"), // Manual
                 TestDataBuilder.CreateValidRapport(1, "Another manual comment") // Manual
             };
+            rapports[0].RapportID = 1;
+            rapports[1].RapportID = 2;
+            rapports[2].RapportID = 3;
             rapports[0].Obstacle = obstacle;
             rapports[1].Obstacle = obstacle;
             rapports[2].Obstacle = obstacle;
+            
+            // GetRapportsForUserObstacles filters out auto-generated comments, so mock should return only manual ones
+            var filteredRapports = rapports.Where(r => !r.RapportComment.Contains("Hindring '")).ToList();
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("user-id"))
-                .ReturnsAsync(new List<ObstacleData> { obstacle });
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
-                .ReturnsAsync(rapports);
-            _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
-                .ReturnsAsync(obstacle);
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleIdsByOwner("user-id"))
+                .ReturnsAsync(new HashSet<int> { 1 });
+            _registrarRepositoryMock.Setup(x => x.GetRapportsForUserObstacles(It.IsAny<HashSet<int>>()))
+                .ReturnsAsync(filteredRapports);
+            // Note: GetElementById is not called since obstacle is already included in rapport
 
             // Setup session
             _controller.ControllerContext.HttpContext.Session = new TestSession();
@@ -322,20 +329,20 @@ namespace Kartverket.Tests.Controllers
                 TestDataBuilder.CreateValidRapport(1, "Comment 2 for obstacle 1"),
                 TestDataBuilder.CreateValidRapport(2, "Comment 1 for obstacle 2")
             };
+            rapports[0].RapportID = 1;
+            rapports[1].RapportID = 2;
+            rapports[2].RapportID = 3;
             rapports[0].Obstacle = obstacle1;
             rapports[1].Obstacle = obstacle1;
             rapports[2].Obstacle = obstacle2;
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("user-id"))
-                .ReturnsAsync(new List<ObstacleData> { obstacle1, obstacle2 });
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleIdsByOwner("user-id"))
+                .ReturnsAsync(new HashSet<int> { 1, 2 });
+            _registrarRepositoryMock.Setup(x => x.GetRapportsForUserObstacles(It.IsAny<HashSet<int>>()))
                 .ReturnsAsync(rapports);
-            _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
-                .ReturnsAsync(obstacle1);
-            _obstacleRepositoryMock.Setup(x => x.GetElementById(2))
-                .ReturnsAsync(obstacle2);
+            // Note: GetElementById is not called since obstacles are already included in rapports
 
             // Setup session
             _controller.ControllerContext.HttpContext.Session = new TestSession();
@@ -388,14 +395,13 @@ namespace Kartverket.Tests.Controllers
             var session = new TestSession();
             _controller.ControllerContext.HttpContext.Session = session;
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("user-id"))
-                .ReturnsAsync(new List<ObstacleData> { obstacle });
-            _registrarRepositoryMock.Setup(x => x.GetAllRapports())
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleIdsByOwner("user-id"))
+                .ReturnsAsync(new HashSet<int> { 1 });
+            _registrarRepositoryMock.Setup(x => x.GetRapportsForUserObstacles(It.IsAny<HashSet<int>>()))
                 .ReturnsAsync(rapports);
-            _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
-                .ReturnsAsync(obstacle);
+            // Note: GetElementById is not called since obstacle is already included in rapport
 
             // Act
             var result = await _controller.Index();

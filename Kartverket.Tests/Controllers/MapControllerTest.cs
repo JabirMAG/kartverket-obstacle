@@ -36,7 +36,7 @@ namespace Kartverket.Tests.Controllers
             obstacles[0].ObstacleStatus = 1; // Pending
             obstacles[1].ObstacleStatus = 2; // Approved
 
-            _obstacleRepositoryMock.Setup(x => x.GetAllObstacles())
+            _obstacleRepositoryMock.Setup(x => x.GetReportedObstacles())
                 .ReturnsAsync(obstacles);
 
             // Act
@@ -49,7 +49,7 @@ namespace Kartverket.Tests.Controllers
             var reportedObstacles = _controller.ViewBag.ReportedObstacles as List<ObstacleData>;
             Assert.NotNull(reportedObstacles);
             Assert.Equal(2, reportedObstacles.Count);
-            _obstacleRepositoryMock.Verify(x => x.GetAllObstacles(), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetReportedObstacles(), Times.Once);
         }
 
         /// <summary>
@@ -69,8 +69,10 @@ namespace Kartverket.Tests.Controllers
             obstacles[1].ObstacleStatus = 2; // Approved
             obstacles[2].ObstacleStatus = 3; // Rejected
 
-            _obstacleRepositoryMock.Setup(x => x.GetAllObstacles())
-                .ReturnsAsync(obstacles);
+            // GetReportedObstacles already filters out rejected obstacles (status 3)
+            var reportedObstacles = new List<ObstacleData> { obstacles[0], obstacles[1] };
+            _obstacleRepositoryMock.Setup(x => x.GetReportedObstacles())
+                .ReturnsAsync(reportedObstacles);
 
             // Act
             var result = await _controller.Map();
@@ -78,11 +80,11 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
-            var reportedObstacles = _controller.ViewBag.ReportedObstacles as List<ObstacleData>;
-            Assert.NotNull(reportedObstacles);
-            Assert.Equal(2, reportedObstacles.Count);
-            Assert.All(reportedObstacles, o => Assert.True(o.ObstacleStatus == 1 || o.ObstacleStatus == 2));
-            _obstacleRepositoryMock.Verify(x => x.GetAllObstacles(), Times.Once);
+            var viewBagObstacles = _controller.ViewBag.ReportedObstacles as List<ObstacleData>;
+            Assert.NotNull(viewBagObstacles);
+            Assert.Equal(2, viewBagObstacles.Count);
+            Assert.All(viewBagObstacles, o => Assert.True(o.ObstacleStatus == 1 || o.ObstacleStatus == 2));
+            _obstacleRepositoryMock.Verify(x => x.GetReportedObstacles(), Times.Once);
         }
 
         /// <summary>
@@ -105,8 +107,17 @@ namespace Kartverket.Tests.Controllers
             obstacles[2].ObstacleStatus = 1; // Pending
             obstacles[2].ObstacleId = 3;
 
-            _obstacleRepositoryMock.Setup(x => x.GetAllObstacles())
-                .ReturnsAsync(obstacles);
+            var pendingObstacles = new List<ObstacleData> { obstacles[0], obstacles[2] };
+            var jsonData = new List<object>
+            {
+                new { id = 1, name = obstacles[0].ObstacleName, height = obstacles[0].ObstacleHeight, description = obstacles[0].ObstacleDescription, status = 1, geometryGeoJson = obstacles[0].GeometryGeoJson },
+                new { id = 3, name = obstacles[2].ObstacleName, height = obstacles[2].ObstacleHeight, description = obstacles[2].ObstacleDescription, status = 1, geometryGeoJson = obstacles[2].GeometryGeoJson }
+            };
+
+            _obstacleRepositoryMock.Setup(x => x.GetPendingObstacles())
+                .ReturnsAsync(pendingObstacles);
+            _obstacleRepositoryMock.Setup(x => x.MapToJsonFormat(pendingObstacles))
+                .Returns(jsonData);
 
             // Act
             var result = await _controller.GetPendingObstacles();
@@ -115,7 +126,8 @@ namespace Kartverket.Tests.Controllers
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.NotNull(jsonResult);
             Assert.NotNull(jsonResult.Value);
-            _obstacleRepositoryMock.Verify(x => x.GetAllObstacles(), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetPendingObstacles(), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.MapToJsonFormat(pendingObstacles), Times.Once);
         }
 
         /// <summary>
@@ -133,8 +145,16 @@ namespace Kartverket.Tests.Controllers
             obstacle.ObstacleStatus = 1; // Pending
             obstacle.GeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}";
 
-            _obstacleRepositoryMock.Setup(x => x.GetAllObstacles())
-                .ReturnsAsync(new List<ObstacleData> { obstacle });
+            var pendingObstacles = new List<ObstacleData> { obstacle };
+            var jsonData = new List<object>
+            {
+                new { id = 1, name = "Test Obstacle", height = 50.5, description = "Test Description", status = 1, geometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}" }
+            };
+
+            _obstacleRepositoryMock.Setup(x => x.GetPendingObstacles())
+                .ReturnsAsync(pendingObstacles);
+            _obstacleRepositoryMock.Setup(x => x.MapToJsonFormat(pendingObstacles))
+                .Returns(jsonData);
 
             // Act
             var result = await _controller.GetPendingObstacles();
@@ -204,8 +224,16 @@ namespace Kartverket.Tests.Controllers
             rejectedObstacle.ObstacleId = 3;
             rejectedObstacle.ObstacleStatus = 3; // Rejected - should not be included
 
-            _obstacleRepositoryMock.Setup(x => x.GetAllObstacles())
-                .ReturnsAsync(new List<ObstacleData> { pendingObstacle, approvedObstacle, rejectedObstacle });
+            var pendingObstacles = new List<ObstacleData> { pendingObstacle };
+            var jsonData = new List<object>
+            {
+                new { id = 1, name = pendingObstacle.ObstacleName, height = pendingObstacle.ObstacleHeight, description = pendingObstacle.ObstacleDescription, status = 1, geometryGeoJson = pendingObstacle.GeometryGeoJson }
+            };
+
+            _obstacleRepositoryMock.Setup(x => x.GetPendingObstacles())
+                .ReturnsAsync(pendingObstacles);
+            _obstacleRepositoryMock.Setup(x => x.MapToJsonFormat(pendingObstacles))
+                .Returns(jsonData);
 
             // Act
             var result = await _controller.GetPendingObstacles();

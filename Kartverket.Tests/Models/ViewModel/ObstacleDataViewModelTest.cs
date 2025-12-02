@@ -39,15 +39,15 @@ namespace Kartverket.Tests.Models.ViewModel
         }
 
         /// <summary>
-        /// Tests that ObstacleDataViewModel fails validation when ViewObstacleName is missing
+        /// Tests that ObstacleDataViewModel passes validation when ViewObstacleName is empty (it's optional for quick save)
         /// </summary>
         [Fact]
-        public void ObstacleDataViewModel_ShouldFail_WhenViewObstacleNameIsMissing()
+        public void ObstacleDataViewModel_ShouldPass_WhenViewObstacleNameIsEmpty()
         {
             // Arrange
             var viewModel = new ObstacleDataViewModel
             {
-                ViewObstacleName = "", // Required field is empty
+                ViewObstacleName = "", // Optional field - empty is allowed
                 ViewObstacleHeight = 50,
                 ViewObstacleDescription = "Description",
                 ViewGeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
@@ -57,8 +57,7 @@ namespace Kartverket.Tests.Models.ViewModel
             var isValid = ValidateModel(viewModel, out var results);
 
             // Assert
-            Assert.False(isValid);
-            Assert.Contains(results, r => r.ErrorMessage != null && r.ErrorMessage.Contains("Field is required"));
+            Assert.True(isValid); // ViewObstacleName is optional, only ViewGeometryGeoJson is required
         }
 
         /// <summary>
@@ -72,7 +71,7 @@ namespace Kartverket.Tests.Models.ViewModel
             {
                 ViewObstacleName = "Test Obstacle",
                 ViewObstacleHeight = 50,
-                ViewObstacleDescription = "", // Required field is empty
+                ViewObstacleDescription = "", // Optional field - empty is allowed
                 ViewGeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
             };
 
@@ -80,8 +79,8 @@ namespace Kartverket.Tests.Models.ViewModel
             var isValid = ValidateModel(viewModel, out var results);
 
             // Assert
-            Assert.False(isValid);
-            Assert.Contains(results, r => r.ErrorMessage != null && r.ErrorMessage.Contains("Field is required"));
+            // ViewObstacleDescription is optional, so empty string is valid
+            Assert.True(isValid);
         }
 
         /// <summary>
@@ -104,7 +103,7 @@ namespace Kartverket.Tests.Models.ViewModel
 
             // Assert
             Assert.False(isValid);
-            Assert.Contains(results, r => r.ErrorMessage != null && r.ErrorMessage.Contains("ViewObstacleHeight must be between 0 and 200"));
+            Assert.Contains(results, r => r.ErrorMessage != null && r.ErrorMessage.Contains("Height must be between 0 and 200"));
         }
 
         /// <summary>
@@ -283,8 +282,8 @@ namespace Kartverket.Tests.Models.ViewModel
             Assert.Equal(string.Empty, viewModel.ViewObstacleName);
             Assert.Equal(0, viewModel.ViewObstacleHeight);
             Assert.Equal(string.Empty, viewModel.ViewObstacleDescription);
-            Assert.Null(viewModel.ViewGeometryGeoJson);
-            Assert.Equal(0, viewModel.ViewObstacleStatus);
+            Assert.Equal(string.Empty, viewModel.ViewGeometryGeoJson); // Default is empty string, not null
+            Assert.Equal(1, viewModel.ViewObstacleStatus); // Default is 1 (Pending)
         }
 
         /// <summary>
