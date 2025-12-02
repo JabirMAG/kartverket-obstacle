@@ -1,11 +1,8 @@
 using FirstWebApplication.Models;
 using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,8 +18,7 @@ namespace FirstWebApplication.Controllers
     {
         private readonly IRegistrarRepository _registrarRepository;
         private readonly IObstacleRepository _obstacleRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IPilotHelperService _pilotHelperService;
+        private readonly IUserRepository _userRepository;
 
         // Role name constant
         private const string RolePilot = "Pilot";
@@ -33,13 +29,11 @@ namespace FirstWebApplication.Controllers
         public VarslingController(
             IRegistrarRepository registrarRepository,
             IObstacleRepository obstacleRepository,
-            UserManager<ApplicationUser> userManager,
-            IPilotHelperService pilotHelperService)
+            IUserRepository userRepository)
         {
             _registrarRepository = registrarRepository;
             _obstacleRepository = obstacleRepository;
-            _userManager = userManager;
-            _pilotHelperService = pilotHelperService;
+            _userRepository = userRepository;
         }
 
         /// <summary>
@@ -49,16 +43,14 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await _userRepository.GetUserAsync(User);
             if (user == null)
             {
                 return View(new List<VarslingViewModel>());
             }
 
-            var filteredComments = await GetFilteredCommentsAsync();
-            var userObstacleIds = await GetUserObstacleIdsAsync(user.Id);
-            
-            var userComments = GetUserComments(filteredComments, userObstacleIds);
+            var userObstacleIds = await _obstacleRepository.GetObstacleIdsByOwner(user.Id);
+            var userComments = await _registrarRepository.GetRapportsForUserObstacles(userObstacleIds);
             
             SaveLastViewedRapportId(user.Id, userComments);
             
@@ -76,17 +68,20 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int obstacleId)
         {
-            var (user, userError) = await GetUserOrErrorAsync();
-            if (userError != null) return userError;
+            var user = await _userRepository.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
 
-            var obstacle = await _pilotHelperService.GetUserObstacleAsync(obstacleId, user.Id);
+            var obstacle = await _obstacleRepository.GetObstacleByOwnerAndId(obstacleId, user.Id);
             if (obstacle == null)
             {
                 TempData["Error"] = ErrorObstacleNotFound;
                 return RedirectToAction(nameof(Index));
             }
 
-            var obstacleRapports = await _pilotHelperService.GetObstacleRapportsAsync(obstacleId);
+            var obstacleRapports = await _registrarRepository.GetRapportsByObstacleId(obstacleId);
             
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
@@ -110,73 +105,22 @@ namespace FirstWebApplication.Controllers
 
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null || !await _userManager.IsInRoleAsync(user, RolePilot))
+                var user = await _userRepository.GetUserAsync(User);
+                if (user == null || !await _userRepository.IsInRoleAsync(user, RolePilot))
                 {
                     return Json(new { count = 0 });
                 }
 
                 var lastViewedRapportId = GetLastViewedRapportId(user.Id);
-                var filteredComments = await GetFilteredCommentsAsync();
-                var userObstacleIds = await GetUserObstacleIdsAsync(user.Id);
+                var userObstacleIds = await _obstacleRepository.GetObstacleIdsByOwner(user.Id);
+                var unreadCount = await _registrarRepository.GetUnreadNotificationsCount(userObstacleIds, lastViewedRapportId);
 
-                var unreadNotifications = GetUnreadNotifications(filteredComments, userObstacleIds, lastViewedRapportId);
-
-                return Json(new { count = unreadNotifications.Count });
+                return Json(new { count = unreadCount });
             }
             catch
             {
                 return Json(new { count = 0 });
             }
-        }
-
-        /// <summary>
-        /// Gets the current logged-in user or returns an error result if user is not found
-        /// </summary>
-        /// <returns>Tuple containing the user (or null) and error result (or null if user is valid)</returns>
-        private async Task<(ApplicationUser? user, IActionResult? errorResult)> GetUserOrErrorAsync()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return (null, RedirectToAction(nameof(Index)));
-            }
-            return (user, null);
-        }
-
-
-        /// <summary>
-        /// Gets all reports, filters out auto-generated comments, and returns the filtered list
-        /// </summary>
-        /// <returns>List of filtered reports without auto-generated comments</returns>
-        private async Task<List<RapportData>> GetFilteredCommentsAsync()
-        {
-            var allRapports = await _registrarRepository.GetAllRapports();
-            return FilterOutAutoGeneratedComments(allRapports).ToList();
-        }
-
-        /// <summary>
-        /// Gets all obstacle IDs that belong to the specified user
-        /// </summary>
-        /// <param name="userId">The ID of the user</param>
-        /// <returns>HashSet of obstacle IDs owned by the user</returns>
-        private async Task<HashSet<int>> GetUserObstacleIdsAsync(string userId)
-        {
-            var userObstacles = await _obstacleRepository.GetObstaclesByOwner(userId);
-            return userObstacles.Select(o => o.ObstacleId).ToHashSet();
-        }
-
-        /// <summary>
-        /// Filters comments to only include those for obstacles owned by the user
-        /// </summary>
-        /// <param name="comments">The list of comments to filter</param>
-        /// <param name="userObstacleIds">The set of obstacle IDs owned by the user</param>
-        /// <returns>List of comments for user's obstacles</returns>
-        private static List<RapportData> GetUserComments(IEnumerable<RapportData> comments, HashSet<int> userObstacleIds)
-        {
-            return comments
-                .Where(r => r.Obstacle != null && userObstacleIds.Contains(r.Obstacle.ObstacleId))
-                .ToList();
         }
 
         /// <summary>
@@ -201,11 +145,12 @@ namespace FirstWebApplication.Controllers
         }
 
         /// <summary>
-        /// Builds ViewModel list for notifications grouped by obstacle
+        /// Builds ViewModel list for notifications grouped by obstacle.
+        /// Uses obstacles already included in the comments to avoid N+1 query problem.
         /// </summary>
-        /// <param name="userComments">The list of comments for user's obstacles</param>
+        /// <param name="userComments">The list of comments for user's obstacles (with obstacles already included)</param>
         /// <returns>List of VarslingViewModel grouped by obstacle</returns>
-        private async Task<List<VarslingViewModel>> BuildVarslingViewModelsAsync(List<RapportData> userComments)
+        private Task<List<VarslingViewModel>> BuildVarslingViewModelsAsync(List<RapportData> userComments)
         {
             var groupedComments = userComments
                 .Where(r => r.Obstacle != null)
@@ -216,8 +161,9 @@ namespace FirstWebApplication.Controllers
 
             foreach (var group in groupedComments)
             {
-                var obstacleId = group.Key;
-                var obstacle = await _obstacleRepository.GetElementById(obstacleId);
+                // Use obstacle already included in the comment to avoid additional database calls
+                var firstComment = group.First();
+                var obstacle = firstComment.Obstacle;
 
                 if (obstacle != null)
                 {
@@ -232,38 +178,14 @@ namespace FirstWebApplication.Controllers
                 }
             }
 
-            return varslinger
+            var result = varslinger
                 .OrderByDescending(v => v.Comments.FirstOrDefault()?.RapportID ?? 0)
                 .ToList();
+
+            return Task.FromResult(result);
         }
 
 
-        /// <summary>
-        /// Filters notifications to only include unread ones (RapportID > lastViewedRapportId)
-        /// </summary>
-        /// <param name="comments">The list of comments to filter</param>
-        /// <param name="userObstacleIds">The set of obstacle IDs owned by the user</param>
-        /// <param name="lastViewedRapportId">The highest RapportID the user has seen</param>
-        /// <returns>List of unread notifications</returns>
-        private static List<RapportData> GetUnreadNotifications(IEnumerable<RapportData> comments, HashSet<int> userObstacleIds, int lastViewedRapportId)
-        {
-            return comments
-                .Where(r => r.Obstacle != null &&
-                           userObstacleIds.Contains(r.Obstacle.ObstacleId) &&
-                           r.RapportID > lastViewedRapportId)
-                .ToList();
-        }
-
-        /// <summary>
-        /// Helper method to filter out auto-generated comments
-        /// </summary>
-        /// <param name="rapports">The list of reports to filter</param>
-        /// <returns>Filtered list of reports without auto-generated comments</returns>
-        private static IEnumerable<RapportData> FilterOutAutoGeneratedComments(IEnumerable<RapportData> rapports)
-        {
-            return rapports.Where(r => !(r.RapportComment.StartsWith("Hindring '") &&
-                                        r.RapportComment.Contains(" ble sendt inn. Høyde:")));
-        }
     }
 }
 

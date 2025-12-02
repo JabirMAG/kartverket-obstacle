@@ -1,7 +1,6 @@
 using FirstWebApplication.Controllers;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.Services;
 using Kartverket.Tests.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -19,7 +18,6 @@ namespace Kartverket.Tests.Controllers
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
         private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
-        private readonly Mock<IPilotHelperService> _pilotHelperServiceMock;
         private readonly PilotController _controller;
 
         public PilotControllerTest()
@@ -29,13 +27,11 @@ namespace Kartverket.Tests.Controllers
                 store.Object, null, null, null, null, null, null, null, null);
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
-            _pilotHelperServiceMock = new Mock<IPilotHelperService>();
 
             _controller = new PilotController(
                 _obstacleRepositoryMock.Object,
                 _registrarRepositoryMock.Object,
-                _userManagerMock.Object,
-                _pilotHelperServiceMock.Object);
+                _userManagerMock.Object);
 
             // Setup controller context with user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -116,9 +112,9 @@ namespace Kartverket.Tests.Controllers
 
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(1, "pilot-user-id"))
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync(obstacle);
-            _pilotHelperServiceMock.Setup(x => x.GetObstacleRapportsAsync(1))
+            _registrarRepositoryMock.Setup(x => x.GetRapportsByObstacleId(1))
                 .ReturnsAsync(rapports);
 
             // Setup TempData
@@ -148,7 +144,7 @@ namespace Kartverket.Tests.Controllers
 
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(1, "pilot-user-id"))
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync((ObstacleData?)null); // Obstacle doesn't belong to user
 
             // Setup TempData
@@ -178,7 +174,7 @@ namespace Kartverket.Tests.Controllers
 
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(1, "pilot-user-id"))
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync(obstacle);
             _obstacleRepositoryMock.Setup(x => x.UpdateObstacles(It.IsAny<ObstacleData>()))
                 .ReturnsAsync(obstacle);
@@ -216,7 +212,7 @@ namespace Kartverket.Tests.Controllers
 
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(1, "pilot-user-id"))
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync(obstacle);
 
             // Setup TempData
@@ -244,7 +240,7 @@ namespace Kartverket.Tests.Controllers
 
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(999, "pilot-user-id"))
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(999, "pilot-user-id"))
                 .ReturnsAsync((ObstacleData?)null);
 
             // Setup TempData
@@ -259,7 +255,7 @@ namespace Kartverket.Tests.Controllers
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(redirectResult);
             Assert.Equal("Index", redirectResult.ActionName);
-            _pilotHelperServiceMock.Verify(x => x.GetUserObstacleAsync(999, "pilot-user-id"), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetObstacleByOwnerAndId(999, "pilot-user-id"), Times.Once);
         }
 
         /// <summary>
@@ -273,7 +269,7 @@ namespace Kartverket.Tests.Controllers
 
             _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
-            _pilotHelperServiceMock.Setup(x => x.GetUserObstacleAsync(999, "pilot-user-id"))
+            _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(999, "pilot-user-id"))
                 .ReturnsAsync((ObstacleData?)null);
 
             // Setup TempData
@@ -288,7 +284,7 @@ namespace Kartverket.Tests.Controllers
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(redirectResult);
             Assert.Equal("Index", redirectResult.ActionName);
-            _pilotHelperServiceMock.Verify(x => x.GetUserObstacleAsync(999, "pilot-user-id"), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetObstacleByOwnerAndId(999, "pilot-user-id"), Times.Once);
             _obstacleRepositoryMock.Verify(x => x.UpdateObstacles(It.IsAny<ObstacleData>()), Times.Never);
         }
     }

@@ -1,10 +1,7 @@
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
-using FirstWebApplication.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace FirstWebApplication.Controllers
@@ -17,11 +14,7 @@ namespace FirstWebApplication.Controllers
     {
         private readonly IObstacleRepository _obstacleRepository;
         private readonly IRegistrarRepository _registrarRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IPilotHelperService _pilotHelperService;
-
-        // Obstacle status constants
-        private const int StatusPending = 1;      // Under behandling
+        private readonly IUserRepository _userRepository;
 
         // Error messages
         private const string ErrorObstacleNotFound = "Fant ikke hindring.";
@@ -31,13 +24,11 @@ namespace FirstWebApplication.Controllers
         public PilotController(
             IObstacleRepository obstacleRepository,
             IRegistrarRepository registrarRepository,
-            UserManager<ApplicationUser> userManager,
-            IPilotHelperService pilotHelperService)
+            IUserRepository userRepository)
         {
             _obstacleRepository = obstacleRepository;
             _registrarRepository = registrarRepository;
-            _userManager = userManager;
-            _pilotHelperService = pilotHelperService;
+            _userRepository = userRepository;
         }
 
         /// <summary>
@@ -47,8 +38,11 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var (user, userError) = await GetUserOrErrorAsync();
-            if (userError != null) return userError;
+            var user = await _userRepository.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
             var myObstacles = await _obstacleRepository.GetObstaclesByOwner(user.Id);
             return View(myObstacles);
@@ -62,22 +56,25 @@ namespace FirstWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
-            var (user, userError) = await GetUserOrErrorAsync();
-            if (userError != null) return userError;
+            var user = await _userRepository.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
-            var obstacle = await _pilotHelperService.GetUserObstacleAsync(obstacleId, user.Id);
+            var obstacle = await _obstacleRepository.GetObstacleByOwnerAndId(obstacleId, user.Id);
             if (obstacle == null)
             {
                 TempData["Error"] = ErrorObstacleNotFound;
                 return RedirectToAction(nameof(Index));
             }
 
-            var obstacleRapports = await _pilotHelperService.GetObstacleRapportsAsync(obstacleId);
+            var obstacleRapports = await _registrarRepository.GetRapportsByObstacleId(obstacleId);
 
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View(obstacle);
+            return View("PilotObstacleDetails", obstacle);
         }
 
         /// <summary>
@@ -92,82 +89,35 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacle(int obstacleId, string obstacleName, string obstacleDescription, double obstacleHeight)
         {
-            var (user, userError) = await GetUserOrErrorAsync();
-            if (userError != null) return userError;
+            var user = await _userRepository.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
 
-            var obstacle = await _pilotHelperService.GetUserObstacleAsync(obstacleId, user.Id);
+            var obstacle = await _obstacleRepository.GetObstacleByOwnerAndId(obstacleId, user.Id);
             if (obstacle == null)
             {
                 TempData["Error"] = ErrorObstacleNotFound;
                 return RedirectToAction(nameof(Index));
             }
 
-            if (!CanEditObstacle(obstacle))
+            var canEdit = await _obstacleRepository.CanEditObstacle(obstacleId);
+            if (!canEdit)
             {
                 TempData["Error"] = ErrorCannotEditObstacle;
                 return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
             }
 
-            UpdateObstacleProperties(obstacle, obstacleName, obstacleDescription, obstacleHeight);
-            await _obstacleRepository.UpdateObstacles(obstacle);
-            await CreateUpdateRapportAsync(obstacle.ObstacleId, obstacleHeight);
+            var updatedObstacle = await _obstacleRepository.UpdateObstacleProperties(obstacleId, obstacleName, obstacleDescription, obstacleHeight);
+            if (updatedObstacle != null)
+            {
+                var reportMessage = _registrarRepository.GenerateUpdateReportMessage(updatedObstacle, obstacleHeight);
+                await _registrarRepository.AddRapportToObstacle(updatedObstacle.ObstacleId, reportMessage);
+            }
 
             TempData["Success"] = SuccessObstacleUpdated;
             return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
-        }
-
-        /// <summary>
-        /// Gets the current logged-in user or returns an error result if user is not found
-        /// </summary>
-        /// <returns>Tuple containing the user (or null) and error result (or null if user is valid)</returns>
-        private async Task<(ApplicationUser? user, IActionResult? errorResult)> GetUserOrErrorAsync()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return (null, Unauthorized());
-            }
-            return (user, null);
-        }
-
-
-        /// <summary>
-        /// Checks if an obstacle can be edited (must have pending status)
-        /// </summary>
-        /// <param name="obstacle">The obstacle to check</param>
-        /// <returns>True if obstacle can be edited, otherwise false</returns>
-        private static bool CanEditObstacle(ObstacleData obstacle)
-        {
-            return obstacle.ObstacleStatus == StatusPending;
-        }
-
-        /// <summary>
-        /// Updates the properties of an obstacle
-        /// </summary>
-        /// <param name="obstacle">The obstacle to update</param>
-        /// <param name="name">The new name</param>
-        /// <param name="description">The new description</param>
-        /// <param name="height">The new height</param>
-        private static void UpdateObstacleProperties(ObstacleData obstacle, string name, string description, double height)
-        {
-            obstacle.ObstacleName = name;
-            obstacle.ObstacleDescription = description;
-            obstacle.ObstacleHeight = height;
-        }
-
-        /// <summary>
-        /// Creates a rapport comment indicating that the pilot updated the obstacle
-        /// </summary>
-        /// <param name="obstacleId">The ID of the updated obstacle</param>
-        /// <param name="newHeight">The new height of the obstacle</param>
-        private async Task CreateUpdateRapportAsync(int obstacleId, double newHeight)
-        {
-            var rapport = new RapportData
-            {
-                ObstacleId = obstacleId,
-                RapportComment = $"Piloten oppdaterte hindringen. Ny høyde: {newHeight}m."
-            };
-            await _registrarRepository.AddRapport(rapport);
         }
     }
 }

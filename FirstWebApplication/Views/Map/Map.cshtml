@@ -423,13 +423,13 @@
                                 });
                             }
                             // Kopier verdier til skjulte felt i skjemaet
-                            const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
+                            const formGeoInput = formElem.querySelector('input[name="ViewGeometryGeoJson"]') || formElem.querySelector('#GeometryGeoJson');
                             const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
 
                             if (formGeoInput) {
                                 formGeoInput.value = geoJsonValue;
                             } else {
-                                console.error("Could not find input[name='GeometryGeoJson'] in form");
+                                console.error("Could not find ViewGeometryGeoJson input in form");
                             }
                             
                             if (formGeoInputCoordinates) {
@@ -545,7 +545,7 @@
                                                 });
                                             }
                                             // Kopier koordinater tilbake til skjemaet
-                                            const formGeoInput = updatedForm.querySelector('input[name="GeometryGeoJson"]');
+                                            const formGeoInput = updatedForm.querySelector('input[name="ViewGeometryGeoJson"]') || updatedForm.querySelector('#GeometryGeoJson');
                                             const formGeoInputCoordinates = updatedForm.querySelector('input[name="GeometryGeoCoordinates"]');
                                             const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
                                             const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using FirstWebApplication.Models;
+using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
@@ -9,23 +10,20 @@ namespace FirstWebApplication.Controllers
     /// </summary>
     public class HomeController : Controller
     {
+        private readonly IGreetingRepository _greetingRepository;
+
+        public HomeController(IGreetingRepository greetingRepository)
+        {
+            _greetingRepository = greetingRepository;
+        }
+
         /// <summary>
         /// Displays the home page with a time-based greeting
         /// </summary>
         /// <returns>The home page view</returns>
         public IActionResult Index()
         {
-            var hour = DateTime.Now.Hour;
-            string greeting;
-
-            if (hour < 12)
-                greeting = "God morgen!";
-            else if (hour < 18)
-                greeting = "God ettermiddag!";
-            else
-                greeting = "God kveld!";
-
-            ViewBag.Greeting = greeting;
+            ViewBag.Greeting = _greetingRepository.GetTimeBasedGreeting();
             return View();
         }
 

@@ -1,4 +1,4 @@
-﻿@model FirstWebApplication.Models.ObstacleData
+﻿@model FirstWebApplication.Models.ViewModel.ObstacleDataViewModel
 
 @{
     ViewData["Title"] = "Registrer hindring";
@@ -16,7 +16,7 @@
             <div class="card-body">
                 <form asp-controller="Obstacle" asp-action="SubmitObstacle" method="post" id="obstacle-form">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="GeometryGeoJson" id="GeometryGeoJson" />
+                    <input type="hidden" asp-for="ViewGeometryGeoJson" id="GeometryGeoJson" />
                     <input type="hidden" id="coordinatesOnly" name="GeometryGeoCoordinates" />
 
                     <!-- Warning about existing pending obstacle -->
@@ -25,31 +25,31 @@
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="ObstacleName" class="form-label">Hindringens navn</label>
-                        <input asp-for="ObstacleName"
+                        <label asp-for="ViewObstacleName" class="form-label">Hindringens navn</label>
+                        <input asp-for="ViewObstacleName"
                                class="form-control"
                                placeholder="f.eks. Høyspentledning, kran" />
-                        <span asp-validation-for="ObstacleName" class="text-danger small"></span>
+                        <span asp-validation-for="ViewObstacleName" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="ObstacleHeight" class="form-label">Høyde (meter)</label>
-                        <input asp-for="ObstacleHeight"
+                        <label asp-for="ViewObstacleHeight" class="form-label">Høyde (meter)</label>
+                        <input asp-for="ViewObstacleHeight"
                                type="number"
                                step="0.01"
                                min="0"
                                class="form-control"
                                placeholder="f.eks. 2,5" />
-                        <span asp-validation-for="ObstacleHeight" class="text-danger small"></span>
+                        <span asp-validation-for="ViewObstacleHeight" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="ObstacleDescription" class="form-label">Beskrivelse</label>
-                        <textarea asp-for="ObstacleDescription"
+                        <label asp-for="ViewObstacleDescription" class="form-label">Beskrivelse</label>
+                        <textarea asp-for="ViewObstacleDescription"
                                   rows="3"
                                   class="form-control"
                                   placeholder="Beskriv hindringen, plassering, material, osv. Beskriv hindringen, men ikke hva den er for."></textarea>
-                        <span asp-validation-for="ObstacleDescription" class="text-danger small"></span>
+                        <span asp-validation-for="ViewObstacleDescription" class="text-danger small"></span>
                     </div>
 
                     <div class="d-flex justify-content-end obstacle-form-buttons">
