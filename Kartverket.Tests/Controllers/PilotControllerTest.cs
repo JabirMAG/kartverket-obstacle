@@ -17,21 +17,19 @@ namespace Kartverket.Tests.Controllers
     {
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
-        private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
+        private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly PilotController _controller;
 
         public PilotControllerTest()
         {
-            var store = new Mock<IUserStore<ApplicationUser>>();
-            _userManagerMock = new Mock<UserManager<ApplicationUser>>(
-                store.Object, null, null, null, null, null, null, null, null);
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
+            _userRepositoryMock = new Mock<IUserRepository>();
 
             _controller = new PilotController(
                 _obstacleRepositoryMock.Object,
                 _registrarRepositoryMock.Object,
-                _userManagerMock.Object);
+                _userRepositoryMock.Object);
 
             // Setup controller context with user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -58,7 +56,7 @@ namespace Kartverket.Tests.Controllers
                 TestDataBuilder.CreateValidObstacle("pilot-user-id")
             };
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstaclesByOwner("pilot-user-id"))
                 .ReturnsAsync(obstacles);
@@ -71,7 +69,7 @@ namespace Kartverket.Tests.Controllers
             Assert.NotNull(viewResult);
             var model = Assert.IsAssignableFrom<IEnumerable<ObstacleData>>(viewResult.Model);
             Assert.Equal(2, model.Count());
-            _userManagerMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             _obstacleRepositoryMock.Verify(x => x.GetObstaclesByOwner("pilot-user-id"), Times.Once);
         }
 
@@ -82,7 +80,7 @@ namespace Kartverket.Tests.Controllers
         public async Task Index_ShouldReturnUnauthorized_WhenUserIsNull()
         {
             // Arrange
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync((ApplicationUser?)null);
 
             // Act
@@ -91,7 +89,7 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var unauthorizedResult = Assert.IsType<UnauthorizedResult>(result);
             Assert.NotNull(unauthorizedResult);
-            _userManagerMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
             _obstacleRepositoryMock.Verify(x => x.GetObstaclesByOwner(It.IsAny<string>()), Times.Never);
         }
 
@@ -110,7 +108,7 @@ namespace Kartverket.Tests.Controllers
                 TestDataBuilder.CreateValidRapport(1, "Comment 1")
             };
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync(obstacle);
@@ -142,7 +140,7 @@ namespace Kartverket.Tests.Controllers
             var obstacle = TestDataBuilder.CreateValidObstacle("other-user-id");
             obstacle.ObstacleId = 1;
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync((ObstacleData?)null); // Obstacle doesn't belong to user
@@ -172,7 +170,7 @@ namespace Kartverket.Tests.Controllers
             obstacle.ObstacleId = 1;
             obstacle.ObstacleStatus = 1; // Pending
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync(obstacle);
@@ -210,7 +208,7 @@ namespace Kartverket.Tests.Controllers
             obstacle.ObstacleId = 1;
             obstacle.ObstacleStatus = 2; // Approved
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync(obstacle);
@@ -238,7 +236,7 @@ namespace Kartverket.Tests.Controllers
             // Arrange
             var user = new ApplicationUser { Id = "pilot-user-id" };
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(999, "pilot-user-id"))
                 .ReturnsAsync((ObstacleData?)null);
@@ -267,7 +265,7 @@ namespace Kartverket.Tests.Controllers
             // Arrange
             var user = new ApplicationUser { Id = "pilot-user-id" };
 
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(999, "pilot-user-id"))
                 .ReturnsAsync((ObstacleData?)null);

@@ -17,7 +17,6 @@ namespace Kartverket.Tests.Controllers
     {
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
-        private readonly Mock<ApplicationDBContext> _contextMock;
         private readonly Mock<IArchiveRepository> _archiveRepositoryMock;
         private readonly RegistrarController _controller;
 
@@ -25,13 +24,11 @@ namespace Kartverket.Tests.Controllers
         {
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
-            _contextMock = new Mock<ApplicationDBContext>(new DbContextOptions<ApplicationDBContext>());
             _archiveRepositoryMock = new Mock<IArchiveRepository>();
 
             _controller = new RegistrarController(
                 _obstacleRepositoryMock.Object,
                 _registrarRepositoryMock.Object,
-                _contextMock.Object,
                 _archiveRepositoryMock.Object);
 
             // Setup TempData

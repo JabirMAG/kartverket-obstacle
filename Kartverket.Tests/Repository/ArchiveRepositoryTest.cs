@@ -15,6 +15,7 @@ namespace Kartverket.Tests.Repository
     {
         private readonly ApplicationDBContext _context;
         private readonly ObstacleRepository _obstacleRepository;
+        private readonly RegistrarRepository _registrarRepository;
         private readonly ArchiveRepository _archiveRepository;
 
         /// <summary>
@@ -24,7 +25,8 @@ namespace Kartverket.Tests.Repository
         {
             _context = DatabaseFixture.CreateContext();
             _obstacleRepository = new ObstacleRepository(_context);
-            _archiveRepository = new ArchiveRepository(_context, _obstacleRepository);
+            _registrarRepository = new RegistrarRepository(_context);
+            _archiveRepository = new ArchiveRepository(_context, _obstacleRepository, _registrarRepository);
         }
 
         /// <summary>

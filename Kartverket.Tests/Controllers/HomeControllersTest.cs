@@ -1,5 +1,7 @@
 using FirstWebApplication.Controllers;
+using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
 
 namespace Kartverket.Tests.Controllers
 {
@@ -8,7 +10,13 @@ namespace Kartverket.Tests.Controllers
     /// </summary>
     public class HomeControllerTest
     {
-        public HomeControllerTest() { }
+        private readonly Mock<IGreetingRepository> _greetingRepositoryMock;
+
+        public HomeControllerTest()
+        {
+            _greetingRepositoryMock = new Mock<IGreetingRepository>();
+            _greetingRepositoryMock.Setup(x => x.GetTimeBasedGreeting()).Returns("God morgen!");
+        }
 
         /// <summary>
         /// Tests that Index action returns a view with status 200 and greeting based on time of day
@@ -17,7 +25,7 @@ namespace Kartverket.Tests.Controllers
         public void Index_ShouldReturnGreeting_BasedOnTimeOfDay()
         {
             // Arrange
-            var controller = new HomeController();
+            var controller = new HomeController(_greetingRepositoryMock.Object);
             var result = controller.Index();
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
@@ -36,7 +44,7 @@ namespace Kartverket.Tests.Controllers
         public void Privacy_ShouldReturnView_WithStatus200()
         {
             // Arrange
-            var controller = new HomeController();
+            var controller = new HomeController(_greetingRepositoryMock.Object);
 
             // Act
             var result = controller.Privacy();
@@ -53,7 +61,7 @@ namespace Kartverket.Tests.Controllers
         public void OmOss_ShouldReturnView_WithStatus200()
         {
             // Arrange
-            var controller = new HomeController();
+            var controller = new HomeController(_greetingRepositoryMock.Object);
 
             // Act
             var result = controller.OmOss();
@@ -70,7 +78,7 @@ namespace Kartverket.Tests.Controllers
         public void Error_ShouldReturnView_WithErrorViewModel()
         {
             // Arrange
-            var controller = new HomeController();
+            var controller = new HomeController(_greetingRepositoryMock.Object);
             controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
             {
                 HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext()

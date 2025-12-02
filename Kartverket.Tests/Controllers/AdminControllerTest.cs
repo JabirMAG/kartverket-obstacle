@@ -22,36 +22,24 @@ namespace Kartverket.Tests.Controllers
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
-        private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
-        private readonly Mock<RoleManager<IdentityRole>> _roleManagerMock;
-        private readonly Mock<ApplicationDBContext> _contextMock;
         private readonly Mock<IArchiveRepository> _archiveRepositoryMock;
+        private readonly Mock<IAdviceRepository> _adviceRepositoryMock;
         private readonly AdminController _controller;
 
         public AdminControllerTest()
         {
-            var store = new Mock<IUserStore<ApplicationUser>>();
-            _userManagerMock = new Mock<UserManager<ApplicationUser>>(
-                store.Object, null, null, null, null, null, null, null, null);
-            
-            var roleStore = new Mock<IRoleStore<IdentityRole>>();
-            _roleManagerMock = new Mock<RoleManager<IdentityRole>>(
-                roleStore.Object, null, null, null, null);
-
             _userRepositoryMock = new Mock<IUserRepository>();
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
-            _contextMock = new Mock<ApplicationDBContext>(new DbContextOptions<ApplicationDBContext>());
             _archiveRepositoryMock = new Mock<IArchiveRepository>();
+            _adviceRepositoryMock = new Mock<IAdviceRepository>();
 
             _controller = new AdminController(
                 _userRepositoryMock.Object,
                 _registrarRepositoryMock.Object,
                 _obstacleRepositoryMock.Object,
-                _userManagerMock.Object,
-                _roleManagerMock.Object,
-                _contextMock.Object,
-                _archiveRepositoryMock.Object);
+                _archiveRepositoryMock.Object,
+                _adviceRepositoryMock.Object);
 
             // Setup TempData
             _controller.ControllerContext = new ControllerContext
