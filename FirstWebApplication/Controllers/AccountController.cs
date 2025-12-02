@@ -289,6 +289,7 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            
             if (!ModelState.IsValid)
             {
                 PopulatePasswordViewData();
