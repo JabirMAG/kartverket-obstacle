@@ -30,10 +30,11 @@ namespace Kartverket.Tests.Controllers
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
 
+            var userRepositoryMock = new Mock<IUserRepository>();
             _controller = new VarslingController(
                 _registrarRepositoryMock.Object,
                 _obstacleRepositoryMock.Object,
-                _userManagerMock.Object);
+                userRepositoryMock.Object);
 
             // Setup controller context with user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]

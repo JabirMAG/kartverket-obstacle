@@ -35,8 +35,9 @@ namespace Kartverket.Tests.Controllers
             _environmentMock = new Mock<IWebHostEnvironment>();
             _loggerMock = new Mock<ILogger<AccountController>>();
 
+            var userRepositoryMock = new Mock<IUserRepository>();
             _controller = new AccountController(
-                _userManagerMock.Object,
+                userRepositoryMock.Object,
                 _signInManagerMock.Object,
                 _environmentMock.Object,
                 _loggerMock.Object);

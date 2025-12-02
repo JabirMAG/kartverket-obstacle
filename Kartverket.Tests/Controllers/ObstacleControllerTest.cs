@@ -17,21 +17,19 @@ namespace Kartverket.Tests.Controllers
     {
         private readonly Mock<IObstacleRepository> _obstacleRepositoryMock;
         private readonly Mock<IRegistrarRepository> _registrarRepositoryMock;
-        private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
+        private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly ObstacleController _controller;
 
         public ObstacleControllerTest()
         {
-            var store = new Mock<IUserStore<ApplicationUser>>();
-            _userManagerMock = new Mock<UserManager<ApplicationUser>>(
-                store.Object, null, null, null, null, null, null, null, null);
             _obstacleRepositoryMock = new Mock<IObstacleRepository>();
             _registrarRepositoryMock = new Mock<IRegistrarRepository>();
+            _userRepositoryMock = new Mock<IUserRepository>();
 
             _controller = new ObstacleController(
                 _obstacleRepositoryMock.Object,
                 _registrarRepositoryMock.Object,
-                _userManagerMock.Object);
+                _userRepositoryMock.Object);
 
             // Setup controller context with user
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
@@ -138,7 +136,7 @@ namespace Kartverket.Tests.Controllers
             savedObstacle.ObstacleId = 1;
 
             var user = new ApplicationUser { Id = "test-user-id" };
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
             _obstacleRepositoryMock.Setup(x => x.AddObstacle(It.IsAny<ObstacleData>()))
@@ -174,7 +172,7 @@ namespace Kartverket.Tests.Controllers
             savedObstacle.ObstacleId = 1;
 
             var user = new ApplicationUser { Id = "test-user-id" };
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
             _obstacleRepositoryMock.Setup(x => x.AddObstacle(It.IsAny<ObstacleData>()))
@@ -227,7 +225,7 @@ namespace Kartverket.Tests.Controllers
             savedObstacle.ObstacleId = 1;
 
             var user = new ApplicationUser { Id = "test-user-id" };
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
             _obstacleRepositoryMock.Setup(x => x.AddObstacle(It.IsAny<ObstacleData>()))

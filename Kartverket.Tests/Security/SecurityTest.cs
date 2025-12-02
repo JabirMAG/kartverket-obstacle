@@ -122,22 +122,15 @@ namespace Kartverket.Tests.Security
             var userRepositoryMock = new Mock<IUserRepository>();
             var registrarRepositoryMock = new Mock<IRegistrarRepository>();
             var obstacleRepositoryMock = new Mock<IObstacleRepository>();
-            var userManagerMock = new Mock<UserManager<ApplicationUser>>(
-                Mock.Of<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
-            var roleManagerMock = new Mock<RoleManager<IdentityRole>>(
-                Mock.Of<IRoleStore<IdentityRole>>(), null, null, null, null);
-            var contextMock = new Mock<ApplicationDBContext>(
-                new Microsoft.EntityFrameworkCore.DbContextOptions<ApplicationDBContext>());
             var archiveRepositoryMock = new Mock<IArchiveRepository>();
+            var adviceRepositoryMock = new Mock<IAdviceRepository>();
 
             var controller = new AdminController(
                 userRepositoryMock.Object,
                 registrarRepositoryMock.Object,
                 obstacleRepositoryMock.Object,
-                userManagerMock.Object,
-                roleManagerMock.Object,
-                contextMock.Object,
-                archiveRepositoryMock.Object);
+                archiveRepositoryMock.Object,
+                adviceRepositoryMock.Object);
 
             // Setup unauthorized user context
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, "testuser") };

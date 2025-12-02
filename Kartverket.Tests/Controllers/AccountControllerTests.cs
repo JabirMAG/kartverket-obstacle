@@ -38,8 +38,9 @@ namespace Kartverket.Tests.Controllers
             _mockLogger = new Mock<ILogger<AccountController>>();
 
             // Create controller
+            var userRepositoryMock = new Mock<IUserRepository>();
             _controller = new AccountController(
-                _mockUserManager.Object,
+                userRepositoryMock.Object,
                 _mockSignInManager.Object,
                 _mockEnvironment.Object,
                 _mockLogger.Object);

@@ -33,10 +33,11 @@ namespace Kartverket.Tests.Integration
             _userManagerMock = new Mock<UserManager<ApplicationUser>>(
                 store.Object, null, null, null, null, null, null, null, null);
 
+            var userRepositoryMock = new Mock<IUserRepository>();
             _controller = new ObstacleController(
                 _obstacleRepository,
                 _registrarRepository,
-                _userManagerMock.Object);
+                userRepositoryMock.Object);
 
             _controller.ControllerContext = new ControllerContext
             {
