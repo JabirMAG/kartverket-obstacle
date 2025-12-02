@@ -338,6 +338,12 @@ namespace Kartverket.Tests.Controllers
         [Fact]
         public void CreateUser_Get_ShouldReturnView()
         {
+            // Arrange
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+            _userRepositoryMock.Setup(x => x.GetAllOrganizations())
+                .Returns(new[] { "Kartverket" });
+
             // Act
             var result = _controller.CreateUser();
 
@@ -363,6 +369,8 @@ namespace Kartverket.Tests.Controllers
                 Organization = "Kartverket"
             };
 
+            _userRepositoryMock.Setup(x => x.ValidateAndNormalizeOrganization(viewModel.Organization))
+                .Returns(viewModel.Organization);
             _userRepositoryMock.Setup(x => x.GetByEmailAsync(viewModel.Email))
                 .ReturnsAsync((ApplicationUser?)null);
             _userRepositoryMock.Setup(x => x.GetByNameAsync(viewModel.Username))
@@ -373,6 +381,10 @@ namespace Kartverket.Tests.Controllers
                 .ReturnsAsync(true);
             _userRepositoryMock.Setup(x => x.AddToRoleAsync(It.IsAny<ApplicationUser>(), "Pilot"))
                 .ReturnsAsync(IdentityResult.Success);
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+            _userRepositoryMock.Setup(x => x.GetAllOrganizations())
+                .Returns(new[] { "Kartverket" });
 
             // Act
             var result = await _controller.CreateUser(viewModel);
@@ -392,20 +404,23 @@ namespace Kartverket.Tests.Controllers
         [Fact]
         public async Task ArchivedReports_ShouldReturnView_WithArchivedReports()
         {
-            // Arrange - Note: Testing ArchivedReports requires EF Core test infrastructure
-            // This test verifies the method structure, full test would need in-memory database
-            try
+            // Arrange
+            var archivedReports = new List<ArchivedReport>
             {
-                var result = await _controller.ArchivedReports();
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.NotNull(viewResult.Model);
-            }
-            catch (NullReferenceException)
-            {
-                // Expected when DbSet is not properly mocked
-                // This test verifies the method exists and returns correct type
-                Assert.True(true);
-            }
+                new ArchivedReport { ArchivedReportId = 1, ObstacleName = "Test Obstacle" }
+            };
+
+            _archiveRepositoryMock.Setup(x => x.GetAllArchivedReportsAsync())
+                .ReturnsAsync(archivedReports);
+
+            // Act
+            var result = await _controller.ArchivedReports();
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.NotNull(viewResult);
+            Assert.NotNull(viewResult.Model);
+            _archiveRepositoryMock.Verify(x => x.GetAllArchivedReportsAsync(), Times.Once);
         }
 
         /// <summary>

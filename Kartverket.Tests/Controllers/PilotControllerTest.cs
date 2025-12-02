@@ -170,14 +170,27 @@ namespace Kartverket.Tests.Controllers
             obstacle.ObstacleId = 1;
             obstacle.ObstacleStatus = 1; // Pending
 
+            var updatedObstacle = TestDataBuilder.CreateValidObstacle("pilot-user-id");
+            updatedObstacle.ObstacleId = 1;
+            updatedObstacle.ObstacleName = "New Name";
+            updatedObstacle.ObstacleDescription = "New Description";
+            updatedObstacle.ObstacleHeight = 100.0;
+            updatedObstacle.ObstacleStatus = 1;
+
             _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
             _obstacleRepositoryMock.Setup(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"))
                 .ReturnsAsync(obstacle);
-            _obstacleRepositoryMock.Setup(x => x.UpdateObstacles(It.IsAny<ObstacleData>()))
-                .ReturnsAsync(obstacle);
-            _registrarRepositoryMock.Setup(x => x.AddRapport(It.IsAny<RapportData>()))
-                .ReturnsAsync(new RapportData { RapportID = 1 });
+            _obstacleRepositoryMock.Setup(x => x.CanEditObstacle(1))
+                .ReturnsAsync(true);
+            _obstacleRepositoryMock.Setup(x => x.UpdateObstacleProperties(1, "New Name", "New Description", 100.0))
+                .ReturnsAsync(updatedObstacle);
+            var reportMessage = "Obstacle updated";
+            var rapport = TestDataBuilder.CreateValidRapport(1, reportMessage);
+            _registrarRepositoryMock.Setup(x => x.GenerateUpdateReportMessage(updatedObstacle, 100.0))
+                .Returns(reportMessage);
+            _registrarRepositoryMock.Setup(x => x.AddRapportToObstacle(1, reportMessage))
+                .ReturnsAsync(rapport);
 
             // Setup TempData
             _controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
@@ -190,10 +203,10 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("DetaljerOmRapport", redirectResult.ActionName);
-            _obstacleRepositoryMock.Verify(x => x.UpdateObstacles(It.Is<ObstacleData>(o => 
-                o.ObstacleName == "New Name" && 
-                o.ObstacleDescription == "New Description" && 
-                o.ObstacleHeight == 100.0)), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.GetObstacleByOwnerAndId(1, "pilot-user-id"), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.CanEditObstacle(1), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.UpdateObstacleProperties(1, "New Name", "New Description", 100.0), Times.Once);
+            _registrarRepositoryMock.Verify(x => x.AddRapportToObstacle(1, It.IsAny<string>()), Times.Once);
         }
 
         /// <summary>

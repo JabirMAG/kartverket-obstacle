@@ -17,7 +17,7 @@ namespace Kartverket.Tests.Controllers
     /// </summary>
     public class AccountControllerTest
     {
-        private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
+        private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<SignInManager<ApplicationUser>> _signInManagerMock;
         private readonly Mock<IWebHostEnvironment> _environmentMock;
         private readonly Mock<ILogger<AccountController>> _loggerMock;
@@ -26,19 +26,19 @@ namespace Kartverket.Tests.Controllers
         public AccountControllerTest()
         {
             var store = new Mock<IUserStore<ApplicationUser>>();
-            _userManagerMock = new Mock<UserManager<ApplicationUser>>(
+            var userManagerMock = new Mock<UserManager<ApplicationUser>>(
                 store.Object, null, null, null, null, null, null, null, null);
             _signInManagerMock = new Mock<SignInManager<ApplicationUser>>(
-                _userManagerMock.Object,
+                userManagerMock.Object,
                 Mock.Of<IHttpContextAccessor>(),
                 Mock.Of<IUserClaimsPrincipalFactory<ApplicationUser>>(),
                 null, null, null, null);
             _environmentMock = new Mock<IWebHostEnvironment>();
             _loggerMock = new Mock<ILogger<AccountController>>();
 
-            var userRepositoryMock = new Mock<IUserRepository>();
+            _userRepositoryMock = new Mock<IUserRepository>();
             _controller = new AccountController(
-                userRepositoryMock.Object,
+                _userRepositoryMock.Object,
                 _signInManagerMock.Object,
                 _environmentMock.Object,
                 _loggerMock.Object);
@@ -50,6 +50,12 @@ namespace Kartverket.Tests.Controllers
         [Fact]
         public void Register_Get_ShouldReturnView_WithStatus200()
         {
+            // Arrange
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+            _userRepositoryMock.Setup(x => x.GetAllOrganizations())
+                .Returns(new[] { "Kartverket" });
+
             // Act
             var result = _controller.Register();
 
@@ -74,6 +80,10 @@ namespace Kartverket.Tests.Controllers
                 Password = "weak" // Invalid
             };
             _controller.ModelState.AddModelError("Username", "Username is required");
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+            _userRepositoryMock.Setup(x => x.GetAllOrganizations())
+                .Returns(new[] { "Kartverket" });
 
             // Act
             var result = await _controller.Register(viewModel);
@@ -82,7 +92,7 @@ namespace Kartverket.Tests.Controllers
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
             Assert.False(_controller.ModelState.IsValid);
-            _userManagerMock.Verify(x => x.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
@@ -101,8 +111,14 @@ namespace Kartverket.Tests.Controllers
                 Organization = "Kartverket"
             };
 
-            _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), viewModel.Password))
+            _userRepositoryMock.Setup(x => x.ValidateAndNormalizeOrganization(viewModel.Organization))
+                .Returns(viewModel.Organization);
+            _userRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), viewModel.Password))
                 .ReturnsAsync(IdentityResult.Success);
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+            _userRepositoryMock.Setup(x => x.GetAllOrganizations())
+                .Returns(new[] { "Kartverket" });
 
             // Setup controller context with TempData
             _controller.ControllerContext = new ControllerContext
@@ -120,7 +136,7 @@ namespace Kartverket.Tests.Controllers
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(redirectResult);
             Assert.Equal("RegisterConfirmation", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.CreateAsync(It.Is<ApplicationUser>(u => 
+            _userRepositoryMock.Verify(x => x.CreateAsync(It.Is<ApplicationUser>(u => 
                 u.UserName == viewModel.Username && 
                 u.Email == viewModel.Email &&
                 u.DesiredRole == viewModel.DesiredRole &&
@@ -144,8 +160,14 @@ namespace Kartverket.Tests.Controllers
             };
 
             var errors = new[] { new IdentityError { Description = "Password too weak" } };
-            _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), viewModel.Password))
+            _userRepositoryMock.Setup(x => x.ValidateAndNormalizeOrganization(viewModel.Organization))
+                .Returns(viewModel.Organization);
+            _userRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), viewModel.Password))
                 .ReturnsAsync(IdentityResult.Failed(errors));
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+            _userRepositoryMock.Setup(x => x.GetAllOrganizations())
+                .Returns(new[] { "Kartverket" });
 
             // Act
             var result = await _controller.Register(viewModel);
@@ -154,7 +176,7 @@ namespace Kartverket.Tests.Controllers
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
             Assert.False(_controller.ModelState.IsValid);
-            _userManagerMock.Verify(x => x.CreateAsync(It.IsAny<ApplicationUser>(), viewModel.Password), Times.Once);
+            _userRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<ApplicationUser>(), viewModel.Password), Times.Once);
         }
 
         /// <summary>
@@ -203,7 +225,7 @@ namespace Kartverket.Tests.Controllers
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
             Assert.False(_controller.ModelState.IsValid);
-            _userManagerMock.Verify(x => x.FindByNameAsync(It.IsAny<string>()), Times.Never);
+            _userRepositoryMock.Verify(x => x.GetByNameAsync(It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
@@ -219,7 +241,7 @@ namespace Kartverket.Tests.Controllers
                 Password = "Password123!"
             };
 
-            _userManagerMock.Setup(x => x.FindByNameAsync(viewModel.Username))
+            _userRepositoryMock.Setup(x => x.GetByNameAsync(viewModel.Username))
                 .ReturnsAsync((ApplicationUser?)null);
 
             // Act
@@ -231,7 +253,7 @@ namespace Kartverket.Tests.Controllers
             Assert.False(_controller.ModelState.IsValid);
             Assert.Contains(_controller.ModelState.Values.SelectMany(v => v.Errors), 
                 e => e.ErrorMessage.Contains("Ugyldig brukernavn eller passord"));
-            _userManagerMock.Verify(x => x.FindByNameAsync(viewModel.Username), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetByNameAsync(viewModel.Username), Times.Once);
             _signInManagerMock.Verify(x => x.PasswordSignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
         }
 
@@ -249,7 +271,7 @@ namespace Kartverket.Tests.Controllers
             };
 
             var user = new ApplicationUser { UserName = "user", IaApproved = false };
-            _userManagerMock.Setup(x => x.FindByNameAsync(viewModel.Username))
+            _userRepositoryMock.Setup(x => x.GetByNameAsync(viewModel.Username))
                 .ReturnsAsync(user);
 
             // Act
@@ -261,7 +283,7 @@ namespace Kartverket.Tests.Controllers
             Assert.False(_controller.ModelState.IsValid);
             Assert.Contains(_controller.ModelState.Values.SelectMany(v => v.Errors),
                 e => e.ErrorMessage.Contains("ikke godkjent"));
-            _userManagerMock.Verify(x => x.FindByNameAsync(viewModel.Username), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetByNameAsync(viewModel.Username), Times.Once);
             _signInManagerMock.Verify(x => x.PasswordSignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
         }
 
@@ -279,9 +301,9 @@ namespace Kartverket.Tests.Controllers
             };
 
             var user = new ApplicationUser { UserName = "admin", IaApproved = true };
-            _userManagerMock.Setup(x => x.FindByNameAsync(viewModel.Username))
+            _userRepositoryMock.Setup(x => x.GetByNameAsync(viewModel.Username))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Admin"))
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Admin"))
                 .ReturnsAsync(true);
             _signInManagerMock.Setup(x => x.PasswordSignInAsync(user.UserName!, viewModel.Password, false, false))
                 .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
@@ -294,8 +316,8 @@ namespace Kartverket.Tests.Controllers
             Assert.NotNull(redirectResult);
             Assert.Equal("Dashboard", redirectResult.ActionName);
             Assert.Equal("Admin", redirectResult.ControllerName);
-            _userManagerMock.Verify(x => x.FindByNameAsync(viewModel.Username), Times.Once);
-            _userManagerMock.Verify(x => x.IsInRoleAsync(user, "Admin"), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetByNameAsync(viewModel.Username), Times.Once);
+            _userRepositoryMock.Verify(x => x.IsInRoleAsync(user, "Admin"), Times.Once);
             _signInManagerMock.Verify(x => x.PasswordSignInAsync(user.UserName!, viewModel.Password, false, false), Times.Once);
         }
 
@@ -313,11 +335,11 @@ namespace Kartverket.Tests.Controllers
             };
 
             var user = new ApplicationUser { UserName = "registrar", IaApproved = true };
-            _userManagerMock.Setup(x => x.FindByNameAsync(viewModel.Username))
+            _userRepositoryMock.Setup(x => x.GetByNameAsync(viewModel.Username))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Admin"))
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Admin"))
                 .ReturnsAsync(false);
-            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Registerfører"))
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Registerfører"))
                 .ReturnsAsync(true);
             _signInManagerMock.Setup(x => x.PasswordSignInAsync(user.UserName!, viewModel.Password, false, false))
                 .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
@@ -330,9 +352,9 @@ namespace Kartverket.Tests.Controllers
             Assert.NotNull(redirectResult);
             Assert.Equal("Registrar", redirectResult.ActionName);
             Assert.Equal("Registrar", redirectResult.ControllerName);
-            _userManagerMock.Verify(x => x.FindByNameAsync(viewModel.Username), Times.Once);
-            _userManagerMock.Verify(x => x.IsInRoleAsync(user, "Admin"), Times.Once);
-            _userManagerMock.Verify(x => x.IsInRoleAsync(user, "Registerfører"), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetByNameAsync(viewModel.Username), Times.Once);
+            _userRepositoryMock.Verify(x => x.IsInRoleAsync(user, "Admin"), Times.Once);
+            _userRepositoryMock.Verify(x => x.IsInRoleAsync(user, "Registerfører"), Times.Once);
             _signInManagerMock.Verify(x => x.PasswordSignInAsync(user.UserName!, viewModel.Password, false, false), Times.Once);
         }
 
@@ -350,11 +372,11 @@ namespace Kartverket.Tests.Controllers
             };
 
             var user = new ApplicationUser { UserName = "pilot", IaApproved = true };
-            _userManagerMock.Setup(x => x.FindByNameAsync(viewModel.Username))
+            _userRepositoryMock.Setup(x => x.GetByNameAsync(viewModel.Username))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Admin"))
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Admin"))
                 .ReturnsAsync(false);
-            _userManagerMock.Setup(x => x.IsInRoleAsync(user, "Registerfører"))
+            _userRepositoryMock.Setup(x => x.IsInRoleAsync(user, "Registerfører"))
                 .ReturnsAsync(false);
             _signInManagerMock.Setup(x => x.PasswordSignInAsync(user.UserName!, viewModel.Password, false, false))
                 .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
@@ -367,9 +389,9 @@ namespace Kartverket.Tests.Controllers
             Assert.NotNull(redirectResult);
             Assert.Equal("Map", redirectResult.ActionName);
             Assert.Equal("Map", redirectResult.ControllerName);
-            _userManagerMock.Verify(x => x.FindByNameAsync(viewModel.Username), Times.Once);
-            _userManagerMock.Verify(x => x.IsInRoleAsync(user, "Admin"), Times.Once);
-            _userManagerMock.Verify(x => x.IsInRoleAsync(user, "Registerfører"), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetByNameAsync(viewModel.Username), Times.Once);
+            _userRepositoryMock.Verify(x => x.IsInRoleAsync(user, "Admin"), Times.Once);
+            _userRepositoryMock.Verify(x => x.IsInRoleAsync(user, "Registerfører"), Times.Once);
             _signInManagerMock.Verify(x => x.PasswordSignInAsync(user.UserName!, viewModel.Password, false, false), Times.Once);
         }
 
@@ -421,7 +443,7 @@ namespace Kartverket.Tests.Controllers
         {
             // Arrange
             var viewModel = new ForgotPasswordViewModel { Email = "nonexistent@test.com" };
-            _userManagerMock.Setup(x => x.FindByEmailAsync(viewModel.Email))
+            _userRepositoryMock.Setup(x => x.GetByEmailAsync(viewModel.Email))
                 .ReturnsAsync((ApplicationUser?)null);
 
             // Act
@@ -431,8 +453,8 @@ namespace Kartverket.Tests.Controllers
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(redirectResult);
             Assert.Equal("ForgotPasswordConfirmation", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.FindByEmailAsync(viewModel.Email), Times.Once);
-            _userManagerMock.Verify(x => x.GeneratePasswordResetTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
+            _userRepositoryMock.Verify(x => x.GetByEmailAsync(viewModel.Email), Times.Once);
+            _userRepositoryMock.Verify(x => x.GenerateEncodedPasswordResetTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
 
         /// <summary>
@@ -444,10 +466,10 @@ namespace Kartverket.Tests.Controllers
             // Arrange
             var viewModel = new ForgotPasswordViewModel { Email = "user@test.com" };
             var user = new ApplicationUser { Email = "user@test.com" };
-            _userManagerMock.Setup(x => x.FindByEmailAsync(viewModel.Email))
+            _userRepositoryMock.Setup(x => x.GetByEmailAsync(viewModel.Email))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.GeneratePasswordResetTokenAsync(user))
-                .ReturnsAsync("token");
+            _userRepositoryMock.Setup(x => x.GenerateEncodedPasswordResetTokenAsync(user))
+                .ReturnsAsync("encoded-token");
             _environmentMock.Setup(x => x.EnvironmentName)
                 .Returns("Development");
 
@@ -475,11 +497,11 @@ namespace Kartverket.Tests.Controllers
             try
             {
                 var result = await _controller.ForgotPassword(viewModel);
-                _userManagerMock.Verify(x => x.GeneratePasswordResetTokenAsync(user), Times.Once);
+                _userRepositoryMock.Verify(x => x.GenerateEncodedPasswordResetTokenAsync(user), Times.Once);
             }
             catch (ArgumentNullException)
             {
-                _userManagerMock.Verify(x => x.GeneratePasswordResetTokenAsync(user), Times.Once);
+                _userRepositoryMock.Verify(x => x.GenerateEncodedPasswordResetTokenAsync(user), Times.Once);
             }
         }
 
@@ -492,6 +514,8 @@ namespace Kartverket.Tests.Controllers
             // Arrange
             var token = "valid-token";
             var email = "user@test.com";
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
 
             // Act
             var result = _controller.ResetPassword(token, email);
@@ -510,6 +534,10 @@ namespace Kartverket.Tests.Controllers
         [Fact]
         public void ResetPassword_Get_ShouldReturnViewWithError_WhenTokenOrEmailInvalid()
         {
+            // Arrange
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
+
             // Act
             var result = _controller.ResetPassword(string.Empty, string.Empty);
 
@@ -539,10 +567,12 @@ namespace Kartverket.Tests.Controllers
             };
 
             var user = new ApplicationUser { Email = "user@test.com" };
-            _userManagerMock.Setup(x => x.FindByEmailAsync(viewModel.Email))
+            _userRepositoryMock.Setup(x => x.GetByEmailAsync(viewModel.Email))
                 .ReturnsAsync(user);
-            _userManagerMock.Setup(x => x.ResetPasswordAsync(user, originalToken, viewModel.Password))
+            _userRepositoryMock.Setup(x => x.ResetPasswordAsync(user, encodedToken, viewModel.Password))
                 .ReturnsAsync(IdentityResult.Success);
+            _userRepositoryMock.Setup(x => x.GetPasswordOptions())
+                .Returns(new PasswordOptions { RequiredLength = 8 });
 
             // Act
             var result = await _controller.ResetPassword(viewModel);
@@ -551,8 +581,8 @@ namespace Kartverket.Tests.Controllers
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(redirectResult);
             Assert.Equal("ResetPasswordConfirmation", redirectResult.ActionName);
-            _userManagerMock.Verify(x => x.FindByEmailAsync(viewModel.Email), Times.Once);
-            _userManagerMock.Verify(x => x.ResetPasswordAsync(user, originalToken, viewModel.Password), Times.Once);
+            _userRepositoryMock.Verify(x => x.GetByEmailAsync(viewModel.Email), Times.Once);
+            _userRepositoryMock.Verify(x => x.ResetPasswordAsync(user, encodedToken, viewModel.Password), Times.Once);
         }
 
         /// <summary>

@@ -72,10 +72,17 @@ namespace Kartverket.Tests.Controllers
                 ViewadviceMessage = "Test feedback message",
                 ViewEmail = "test@example.com"
             };
+            var mappedAdvice = new Advice
+            {
+                Email = viewModel.ViewEmail,
+                adviceMessage = viewModel.ViewadviceMessage
+            };
             var savedAdvice = TestDataBuilder.CreateValidAdvice("test@example.com", "Test feedback message");
             savedAdvice.adviceID = 1;
 
-            _adviceRepositoryMock.Setup(x => x.AddAdvice(It.IsAny<Advice>()))
+            _adviceRepositoryMock.Setup(x => x.MapFromViewModel(viewModel))
+                .Returns(mappedAdvice);
+            _adviceRepositoryMock.Setup(x => x.AddAdvice(mappedAdvice))
                 .ReturnsAsync(savedAdvice);
 
             // Act
@@ -85,9 +92,8 @@ namespace Kartverket.Tests.Controllers
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.NotNull(redirectResult);
             Assert.Equal("ThankForm", redirectResult.ActionName);
-            _adviceRepositoryMock.Verify(x => x.AddAdvice(It.Is<Advice>(a => 
-                a.Email == viewModel.ViewEmail && 
-                a.adviceMessage == viewModel.ViewadviceMessage)), Times.Once);
+            _adviceRepositoryMock.Verify(x => x.MapFromViewModel(viewModel), Times.Once);
+            _adviceRepositoryMock.Verify(x => x.AddAdvice(mappedAdvice), Times.Once);
         }
 
         /// <summary>
@@ -97,9 +103,16 @@ namespace Kartverket.Tests.Controllers
         public void ThankForm_ShouldReturnView_WithAdviceData()
         {
             // Arrange
-            var advice = TestDataBuilder.CreateValidAdvice();
-            var email = advice.Email;
-            var message = advice.adviceMessage;
+            var email = "test@example.com";
+            var message = "Test feedback message";
+            var advice = new Advice
+            {
+                Email = email,
+                adviceMessage = message
+            };
+
+            _adviceRepositoryMock.Setup(x => x.CreateFromEmailAndMessage(email, message))
+                .Returns(advice);
 
             // Act
             var result = _controller.ThankForm(email, message);
@@ -110,6 +123,7 @@ namespace Kartverket.Tests.Controllers
             var model = Assert.IsType<Advice>(viewResult.Model);
             Assert.Equal(email, model.Email);
             Assert.Equal(message, model.adviceMessage);
+            _adviceRepositoryMock.Verify(x => x.CreateFromEmailAndMessage(email, message), Times.Once);
         }
 
         /// <summary>

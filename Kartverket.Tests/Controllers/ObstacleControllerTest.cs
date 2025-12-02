@@ -55,7 +55,7 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var partialViewResult = Assert.IsType<PartialViewResult>(result);
             Assert.Equal("_ObstacleFormPartial", partialViewResult.ViewName);
-            var model = Assert.IsType<ObstacleData>(partialViewResult.Model);
+            var model = Assert.IsType<ObstacleDataViewModel>(partialViewResult.Model);
             Assert.NotNull(model);
         }
 
@@ -68,8 +68,11 @@ namespace Kartverket.Tests.Controllers
             // Arrange
             var obstacle = TestDataBuilder.CreateValidObstacle();
             obstacle.ObstacleId = 1;
+            var viewModel = new ObstacleDataViewModel { ViewObstacleId = 1 };
             _obstacleRepositoryMock.Setup(x => x.GetElementById(1))
                 .ReturnsAsync(obstacle);
+            _obstacleRepositoryMock.Setup(x => x.MapToViewModel(obstacle))
+                .Returns(viewModel);
 
             // Act
             var result = await _controller.Overview(1);
@@ -77,9 +80,10 @@ namespace Kartverket.Tests.Controllers
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.NotNull(viewResult);
-            var model = Assert.IsType<ObstacleData>(viewResult.Model);
-            Assert.Equal(1, model.ObstacleId);
+            var model = Assert.IsType<ObstacleDataViewModel>(viewResult.Model);
+            Assert.Equal(1, model.ViewObstacleId);
             _obstacleRepositoryMock.Verify(x => x.GetElementById(1), Times.Once);
+            _obstacleRepositoryMock.Verify(x => x.MapToViewModel(obstacle), Times.Once);
         }
 
         /// <summary>
