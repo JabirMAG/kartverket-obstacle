@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using FirstWebApplication.Models;
 using FirstWebApplication.Repositories;
 
@@ -7,6 +8,7 @@ namespace FirstWebApplication.Controllers
     /// <summary>
     /// Controller for map functionality. Handles display of obstacles on the map.
     /// </summary>
+    [Authorize(Roles = "Pilot")]
     public class MapController : Controller
     {
         private readonly IObstacleRepository _obstacleRepository;

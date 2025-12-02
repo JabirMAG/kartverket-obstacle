@@ -110,5 +110,6 @@ namespace Kartverket.Tests.Controllers
             Assert.NotNull(_controller.ViewBag.adviceMessage);
         }
     }
+
 }
 
