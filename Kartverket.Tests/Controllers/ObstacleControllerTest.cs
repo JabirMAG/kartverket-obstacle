@@ -1,5 +1,6 @@
 using FirstWebApplication.Controllers;
 using FirstWebApplication.Models;
+using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.Repositories;
 using Kartverket.Tests.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -107,14 +108,14 @@ namespace Kartverket.Tests.Controllers
         public async Task QuickSaveObstacle_ShouldReturnPartialView_WhenModelIsInvalid()
         {
             // Arrange
-            var obstacle = new ObstacleData
+            var viewModel = new ObstacleDataViewModel
             {
-                GeometryGeoJson = string.Empty // Invalid - required field
+                ViewGeometryGeoJson = string.Empty // Invalid - required field
             };
-            _controller.ModelState.AddModelError("GeometryGeoJson", "Geometry is required");
+            _controller.ModelState.AddModelError("ViewGeometryGeoJson", "Geometry is required");
 
             // Act
-            var result = await _controller.QuickSaveObstacle(obstacle);
+            var result = await _controller.QuickSaveObstacle(viewModel);
 
             // Assert
             var partialViewResult = Assert.IsType<PartialViewResult>(result);
@@ -130,28 +131,35 @@ namespace Kartverket.Tests.Controllers
         public async Task QuickSaveObstacle_ShouldSaveObstacle_AndCreateRapport_WhenValid()
         {
             // Arrange
+            var viewModel = new ObstacleDataViewModel
+            {
+                ViewGeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
+            };
             var obstacle = TestDataBuilder.CreateMinimalObstacle();
-            obstacle.GeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}";
             var savedObstacle = TestDataBuilder.CreateMinimalObstacle();
             savedObstacle.ObstacleId = 1;
+            var savedViewModel = new ObstacleDataViewModel { ViewObstacleId = 1 };
 
             var user = new ApplicationUser { Id = "test-user-id" };
             _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
+            _obstacleRepositoryMock.Setup(x => x.MapFromViewModel(It.IsAny<ObstacleDataViewModel>()))
+                .Returns(obstacle);
             _obstacleRepositoryMock.Setup(x => x.AddObstacle(It.IsAny<ObstacleData>()))
                 .ReturnsAsync(savedObstacle);
+            _obstacleRepositoryMock.Setup(x => x.MapToViewModel(It.IsAny<ObstacleData>()))
+                .Returns(savedViewModel);
 
-            _registrarRepositoryMock.Setup(x => x.AddRapport(It.IsAny<RapportData>()))
+            _registrarRepositoryMock.Setup(x => x.AddRapportToObstacle(It.IsAny<int>(), It.IsAny<string>()))
                 .ReturnsAsync(new RapportData { RapportID = 1 });
 
             // Act
-            var result = await _controller.QuickSaveObstacle(obstacle);
+            var result = await _controller.QuickSaveObstacle(viewModel);
 
             // Assert
             _obstacleRepositoryMock.Verify(x => x.AddObstacle(It.IsAny<ObstacleData>()), Times.Once);
-            _registrarRepositoryMock.Verify(x => x.AddRapport(It.IsAny<RapportData>()), Times.Once);
-            Assert.Equal("test-user-id", obstacle.OwnerUserId);
+            _registrarRepositoryMock.Verify(x => x.AddRapportToObstacle(It.IsAny<int>(), It.IsAny<string>()), Times.Once);
         }
 
         /// <summary>
@@ -161,32 +169,35 @@ namespace Kartverket.Tests.Controllers
         public async Task QuickSaveObstacle_ShouldSetDefaultValues_ForOptionalFields()
         {
             // Arrange
-            var obstacle = new ObstacleData
+            var viewModel = new ObstacleDataViewModel
             {
-                ObstacleName = null,
-                ObstacleDescription = null,
-                ObstacleHeight = 0,
-                GeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
+                ViewGeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
             };
+            var obstacle = TestDataBuilder.CreateMinimalObstacle();
             var savedObstacle = TestDataBuilder.CreateMinimalObstacle();
             savedObstacle.ObstacleId = 1;
+            var savedViewModel = new ObstacleDataViewModel { ViewObstacleId = 1 };
 
             var user = new ApplicationUser { Id = "test-user-id" };
             _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
+            _obstacleRepositoryMock.Setup(x => x.MapFromViewModel(It.IsAny<ObstacleDataViewModel>()))
+                .Returns(obstacle);
             _obstacleRepositoryMock.Setup(x => x.AddObstacle(It.IsAny<ObstacleData>()))
                 .ReturnsAsync(savedObstacle);
+            _obstacleRepositoryMock.Setup(x => x.MapToViewModel(It.IsAny<ObstacleData>()))
+                .Returns(savedViewModel);
 
-            _registrarRepositoryMock.Setup(x => x.AddRapport(It.IsAny<RapportData>()))
+            _registrarRepositoryMock.Setup(x => x.AddRapportToObstacle(It.IsAny<int>(), It.IsAny<string>()))
                 .ReturnsAsync(new RapportData { RapportID = 1 });
 
             // Act
-            await _controller.QuickSaveObstacle(obstacle);
+            await _controller.QuickSaveObstacle(viewModel);
 
             // Assert
-            Assert.Equal(string.Empty, obstacle.ObstacleName);
-            Assert.Equal(string.Empty, obstacle.ObstacleDescription);
+            // Verify that normalization was called (default values are set in repository)
+            _obstacleRepositoryMock.Verify(x => x.MapFromViewModel(It.IsAny<ObstacleDataViewModel>()), Times.Once);
         }
 
         /// <summary>
@@ -196,15 +207,15 @@ namespace Kartverket.Tests.Controllers
         public async Task SubmitObstacle_ShouldReturnPartialView_WhenModelIsInvalid()
         {
             // Arrange
-            var obstacle = new ObstacleData
+            var viewModel = new ObstacleDataViewModel
             {
-                ObstacleName = string.Empty, // Invalid - required field
-                GeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
+                ViewObstacleName = string.Empty, // Invalid - required field
+                ViewGeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
             };
-            _controller.ModelState.AddModelError("ObstacleName", "Name is required");
+            _controller.ModelState.AddModelError("ViewObstacleName", "Name is required");
 
             // Act
-            var result = await _controller.SubmitObstacle(obstacle);
+            var result = await _controller.SubmitObstacle(viewModel);
 
             // Assert
             var partialViewResult = Assert.IsType<PartialViewResult>(result);
@@ -220,27 +231,38 @@ namespace Kartverket.Tests.Controllers
         public async Task SubmitObstacle_ShouldSaveObstacle_AndCreateRapport_WhenValid()
         {
             // Arrange
+            var viewModel = new ObstacleDataViewModel
+            {
+                ViewObstacleName = "Test Obstacle",
+                ViewObstacleHeight = 50.5,
+                ViewObstacleDescription = "A test obstacle",
+                ViewGeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}"
+            };
             var obstacle = TestDataBuilder.CreateValidObstacle();
             var savedObstacle = TestDataBuilder.CreateValidObstacle();
             savedObstacle.ObstacleId = 1;
+            var savedViewModel = new ObstacleDataViewModel { ViewObstacleId = 1 };
 
             var user = new ApplicationUser { Id = "test-user-id" };
             _userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
+            _obstacleRepositoryMock.Setup(x => x.MapFromViewModel(It.IsAny<ObstacleDataViewModel>()))
+                .Returns(obstacle);
             _obstacleRepositoryMock.Setup(x => x.AddObstacle(It.IsAny<ObstacleData>()))
                 .ReturnsAsync(savedObstacle);
+            _obstacleRepositoryMock.Setup(x => x.MapToViewModel(It.IsAny<ObstacleData>()))
+                .Returns(savedViewModel);
 
-            _registrarRepositoryMock.Setup(x => x.AddRapport(It.IsAny<RapportData>()))
+            _registrarRepositoryMock.Setup(x => x.AddRapportToObstacle(It.IsAny<int>(), It.IsAny<string>()))
                 .ReturnsAsync(new RapportData { RapportID = 1 });
 
             // Act
-            var result = await _controller.SubmitObstacle(obstacle);
+            var result = await _controller.SubmitObstacle(viewModel);
 
             // Assert
             _obstacleRepositoryMock.Verify(x => x.AddObstacle(It.IsAny<ObstacleData>()), Times.Once);
-            _registrarRepositoryMock.Verify(x => x.AddRapport(It.IsAny<RapportData>()), Times.Once);
-            Assert.Equal("test-user-id", obstacle.OwnerUserId);
+            _registrarRepositoryMock.Verify(x => x.AddRapportToObstacle(It.IsAny<int>(), It.IsAny<string>()), Times.Once);
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using FirstWebApplication.Controllers;
 using FirstWebApplication.DataContext;
 using FirstWebApplication.Models;
+using FirstWebApplication.Models.ViewModel;
 using FirstWebApplication.Repositories;
 using Kartverket.Tests.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -52,21 +53,22 @@ namespace Kartverket.Tests.Integration
         public async Task CreateObstacle_EndToEnd_ShouldSaveToDatabase()
         {
             // Arrange
-            var obstacleData = new ObstacleData
+            var viewModel = new ObstacleDataViewModel
             {
-                ObstacleName = "Integration Test Obstacle",
-                ObstacleHeight = 50,
-                ObstacleDescription = "Test description",
-                GeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}",
-                ObstacleStatus = 1
+                ViewObstacleName = "Integration Test Obstacle",
+                ViewObstacleHeight = 50,
+                ViewObstacleDescription = "Test description",
+                ViewGeometryGeoJson = "{\"type\":\"Point\",\"coordinates\":[10.0,59.0]}",
+                ViewObstacleStatus = 1
             };
 
             var user = new ApplicationUser { Id = "test-user-id", UserName = "testuser" };
-            _userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+            var userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
                 .ReturnsAsync(user);
 
             // Act - Use controller method
-            var result = await _controller.SubmitObstacle(obstacleData);
+            var result = await _controller.SubmitObstacle(viewModel);
 
             // Assert - Verify in database
             var savedObstacle = await _context.ObstaclesData

@@ -1,5 +1,6 @@
 using FirstWebApplication.Controllers;
 using FirstWebApplication.Models;
+using FirstWebApplication.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
