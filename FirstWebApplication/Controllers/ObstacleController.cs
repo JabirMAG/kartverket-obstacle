@@ -6,9 +6,7 @@ using System.Security.Claims;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for obstacle management. Handles creation, viewing, and submission of obstacles.
-    /// </summary>
+    // Controller for hindringsadministrasjon. Håndterer opprettelse, visning og innsending av hindringer.
     public class ObstacleController : Controller
     {
         private readonly IObstacleRepository _obstacleRepository;
@@ -22,20 +20,13 @@ namespace FirstWebApplication.Controllers
             _userRepository = userRepository;
         }
 
-        /// <summary>
-        /// Returns the obstacle form as a partial view
-        /// </summary>
-        /// <returns>The obstacle form partial view</returns>
+        // Returnerer hindringsskjemaet som en delvis visning
         public IActionResult DataFormPartial()
         {
             return PartialView("_ObstacleFormPartial", new ObstacleDataViewModel());
         }
 
-        /// <summary>
-        /// Displays overview of a specific obstacle
-        /// </summary>
-        /// <param name="id">The ID of the obstacle to view</param>
-        /// <returns>The obstacle overview view, or NotFound if obstacle doesn't exist</returns>
+        // Viser oversikt over en spesifikk hindring
         [HttpGet]
         public async Task<IActionResult> Overview(int id)
         {
@@ -48,11 +39,7 @@ namespace FirstWebApplication.Controllers
             return View(viewModel);
         }
 
-        /// <summary>
-        /// Quick saves an obstacle with minimal required data (only geometry is required). Automatically creates a report entry when obstacle is saved.
-        /// </summary>
-        /// <param name="viewModel">The obstacle ViewModel to save</param>
-        /// <returns>JSON response with redirect URL if AJAX, otherwise returns overview view</returns>
+        // Hurtiglagrer en hindring med minimalt påkrevd data (kun geometri er påkrevd). Oppretter automatisk en rapportoppføring når hindringen lagres.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> QuickSaveObstacle(ObstacleDataViewModel viewModel)
@@ -65,11 +52,7 @@ namespace FirstWebApplication.Controllers
             return await SaveObstacleAndCreateReport(viewModel, _registrarRepository.GenerateQuickSaveReportMessage);
         }
 
-        /// <summary>
-        /// Submits a fully completed obstacle with all required fields validated. Automatically creates a report entry when obstacle is saved.
-        /// </summary>
-        /// <param name="viewModel">The complete obstacle ViewModel to submit</param>
-        /// <returns>JSON response with redirect URL if AJAX, otherwise returns overview view</returns>
+        // Sender inn en fullstendig utfylt hindring med alle påkrevde felt validert. Oppretter automatisk en rapportoppføring når hindringen lagres.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitObstacle(ObstacleDataViewModel viewModel)
@@ -82,53 +65,40 @@ namespace FirstWebApplication.Controllers
             return await SaveObstacleAndCreateReport(viewModel, _registrarRepository.GenerateSubmitReportMessage);
         }
 
-        /// <summary>
-        /// Helper method to save obstacle, create report, and return appropriate response
-        /// </summary>
-        /// <param name="viewModel">The obstacle ViewModel to save</param>
-        /// <param name="generateReportMessage">Function to generate the report message based on the saved obstacle</param>
-        /// <returns>JSON response if AJAX, otherwise returns overview view</returns>
+        // Hjelpemetode for å lagre hindring, opprette rapport og returnere passende respons
         private async Task<IActionResult> SaveObstacleAndCreateReport(
             ObstacleDataViewModel viewModel,
             Func<ObstacleData, string> generateReportMessage)
         {
-            // Map ViewModel to Entity
+            // Map ViewModel til Entity
             var obstacleData = _obstacleRepository.MapFromViewModel(viewModel);
             
-            // Set owner of the obstacle (logged-in pilot)
+            // Sett eier av hindringen (innlogget pilot)
             var currentUser = await _userRepository.GetUserAsync(User);
             if (currentUser != null)
             {
                 _obstacleRepository.SetObstacleOwner(obstacleData, currentUser.Id);
             }
 
-            // Save the obstacle
+            // Lagre hindringen
             var savedObstacle = await _obstacleRepository.AddObstacle(obstacleData);
 
-            // Create automatic report when obstacle is created
+            // Opprett automatisk rapport når hindring opprettes
             await _registrarRepository.AddRapportToObstacle(savedObstacle.ObstacleId, generateReportMessage(savedObstacle));
 
-            // Map back to ViewModel for response
+            // Map tilbake til ViewModel for respons
             var savedViewModel = _obstacleRepository.MapToViewModel(savedObstacle);
             return ReturnJsonOrViewIfAjax(savedObstacle.ObstacleId, savedViewModel);
         }
 
-        /// <summary>
-        /// Helper method to check if request is AJAX
-        /// </summary>
-        /// <returns>True if the request is an AJAX request, false otherwise</returns>
+        // Hjelpemetode for å sjekke om forespørsel er AJAX
         private bool IsAjaxRequest()
         {
             return Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
         }
 
 
-        /// <summary>
-        /// Helper method to return JSON if AJAX request, otherwise return view
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle</param>
-        /// <param name="viewModel">The saved obstacle ViewModel</param>
-        /// <returns>JSON response if AJAX, otherwise returns overview view</returns>
+        // Hjelpemetode for å returnere JSON hvis AJAX-forespørsel, ellers returner view
         private IActionResult ReturnJsonOrViewIfAjax(int obstacleId, ObstacleDataViewModel viewModel)
         {
             if (IsAjaxRequest())
@@ -138,14 +108,10 @@ namespace FirstWebApplication.Controllers
             return View("ObstacleOverview", viewModel);
         }
 
-        /// <summary>
-        /// Validates obstacle ViewModel for quick save (only geometry is required)
-        /// </summary>
-        /// <param name="viewModel">The obstacle ViewModel to validate</param>
-        /// <returns>True if valid, false otherwise</returns>
+        // Validerer hindring ViewModel for hurtiglagring (kun geometri er påkrevd)
         private bool ValidateQuickSave(ObstacleDataViewModel viewModel)
         {
-            // Remove validation errors for fields that can be skipped in quick save
+            // Fjern valideringsfeil for felt som kan hoppes over i hurtiglagring
             var fieldsToSkip = new[] 
             { 
                 nameof(ObstacleDataViewModel.ViewObstacleName), 
@@ -158,10 +124,10 @@ namespace FirstWebApplication.Controllers
                 ModelState.Remove(field);
             }
 
-            // Validate only GeometryGeoJson (required field)
+            // Valider kun GeometryGeoJson (påkrevd felt)
             if (string.IsNullOrEmpty(viewModel.ViewGeometryGeoJson))
             {
-                ModelState.AddModelError(nameof(ObstacleDataViewModel.ViewGeometryGeoJson), "Geometry (GeoJSON) is required.");
+                ModelState.AddModelError(nameof(ObstacleDataViewModel.ViewGeometryGeoJson), "Geometri (GeoJSON) er påkrevd.");
                 return false;
             }
 

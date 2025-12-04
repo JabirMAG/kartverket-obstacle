@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <!-- Drawing buttons positioned next to the map -->
+        <!-- Tegneknapper plassert ved siden av kartet -->
         <div class="draw-buttons-container">
             <button id="draw-point-btn" class="draw-button" title="Tegn punkt">
                 Punkt
@@ -50,19 +50,19 @@
         </div>
     </div>
 
-    <!-- Hidden field for the GeoJSON data produced from map -->
+    <!-- Skjult felt for GeoJSON-data produsert fra kart -->
     <input type="hidden" id="GeometryGeoJsonMap" />
     <input type="hidden" id="GeometryGeoJsonCoordinates" />
 
     <!-- Plassholder for hindringsskjema -->
     <div id="form-container"></div>
 
-    <!-- Leaflet and dependencies -->
+    <!-- Leaflet og avhengigheter -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
 
-    <!-- jQuery + validation scripts -->
+    <!-- jQuery + valideringsskript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
@@ -74,7 +74,7 @@
 
     <script>
         // Hent rapporterte hindringer (under behandling og godkjent) fra server
-        // Create anonymous objects with lowercase property names to match JavaScript conventions
+        // Opprett anonyme objekter med små bokstaver i egenskapsnavn for å matche JavaScript-konvensjoner
         @{
             var reportedObstaclesList = ViewBag.ReportedObstacles as List<FirstWebApplication.Models.ObstacleData> ?? new List<FirstWebApplication.Models.ObstacleData>();
             var reportedObstaclesJson = JsonSerializer.Serialize(reportedObstaclesList.Select(o => new {
@@ -103,10 +103,10 @@
         // Funksjon for å hente statusfarge
         function getStatusColor(status) {
             switch(status) {
-                case 1: return '#ff9800'; // Orange for pending
-                case 2: return '#4caf50'; // Green for approved
-                case 3: return '#f44336'; // Red for rejected
-                default: return '#9e9e9e'; // Gray for unknown
+                case 1: return '#ff9800'; // Oransje for under behandling
+                case 2: return '#4caf50'; // Grønn for godkjent
+                case 3: return '#f44336'; // Rød for avslått
+                default: return '#9e9e9e'; // Grå for ukjent
             }
         }
 
@@ -202,10 +202,10 @@
                 });
             }
 
-            // Custom drawing buttons - remove default draw control
+            // Tilpassede tegningsknapper - fjern standard tegningskontroll
             let currentDrawHandler = null;
             
-            // Function to stop current drawing
+            // Funksjon for å stoppe gjeldende tegning
             function stopDrawing() {
                 if (currentDrawHandler) {
                     map.removeLayer(currentDrawHandler);
@@ -213,7 +213,7 @@
                 }
             }
             
-            // Point button handler
+            // Punktknapp-håndterer
             document.getElementById('draw-point-btn').addEventListener('click', function() {
                 stopDrawing();
                 currentDrawHandler = new L.Draw.Marker(map, {
@@ -221,12 +221,12 @@
                 });
                 currentDrawHandler.enable();
                 
-                // Update button states
+                // Oppdater knapptilstander
                 document.getElementById('draw-point-btn').classList.add('active');
                 document.getElementById('draw-line-btn').classList.remove('active');
             });
             
-            // Line button handler
+            // Linjeknapp-håndterer
             document.getElementById('draw-line-btn').addEventListener('click', function() {
                 stopDrawing();
                 currentDrawHandler = new L.Draw.Polyline(map, {
@@ -238,7 +238,7 @@
                 });
                 currentDrawHandler.enable();
                 
-                // Update button states
+                // Oppdater knapptilstander
                 document.getElementById('draw-line-btn').classList.add('active');
                 document.getElementById('draw-point-btn').classList.remove('active');
             });
@@ -260,7 +260,7 @@
                 const coordinatesOnly = [lng, lat];
                 lastGeoJsonString = JSON.stringify(geoJsonData);
 
-                // Update hidden inputs
+                // Oppdater skjulte inndata
                 const geoInput = document.getElementById('GeometryGeoJsonMap');
                 const coordsInput = document.getElementById('GeometryGeoJsonCoordinates');
 
@@ -370,25 +370,25 @@
                 const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
                 const formContainer = document.getElementById("form-container");
 
-                // Try to get value from hidden input first
+                // Prøv å hente verdi fra skjult inndata først
                 let geoJsonValue = geoJsonInput ? geoJsonInput.value : "";
                 let geoJsonCoordinates = coordinatesInput ? coordinatesInput.value : "";
 
-                // If no value in hidden input, try to get from lastGeoJsonString
+                // Hvis ingen verdi i skjult inndata, prøv å hente fra lastGeoJsonString
                 if (!geoJsonValue && lastGeoJsonString) {
                     geoJsonValue = lastGeoJsonString;
-                    // Try to extract coordinates from lastGeoJsonString
+                    // Prøv å trekke ut koordinater fra lastGeoJsonString
                     try {
                         const parsed = JSON.parse(lastGeoJsonString);
                         if (parsed.geometry && parsed.geometry.coordinates) {
                             geoJsonCoordinates = JSON.stringify(parsed.geometry.coordinates);
                         }
                     } catch (e) {
-                        console.error("Error parsing lastGeoJsonString:", e);
+                        console.error("Feil ved parsing av lastGeoJsonString:", e);
                     }
                 }
 
-                // If still no value, check if there are any drawn items
+                // Hvis fortsatt ingen verdi, sjekk om det er noen tegnede elementer
                 if (!geoJsonValue && drawnItems.getLayers().length > 0) {
                     const lastLayer = drawnItems.getLayers()[drawnItems.getLayers().length - 1];
                     const geoJsonData = lastLayer.toGeoJSON();
@@ -396,7 +396,7 @@
                     const coordinatesOnly = geoJsonData.geometry.coordinates;
                     geoJsonCoordinates = JSON.stringify(coordinatesOnly);
                     
-                    // Update hidden inputs for consistency
+                    // Oppdater skjulte inndata for konsistens
                     if (geoJsonInput) geoJsonInput.value = geoJsonValue;
                     if (coordinatesInput) coordinatesInput.value = geoJsonCoordinates;
                 }
@@ -429,13 +429,13 @@
                             if (formGeoInput) {
                                 formGeoInput.value = geoJsonValue;
                             } else {
-                                console.error("Could not find ViewGeometryGeoJson input in form");
+                                console.error("Kunne ikke finne ViewGeometryGeoJson input i skjemaet");
                             }
                             
                             if (formGeoInputCoordinates) {
                                 formGeoInputCoordinates.value = geoJsonCoordinates;
                             } else {
-                                console.error("Could not find input[name='GeometryGeoCoordinates'] in form");
+                                console.error("Kunne ikke finne input[name='GeometryGeoCoordinates'] i skjemaet");
                             }
 
                             // Vis skjemaet
@@ -499,7 +499,7 @@
                                 
                                 // Sjekk hvilken knapp som ble klikket
                                 const submitButton = e.submitter || document.activeElement;
-                                let actionUrl = '/Obstacle/SubmitObstacle'; // Standard action
+                                let actionUrl = '/Obstacle/SubmitObstacle'; // Standard handling
                                 
                                 if (submitButton && submitButton.type === 'submit') {
                                     // Sjekk om knappen har formaction attributt
@@ -612,7 +612,7 @@
                                     }
                                 })
                                 .catch(error => {
-                                    console.error("Error submitting form:", error);
+                                    console.error("Feil ved innsending av skjema:", error);
                                     alert("En feil oppstod ved innsending av skjemaet. Vennligst prøv igjen.");
                                 });
                             }
@@ -627,7 +627,7 @@
 
             // Hendelse når en ny form er tegnet
             map.on(L.Draw.Event.CREATED, function (e) {
-                // Stop drawing and reset button states
+                // Stopp tegning og tilbakestill knapptilstander
                 if (currentDrawHandler) {
                     currentDrawHandler.disable();
                     currentDrawHandler = null;
@@ -642,7 +642,7 @@
                 const coordinatesOnly = geoJsonData.geometry.coordinates;
                 lastGeoJsonString = JSON.stringify(geoJsonData);
 
-                // Update hidden inputs
+                // Oppdater skjulte inndata
                 const geoInput = document.getElementById('GeometryGeoJsonMap');
                 const coordsInput = document.getElementById('GeometryGeoJsonCoordinates');
 

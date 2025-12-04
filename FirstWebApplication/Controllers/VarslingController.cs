@@ -9,10 +9,8 @@ using System.Threading.Tasks;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for notification functionality. Handles display of comments/reports on user's obstacles.
-    /// Only accessible to Pilot users.
-    /// </summary>
+    // Controller for varslingsfunksjonalitet. Håndterer visning av kommentarer/rapporter på brukerens hindringer.
+    // Kun tilgjengelig for Pilot-brukere.
     [Authorize(Roles = "Pilot")]
     public class VarslingController : Controller
     {
@@ -20,10 +18,10 @@ namespace FirstWebApplication.Controllers
         private readonly IObstacleRepository _obstacleRepository;
         private readonly IUserRepository _userRepository;
 
-        // Role name constant
+        // Konstant for rolle-navn
         private const string RolePilot = "Pilot";
 
-        // Error messages
+        // Feilmeldinger
         private const string ErrorObstacleNotFound = "Fant ikke hindring.";
 
         public VarslingController(
@@ -36,10 +34,7 @@ namespace FirstWebApplication.Controllers
             _userRepository = userRepository;
         }
 
-        /// <summary>
-        /// Displays all notifications (comments/reports) for obstacles owned by the logged-in pilot. Filters out auto-generated comments and groups by obstacle.
-        /// </summary>
-        /// <returns>The notifications view with grouped comments by obstacle</returns>
+        // Viser alle varslinger (kommentarer/rapporter) for hindringer eid av innlogget pilot. Filtrerer ut automatisk genererte kommentarer og grupperer etter hindring.
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -59,12 +54,8 @@ namespace FirstWebApplication.Controllers
             return View(varslinger);
         }
 
-        /// <summary>
-        /// Displays detailed view of an obstacle and its reports for the logged-in pilot.
-        /// Only obstacles owned by the logged-in pilot can be viewed.
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to view</param>
-        /// <returns>The obstacle details view, or redirects to index if obstacle not found or not owned by user</returns>
+        // Viser detaljert visning av en hindring og dens rapporter for innlogget pilot.
+        // Kun hindringer eid av innlogget pilot kan vises.
         [HttpGet]
         public async Task<IActionResult> Details(int obstacleId)
         {
@@ -89,11 +80,8 @@ namespace FirstWebApplication.Controllers
             return View(obstacle);
         }
 
-        /// <summary>
-        /// Gets the count of new/unread notifications (comments from admin/registerfører) for the current pilot user.
-        /// Returns 0 if user is not a pilot or not authenticated.
-        /// </summary>
-        /// <returns>JSON object with the notification count</returns>
+        // Henter antall nye/uleste varslinger (kommentarer fra admin/registerfører) for nåværende pilot-bruker.
+        // Returnerer 0 hvis bruker ikke er pilot eller ikke autentisert.
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetNotificationCount()
@@ -123,33 +111,21 @@ namespace FirstWebApplication.Controllers
             }
         }
 
-        /// <summary>
-        /// Saves the highest RapportID the user has seen to session
-        /// </summary>
-        /// <param name="userId">The ID of the user</param>
-        /// <param name="userComments">The list of comments the user has seen</param>
+        // Lagrer høyeste RapportID brukeren har sett til session
         private void SaveLastViewedRapportId(string userId, List<RapportData> userComments)
         {
             var maxRapportId = userComments.Any() ? userComments.Max(r => r.RapportID) : 0;
             HttpContext.Session.SetInt32($"LastViewedRapportId_{userId}", maxRapportId);
         }
 
-        /// <summary>
-        /// Gets the highest RapportID the user has seen from session
-        /// </summary>
-        /// <param name="userId">The ID of the user</param>
-        /// <returns>The last viewed RapportID, or 0 if not set</returns>
+        // Henter høyeste RapportID brukeren har sett fra session
         private int GetLastViewedRapportId(string userId)
         {
             return HttpContext.Session.GetInt32($"LastViewedRapportId_{userId}") ?? 0;
         }
 
-        /// <summary>
-        /// Builds ViewModel list for notifications grouped by obstacle.
-        /// Uses obstacles already included in the comments to avoid N+1 query problem.
-        /// </summary>
-        /// <param name="userComments">The list of comments for user's obstacles (with obstacles already included)</param>
-        /// <returns>List of VarslingViewModel grouped by obstacle</returns>
+        // Bygger ViewModel-liste for varslinger gruppert etter hindring.
+        // Bruker hindringer allerede inkludert i kommentarene for å unngå N+1 spørringsproblem.
         private Task<List<VarslingViewModel>> BuildVarslingViewModelsAsync(List<RapportData> userComments)
         {
             var groupedComments = userComments
@@ -161,7 +137,7 @@ namespace FirstWebApplication.Controllers
 
             foreach (var group in groupedComments)
             {
-                // Use obstacle already included in the comment to avoid additional database calls
+                // Bruk hindring allerede inkludert i kommentaren for å unngå ekstra databasekall
                 var firstComment = group.First();
                 var obstacle = firstComment.Obstacle;
 

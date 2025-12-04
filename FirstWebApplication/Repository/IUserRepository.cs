@@ -4,136 +4,67 @@ using System.Security.Claims;
 
 namespace FirstWebApplication.Repositories
 {
-    /// <summary>
-    /// Repository interface for user data operations
-    /// </summary>
+    // Repository-grensesnitt for brukerdataoperasjoner
     public interface IUserRepository
     {
-        /// <summary>
-        /// Returns queryable users for listing and filtering
-        /// </summary>
+        // Returnerer spørbare brukere for listing og filtrering
         IQueryable<ApplicationUser> Query();
         
-        /// <summary>
-        /// Gets a user by ID
-        /// </summary>
+        // Henter en bruker etter ID
         Task<ApplicationUser?> GetByIdAsync(string id);
         
-        /// <summary>
-        /// Gets a user by email address
-        /// </summary>
+        // Henter en bruker etter e-postadresse
         Task<ApplicationUser?> GetByEmailAsync(string email);
         
-        /// <summary>
-        /// Gets a user by username
-        /// </summary>
+        // Henter en bruker etter brukernavn
         Task<ApplicationUser?> GetByNameAsync(string username);
         
-        /// <summary>
-        /// Gets the user associated with the specified claims principal
-        /// </summary>
+        // Henter brukeren assosiert med den spesifiserte claims principal
         Task<ApplicationUser?> GetUserAsync(ClaimsPrincipal principal);
         
-        /// <summary>
-        /// Creates a new user with password
-        /// </summary>
+        // Oppretter en ny bruker med passord
         Task<IdentityResult> CreateAsync(ApplicationUser user, string password);
         
-        /// <summary>
-        /// Updates an existing user
-        /// </summary>
+        // Oppdaterer en eksisterende bruker
         Task<IdentityResult> UpdateAsync(ApplicationUser user);
         
-        /// <summary>
-        /// Deletes a user
-        /// </summary>
+        // Sletter en bruker
         Task<IdentityResult> DeleteAsync(ApplicationUser user);
         
-        /// <summary>
-        /// Validates and normalizes organization name (case-insensitive matching)
-        /// </summary>
-        /// <param name="organization">The organization name to validate</param>
-        /// <returns>Normalized organization name or null if invalid</returns>
+        // Validerer og normaliserer organisasjonsnavn (case-insensitive matching)
         string? ValidateAndNormalizeOrganization(string? organization);
         
-        /// <summary>
-        /// Checks if an organization is valid
-        /// </summary>
-        /// <param name="organization">The organization name to check</param>
-        /// <returns>True if organization is valid, false otherwise</returns>
+        // Sjekker om en organisasjon er gyldig
         bool IsValidOrganization(string? organization);
         
-        /// <summary>
-        /// Gets all valid organization options
-        /// </summary>
-        /// <returns>Array of all valid organization names</returns>
+        // Henter alle gyldige organisasjonsalternativer
         string[] GetAllOrganizations();
         
-        /// <summary>
-        /// Generates and encodes password reset token to Base64Url format
-        /// </summary>
-        /// <param name="user">The user who should receive the reset token</param>
-        /// <returns>Encoded token that can be used in URL</returns>
+        // Genererer og koder passordtilbakestillingsnøkkel til Base64Url-format
         Task<string> GenerateEncodedPasswordResetTokenAsync(ApplicationUser user);
         
-        /// <summary>
-        /// Resets password for a user using the provided token
-        /// </summary>
-        /// <param name="user">The user whose password should be reset</param>
-        /// <param name="encodedToken">The encoded reset token from URL</param>
-        /// <param name="newPassword">The new password</param>
-        /// <returns>Identity result indicating success or failure</returns>
+        // Tilbakestiller passord for en bruker ved hjelp av den oppgitte nøkkelen
         Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string encodedToken, string newPassword);
         
-        /// <summary>
-        /// Checks if a user is in a specific role
-        /// </summary>
-        /// <param name="user">The user to check</param>
-        /// <param name="role">The role name to check</param>
-        /// <returns>True if user is in the role, false otherwise</returns>
+        // Sjekker om en bruker er i en spesifikk rolle
         Task<bool> IsInRoleAsync(ApplicationUser user, string role);
         
-        /// <summary>
-        /// Gets password options for validation and display
-        /// </summary>
-        /// <returns>Password options configuration</returns>
+        // Henter passordalternativer for validering og visning
         PasswordOptions GetPasswordOptions();
         
-        /// <summary>
-        /// Gets all roles for a user
-        /// </summary>
-        /// <param name="user">The user to get roles for</param>
-        /// <returns>List of role names</returns>
+        // Henter alle roller for en bruker
         Task<IList<string>> GetRolesAsync(ApplicationUser user);
         
-        /// <summary>
-        /// Adds a user to a role
-        /// </summary>
-        /// <param name="user">The user to add to the role</param>
-        /// <param name="role">The role name</param>
-        /// <returns>Identity result indicating success or failure</returns>
+        // Legger til en bruker i en rolle
         Task<IdentityResult> AddToRoleAsync(ApplicationUser user, string role);
         
-        /// <summary>
-        /// Removes a user from a role
-        /// </summary>
-        /// <param name="user">The user to remove from the role</param>
-        /// <param name="role">The role name</param>
-        /// <returns>Identity result indicating success or failure</returns>
+        // Fjerner en bruker fra en rolle
         Task<IdentityResult> RemoveFromRoleAsync(ApplicationUser user, string role);
         
-        /// <summary>
-        /// Checks if a role exists
-        /// </summary>
-        /// <param name="role">The role name to check</param>
-        /// <returns>True if role exists, false otherwise</returns>
+        // Sjekker om en rolle eksisterer
         Task<bool> RoleExistsAsync(string role);
         
-        /// <summary>
-        /// Ensures a role exists, creating it if it doesn't
-        /// </summary>
-        /// <param name="role">The role name to ensure exists</param>
-        /// <returns>Task representing the async operation</returns>
+        // Sikrer at en rolle eksisterer, oppretter den hvis den ikke gjør det
         Task EnsureRoleExistsAsync(string role);
     }
 }

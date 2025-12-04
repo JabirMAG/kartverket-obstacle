@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for registrar functionality. Handles processing of obstacles and reports.
-    /// </summary>
+    // Controller for registerfører-funksjonalitet. Håndterer behandling av hindringer og rapporter.
     [Authorize(Roles = "Admin,Registerfører")]
     public class RegistrarController : Controller
     {
@@ -36,10 +34,7 @@ namespace FirstWebApplication.Controllers
             _archiveRepository = archiveRepository;
         }
 
-        /// <summary>
-        /// Displays main overview for registrar with all obstacles and reports
-        /// </summary>
-        /// <returns>The registrar overview view</returns>
+        // Viser hovedoversikt for registerfører med alle hindringer og rapporter
         [HttpGet]
         public async Task<IActionResult> Registrar()
         {
@@ -55,13 +50,7 @@ namespace FirstWebApplication.Controllers
             return View(vm);
         }
 
-        /// <summary>
-        /// Updates the status of an obstacle. If status is Rejected (3), the obstacle is archived.
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to update</param>
-        /// <param name="status">The new status for the obstacle</param>
-        /// <param name="returnUrl">Optional return URL to redirect back to details page</param>
-        /// <returns>Redirects to registrar page or details page based on returnUrl</returns>
+        // Oppdaterer statusen til en hindring. Hvis status er Avslått (3), arkiveres hindringen.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status, string returnUrl = null)
@@ -73,7 +62,7 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(nameof(Registrar));
             }
 
-            // If status is Rejected, archive the obstacle and all reports
+            // Hvis status er Avslått, arkiver hindringen og alle rapporter
             if (status == StatusRejected)
             {
                 var archivedReportCount = await _archiveRepository.ArchiveObstacleAsync(obstacle);
@@ -88,10 +77,10 @@ namespace FirstWebApplication.Controllers
                 }
             }
 
-            // Redirect back to details page if returnUrl is set, otherwise to reports
+            // Omdiriger tilbake til detaljsiden hvis returnUrl er satt, ellers til rapporter
             if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("RegistrarObstacleDetails"))
             {
-                // If status is Rejected, redirect to reports since the obstacle is deleted
+                // Hvis status er Avslått, omdiriger til rapporter siden hindringen er slettet
                 if (status == StatusRejected)
                 {
                     return RedirectToAction(nameof(Registrar));
@@ -102,17 +91,12 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(Registrar));
         }
 
-        /// <summary>
-        /// Adds a new report/comment to an obstacle. Comment is optional - if empty, method returns without error.
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle</param>
-        /// <param name="rapportComment">The comment text to add (optional)</param>
-        /// <returns>Redirects to registrar page</returns>
+        // Legger til en ny rapport/kommentar til en hindring. Kommentar er valgfri - hvis tom, returnerer metoden uten feil.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddRapport(int obstacleId, string rapportComment)
         {
-            // If comment is empty, silently return without error
+            // Hvis kommentar er tom, returner stille uten feil
             if (string.IsNullOrWhiteSpace(rapportComment))
             {
                 return RedirectToAction(nameof(Registrar));
@@ -130,11 +114,7 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(Registrar));
         }
 
-        /// <summary>
-        /// Displays detailed view of an obstacle and all its associated reports
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to view</param>
-        /// <returns>The obstacle details view, or redirects to registrar page if obstacle not found</returns>
+        // Viser detaljert visning av en hindring og alle tilknyttede rapporter
         [HttpGet]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
@@ -153,12 +133,7 @@ namespace FirstWebApplication.Controllers
             return View("RegistrarObstacleDetails", obstacle);
         }
 
-        /// <summary>
-        /// Adds a comment to an obstacle's report
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle</param>
-        /// <param name="comment">The comment text to add</param>
-        /// <returns>Redirects to obstacle details page</returns>
+        // Legger til en kommentar til en hindringsrapport
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddComment(int obstacleId, string comment)
@@ -181,10 +156,7 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
         }
 
-        /// <summary>
-        /// Displays all archived reports (rejected obstacles)
-        /// </summary>
-        /// <returns>The archived reports view</returns>
+        // Viser alle arkiverte rapporter (avviste hindringer)
         [HttpGet("archived-reports")]
         public async Task<IActionResult> ArchivedReports()
         {

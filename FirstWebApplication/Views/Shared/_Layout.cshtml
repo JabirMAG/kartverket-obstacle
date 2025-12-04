@@ -5,7 +5,7 @@
 @inject UserManager<ApplicationUser> UserManager
 
 @{
-    // Determine the home page based on user role
+    // Bestem hjemmesiden basert på brukerrolle
     string homeController = "Home";
     string homeAction = "Index";
     bool isAdmin = false;
@@ -13,7 +13,7 @@
     bool isRegistrar = false;
     ApplicationUser? currentUser = null;
     
-    // Get current controller and action
+    // Hent nåværende controller og action
     string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     bool isOnHomePage = currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);

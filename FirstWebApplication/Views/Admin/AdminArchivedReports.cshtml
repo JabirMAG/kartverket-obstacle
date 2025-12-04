@@ -42,7 +42,7 @@ else
         <tbody>
             @foreach (var archivedReport in Model)
             {
-                // Parse JSON comments
+                // Parse JSON-kommentarer
                 List<string> comments = new List<string>();
                 try
                 {
@@ -53,7 +53,7 @@ else
                 }
                 catch
                 {
-                    // If JSON parsing fails, treat as empty
+                    // Hvis JSON-parsing feiler, behandle som tom
                     comments = new List<string>();
                 }
                 

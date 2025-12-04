@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for home page and general site functionality
-    /// </summary>
+    // Controller for hjemmeside og generell nettstedfunksjonalitet
     public class HomeController : Controller
     {
         private readonly IGreetingRepository _greetingRepository;
@@ -17,38 +15,26 @@ namespace FirstWebApplication.Controllers
             _greetingRepository = greetingRepository;
         }
 
-        /// <summary>
-        /// Displays the home page with a time-based greeting
-        /// </summary>
-        /// <returns>The home page view</returns>
+        // Viser hjemmesiden med en tidsbasert hilsen
         public IActionResult Index()
         {
             ViewBag.Greeting = _greetingRepository.GetTimeBasedGreeting();
             return View();
         }
 
-        /// <summary>
-        /// Displays the privacy page
-        /// </summary>
-        /// <returns>The privacy view</returns>
+        // Viser personvernsiden
         public IActionResult Privacy()
         {
             return View();
         }
 
-        /// <summary>
-        /// Displays the about us page
-        /// </summary>
-        /// <returns>The about us view</returns>
+        // Viser om oss-siden
         public IActionResult OmOss()
         {
             return View();
         }
 
-        /// <summary>
-        /// Displays error page with error details
-        /// </summary>
-        /// <returns>The error view with error details</returns>
+        // Viser feilside med feildetaljer
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

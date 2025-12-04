@@ -97,20 +97,20 @@
 
                 coordsElement.textContent = JSON.stringify(coordinates);
 
-                // --- Leaflet map initialization ---
-                var map = L.map('overview-map'); // the div ID
+                // --- Leaflet kartinitialisering ---
+                var map = L.map('overview-map'); // div-ID
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
 
-                // Add the GeoJSON layer
+                // Legg til GeoJSON-laget
                 var geojsonLayer = L.geoJSON(geojson).addTo(map);
 
-                // Fit the map view to the GeoJSON bounds
+                // Tilpass kartvisningen til GeoJSON-grensene
                 map.fitBounds(geojsonLayer.getBounds());
 
             } catch (err) {
-                console.error("Invalid GeoJSON:", err);
+                console.error("Ugyldig GeoJSON:", err);
                 coordsElement.textContent = "Ugyldige koordinater";
             }
         })();

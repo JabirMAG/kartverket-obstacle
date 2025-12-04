@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for pilot functionality. Handles viewing and updating of obstacles owned by the logged-in pilot.
-    /// </summary>
+    // Controller for pilot-funksjonalitet. Håndterer visning og oppdatering av hindringer eid av innlogget pilot.
     [Authorize(Roles = "Pilot")]
     public class PilotController : Controller
     {
@@ -31,10 +29,7 @@ namespace FirstWebApplication.Controllers
             _userRepository = userRepository;
         }
 
-        /// <summary>
-        /// Displays overview of all obstacles owned by the logged-in pilot
-        /// </summary>
-        /// <returns>The pilot's obstacles overview view, or Unauthorized if user is not logged in</returns>
+        // Viser oversikt over alle hindringer eid av innlogget pilot
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -48,11 +43,7 @@ namespace FirstWebApplication.Controllers
             return View(myObstacles);
         }
 
-        /// <summary>
-        /// Displays details of a specific obstacle and its associated reports. Only obstacles owned by the logged-in pilot can be viewed.
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to view</param>
-        /// <returns>The obstacle details view, or redirects to index if obstacle not found or not owned by user</returns>
+        // Viser detaljer om en spesifikk hindring og dens tilknyttede rapporter. Kun hindringer eid av innlogget pilot kan vises.
         [HttpGet]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
@@ -77,14 +68,7 @@ namespace FirstWebApplication.Controllers
             return View("PilotObstacleDetails", obstacle);
         }
 
-        /// <summary>
-        /// Updates an obstacle. Only obstacles with status "Under treatment" (1) can be updated.
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to update</param>
-        /// <param name="obstacleName">The new name for the obstacle</param>
-        /// <param name="obstacleDescription">The new description for the obstacle</param>
-        /// <param name="obstacleHeight">The new height for the obstacle</param>
-        /// <returns>Redirects to obstacle details page</returns>
+        // Oppdaterer en hindring. Kun hindringer med status "Under behandling" (1) kan oppdateres.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacle(int obstacleId, string obstacleName, string obstacleDescription, double obstacleHeight)
