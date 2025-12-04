@@ -1,0 +1,215 @@
+@model FirstWebApplication.Models.ObstacleData
+@using System.Text.Json
+@using System.Linq
+
+@{
+    ViewData["Title"] = Model?.ObstacleName ?? "Detaljer om rapport";
+    var obstacle = ViewBag.Obstacle as FirstWebApplication.Models.ObstacleData;
+    var rapports = ViewBag.Rapports as List<FirstWebApplication.Models.RapportData>;
+    var statusText = obstacle?.ObstacleStatus switch
+    {
+        1 => "Under behandling",
+        2 => "Godkjent",
+        3 => "Avslått",
+        _ => "Ukjent"
+    };
+}
+
+<link rel="stylesheet" href="~/css/RegistrarObstacleDetails.css" />
+
+<div class="registrar-details-page">
+    <h1 class="registrar-details-title">@(obstacle?.ObstacleName ?? "N/A")</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="registrar-details-alert registrar-details-alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="registrar-details-alert registrar-details-alert-danger">@TempData["Error"]</div>
+    }
+
+    <a class="registrar-details-back-button" asp-controller="Registrar" asp-action="Registrar">← Tilbake til rapporter</a>
+
+    @if (obstacle == null)
+    {
+        <div class="registrar-details-alert registrar-details-alert-danger">
+            <p>Fant ikke hindring.</p>
+        </div>
+    }
+    else
+    {
+        <div class="registrar-details-container">
+            <div>
+                <div class="registrar-details-card">
+                    <div class="registrar-details-card-header">
+                        <h5 class="registrar-details-card-title">Oversikt over hindring</h5>
+                    </div>
+                    <div class="registrar-details-card-body">
+                        <dl class="registrar-details-definition-list">
+                            <dt>Navn:</dt>
+                            <dd>@obstacle.ObstacleName</dd>
+
+                            <dt>Registrert av:</dt>
+                            <dd>@(obstacle.OwnerUser?.UserName ?? obstacle.OwnerUser?.Email ?? "Ukjent bruker")</dd>
+
+                            <dt>Høyde:</dt>
+                            <dd>@obstacle.ObstacleHeight m</dd>
+
+                            <dt>Status:</dt>
+                            <dd>
+                                <form asp-controller="Registrar" asp-action="UpdateObstacleStatus" method="post" class="registrar-details-status-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="obstacleId" value="@obstacle.ObstacleId" />
+                                    <input type="hidden" name="returnUrl" value="DetaljerOmRapport" />
+                                    <select name="status" onchange="this.form.submit()" class="registrar-details-status-select">
+                                        <option value="1" selected="@(obstacle.ObstacleStatus == 1)">Under behandling</option>
+                                        <option value="2" selected="@(obstacle.ObstacleStatus == 2)">Godkjent</option>
+                                        <option value="3" selected="@(obstacle.ObstacleStatus == 3)">Avslått</option>
+                                    </select>
+                                </form>
+                            </dd>
+
+                            <dt>Beskrivelse:</dt>
+                            <dd>@obstacle.ObstacleDescription</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- Kommentar Section -->
+                <div class="registrar-details-card registrar-details-card-spacing">
+                    <div class="registrar-details-card-header">
+                        <h5 class="registrar-details-card-title">Kommentarer</h5>
+                    </div>
+                    <div class="registrar-details-card-body">
+                        @{
+                            // Filtrer ut automatisk genererte kommentarer (de som starter med "Hindring 'X' ble sendt inn")
+                            var adminComments = rapports?.Where(r => !(r.RapportComment.StartsWith("Hindring '") && r.RapportComment.Contains(" ble sendt inn. Høyde:"))).ToList();
+                        }
+                        @if (adminComments != null && adminComments.Any())
+                        {
+                            <div>
+                                <h6>Eksisterende kommentarer:</h6>
+                                <ul class="registrar-details-comments-list">
+                                    @foreach (var rapport in adminComments.OrderByDescending(r => r.RapportID))
+                                    {
+                                        <li class="registrar-details-comment-item">
+                                            <div class="registrar-details-comment-box">
+                                                <small class="registrar-details-comment-id">Kommentar #@rapport.RapportID</small>
+                                                <p class="registrar-details-comment-text">@rapport.RapportComment</p>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                <p class="registrar-details-text-muted">Ingen kommentarer ennå.</p>
+                            </div>
+                        }
+
+                        <form asp-controller="Registrar" asp-action="AddComment" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="obstacleId" value="@obstacle.ObstacleId" />
+                            <div class="registrar-details-form-group">
+                                <label for="comment" class="registrar-details-form-label">Legg til kommentar:</label>
+                                <textarea id="comment" name="comment" class="registrar-details-form-control" rows="3" placeholder="For eksempel: Be brukeren om mer informasjon om hindringen..." required></textarea>
+                                <small class="registrar-details-form-text">Du kan be brukeren om mer informasjon eller legge til notater om hindringen.</small>
+                            </div>
+                            <button type="submit" class="registrar-details-button">Legg til kommentar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div>
+                <div class="registrar-details-card">
+                    <div class="registrar-details-card-header">
+                        <h5 class="registrar-details-card-title">Kart</h5>
+                    </div>
+                    <div class="registrar-details-map-container">
+                        <div id="detail-map" class="registrar-details-map"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @if (obstacle != null && !string.IsNullOrEmpty(obstacle.GeometryGeoJson))
+            {
+                <text>
+                var geometryGeoJson = @Html.Raw(obstacle.GeometryGeoJson);
+                
+                try {
+                    var geojson = typeof geometryGeoJson === 'string' ? JSON.parse(geometryGeoJson) : geometryGeoJson;
+                    
+                    // Initialize map
+                    var map = L.map('detail-map');
+                    
+                    // Add OSM tile layer
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    
+                    // Add GeoJSON layer
+                    var geojsonLayer = L.geoJSON(geojson, {
+                        pointToLayer: function (feature, latlng) {
+                            return L.marker(latlng);
+                        },
+                        style: function (feature) {
+                            return {
+                                color: '#3388ff',
+                                weight: 3,
+                                opacity: 0.8
+                            };
+                        }
+                    }).addTo(map);
+                    
+                    // Fit map bounds to the GeoJSON
+                    if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
+                        map.fitBounds(geojsonLayer.getBounds().pad(0.1));
+                    } else {
+                        // Fallback: center on Norway if bounds are invalid
+                        map.setView([59.9139, 10.7522], 7);
+                    }
+                } catch (err) {
+                    console.error("Error rendering map:", err);
+                    // Initialize map with default view if GeoJSON is invalid
+                    var map = L.map('detail-map').setView([59.9139, 10.7522], 7);
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                // Initialize map with default view if no geometry
+                var map = L.map('detail-map').setView([59.9139, 10.7522], 7);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                </text>
+            }
+        });
+    </script>
+}
+

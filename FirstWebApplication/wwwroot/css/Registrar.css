@@ -1,0 +1,113 @@
+/* Registrar Page Styles */
+
+.registrar-page {
+    padding: 1rem 0;
+}
+
+.registrar-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.registrar-alert {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem;
+}
+
+.registrar-alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.registrar-alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.registrar-alert-info {
+    background-color: #cff4fc;
+    color: #055160;
+    border: 1px solid #b6effb;
+}
+
+.registrar-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.registrar-table thead {
+    background-color: #f8f9fa;
+}
+
+.registrar-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.registrar-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.registrar-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.registrar-status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.registrar-status-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.registrar-status-success {
+    background-color: #198754;
+    color: #fff;
+}
+
+.registrar-status-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.registrar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.registrar-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    border: 1px solid #0d6efd;
+    background-color: transparent;
+    color: #0d6efd;
+    transition: all 0.2s;
+}
+
+.registrar-button:hover {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.registrar-text-end {
+    text-align: right;
+}
+

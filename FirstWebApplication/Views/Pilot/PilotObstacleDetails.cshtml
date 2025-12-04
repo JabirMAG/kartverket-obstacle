@@ -1,0 +1,186 @@
+@model FirstWebApplication.Models.ObstacleData
+@using System.Text.Json
+@using System.Linq
+
+@{
+    ViewData["Title"] = Model?.ObstacleName ?? "Detaljer om rapport";
+    var obstacle = ViewBag.Obstacle as FirstWebApplication.Models.ObstacleData ?? Model;
+    var rapports = ViewBag.Rapports as List<FirstWebApplication.Models.RapportData>;
+}
+
+<link rel="stylesheet" href="~/css/PilotObstacleDetails.css" />
+
+<div class="pilot-details-page">
+    <h1 class="pilot-details-title">@(obstacle?.ObstacleName ?? "N/A")</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="pilot-details-alert pilot-details-alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="pilot-details-alert pilot-details-alert-danger">@TempData["Error"]</div>
+    }
+
+    <a class="pilot-details-back-button" asp-controller="Pilot" asp-action="Index">← Tilbake til mine rapporter</a>
+
+    @if (obstacle == null)
+    {
+        <div class="pilot-details-alert pilot-details-alert-danger">
+            <p>Fant ikke hindring.</p>
+        </div>
+    }
+    else
+    {
+        <div class="pilot-details-container">
+            <div>
+                <div class="pilot-details-card">
+                    <div class="pilot-details-card-header">
+                        <h5 class="pilot-details-card-title">Oversikt over hindring</h5>
+                        @{
+                            var statusText = obstacle.ObstacleStatus == 1 ? "Under behandling" : obstacle.ObstacleStatus == 2 ? "Godkjent" : "Avslått";
+                            var statusClass = obstacle.ObstacleStatus == 1 ? "pilot-details-status-warning" : obstacle.ObstacleStatus == 2 ? "pilot-details-status-success" : "pilot-details-status-danger";
+                        }
+                        <span class="pilot-details-status-badge @statusClass">@statusText</span>
+                    </div>
+                    <div class="pilot-details-card-body">
+                        @if (obstacle.ObstacleStatus == 1)
+                        {
+                            <form asp-controller="Pilot" asp-action="UpdateObstacle" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="obstacleId" value="@obstacle.ObstacleId" />
+                                <div class="pilot-details-form-group">
+                                    <label for="obstacleName" class="pilot-details-form-label">Navn</label>
+                                    <input id="obstacleName" name="obstacleName" class="pilot-details-form-control" value="@obstacle.ObstacleName" maxlength="100" required />
+                                </div>
+                                <div class="pilot-details-form-group">
+                                    <label for="obstacleHeight" class="pilot-details-form-label">Høyde (m)</label>
+                                    <input id="obstacleHeight" name="obstacleHeight" type="number" step="0.01" min="0" max="200" class="pilot-details-form-control" value="@obstacle.ObstacleHeight" required />
+                                </div>
+                                <div class="pilot-details-form-group">
+                                    <label for="obstacleDescription" class="pilot-details-form-label">Beskrivelse</label>
+                                    <textarea id="obstacleDescription" name="obstacleDescription" class="pilot-details-form-control" rows="3" maxlength="1000" required>@obstacle.ObstacleDescription</textarea>
+                                </div>
+                                <button type="submit" class="pilot-details-button">Lagre endringer</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <dl class="pilot-details-definition-list">
+                                <dt>Navn:</dt>
+                                <dd>@obstacle.ObstacleName</dd>
+                                <dt>Høyde:</dt>
+                                <dd>@obstacle.ObstacleHeight m</dd>
+                                <dt>Beskrivelse:</dt>
+                                <dd>@obstacle.ObstacleDescription</dd>
+                            </dl>
+                            <p class="pilot-details-text-muted">Redigering er ikke mulig etter at hindringen er godkjent eller avslått.</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="pilot-details-card pilot-details-card-spacing">
+                    <div class="pilot-details-card-header">
+                        <h5 class="pilot-details-card-title">Kommentarer</h5>
+                    </div>
+                    <div class="pilot-details-card-body">
+                        @{
+                            var adminComments = rapports?.Where(r => !(r.RapportComment.StartsWith("Hindring '") && r.RapportComment.Contains(" ble sendt inn. Høyde:"))).ToList();
+                        }
+                        @if (adminComments != null && adminComments.Any())
+                        {
+                            <div>
+                                <h6>Eksisterende kommentarer:</h6>
+                                <ul class="pilot-details-comments-list">
+                                    @foreach (var rapport in adminComments.OrderByDescending(r => r.RapportID))
+                                    {
+                                        <li class="pilot-details-comment-item">
+                                            <div class="pilot-details-comment-box">
+                                                <small class="pilot-details-comment-id">Kommentar #@rapport.RapportID</small>
+                                                <p class="pilot-details-comment-text">@rapport.RapportComment</p>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                <p class="pilot-details-text-muted">Ingen kommentarer ennå.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="pilot-details-card">
+                    <div class="pilot-details-card-header">
+                        <h5 class="pilot-details-card-title">Kart</h5>
+                    </div>
+                    <div class="pilot-details-map-container">
+                        <div id="detail-map" class="pilot-details-map"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @if (obstacle != null && !string.IsNullOrEmpty(obstacle.GeometryGeoJson))
+            {
+                <text>
+                var geometryGeoJson = @Html.Raw(obstacle.GeometryGeoJson);
+                try {
+                    var geojson = typeof geometryGeoJson === 'string' ? JSON.parse(geometryGeoJson) : geometryGeoJson;
+                    var map = L.map('detail-map');
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    var geojsonLayer = L.geoJSON(geojson, {
+                        pointToLayer: function (feature, latlng) {
+                            return L.marker(latlng);
+                        },
+                        style: function () {
+                            return { color: '#3388ff', weight: 3, opacity: 0.8 };
+                        }
+                    }).addTo(map);
+                    if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
+                        map.fitBounds(geojsonLayer.getBounds().pad(0.1));
+                    } else {
+                        map.setView([59.9139, 10.7522], 7);
+                    }
+                } catch (err) {
+                    console.error("Error rendering map:", err);
+                    var map = L.map('detail-map').setView([59.9139, 10.7522], 7);
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                }
+                </text>
+            }
+            else
+            {
+                <text>
+                var map = L.map('detail-map').setView([59.9139, 10.7522], 7);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                </text>
+            }
+        });
+    </script>
+}
+
+

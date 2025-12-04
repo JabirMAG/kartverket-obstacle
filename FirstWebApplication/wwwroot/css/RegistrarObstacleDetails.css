@@ -1,0 +1,198 @@
+/* Registrar Obstacle Details Page Styles */
+
+.registrar-details-page {
+    padding: 1rem 0;
+}
+
+.registrar-details-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.registrar-details-alert {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem;
+}
+
+.registrar-details-alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.registrar-details-alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.registrar-details-back-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    background-color: #6c757d;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s;
+}
+
+.registrar-details-back-button:hover {
+    background-color: #5a6268;
+    color: #fff;
+}
+
+.registrar-details-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .registrar-details-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.registrar-details-card {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.registrar-details-card-header {
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.registrar-details-card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.registrar-details-card-body {
+    padding: 1rem;
+}
+
+.registrar-details-definition-list {
+    margin: 0;
+}
+
+.registrar-details-definition-list dt {
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.registrar-details-definition-list dd {
+    margin-left: 0;
+    margin-top: 0.25rem;
+}
+
+.registrar-details-status-select {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    width: auto;
+}
+
+.registrar-details-comments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.registrar-details-comment-item {
+    margin-bottom: 0.5rem;
+}
+
+.registrar-details-comment-box {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+}
+
+.registrar-details-comment-id {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.registrar-details-comment-text {
+    margin: 0.25rem 0 0 0;
+}
+
+.registrar-details-form-group {
+    margin-bottom: 1rem;
+}
+
+.registrar-details-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.registrar-details-form-control {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+}
+
+.registrar-details-form-control:focus {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.registrar-details-form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.registrar-details-button {
+    padding: 0.5rem 1rem;
+    background-color: #0d6efd;
+    color: #fff;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.registrar-details-button:hover {
+    background-color: #0b5ed7;
+}
+
+.registrar-details-map-container {
+    padding: 0;
+}
+
+.registrar-details-map {
+    height: 400px;
+    width: 100%;
+}
+
+.registrar-details-text-muted {
+    color: #6c757d;
+}
+
+/* Inline form styling */
+.registrar-details-status-form {
+    display: inline;
+}
+
+/* Card spacing */
+.registrar-details-card-spacing {
+    margin-top: 1rem;
+}
+

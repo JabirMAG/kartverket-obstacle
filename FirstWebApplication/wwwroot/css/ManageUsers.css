@@ -1,0 +1,150 @@
+/* Manage Users Page Styles */
+
+.manage-users-page {
+    padding: 1rem 0;
+}
+
+.manage-users-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.manage-users-alert {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem;
+}
+
+.manage-users-alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.manage-users-alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.manage-users-create-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    background-color: #198754;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s;
+}
+
+.manage-users-create-button:hover {
+    background-color: #157347;
+    color: #fff;
+}
+
+.manage-users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.manage-users-table thead {
+    background-color: #f8f9fa;
+}
+
+.manage-users-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.manage-users-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.manage-users-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.manage-users-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.manage-users-badge-success {
+    background-color: #198754;
+    color: #fff;
+}
+
+.manage-users-badge-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.manage-users-badge-info {
+    background-color: #0dcaf0;
+    color: #000;
+}
+
+.manage-users-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.manage-users-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.manage-users-button-success {
+    background-color: #198754;
+    color: #fff;
+}
+
+.manage-users-button-success:hover {
+    background-color: #157347;
+}
+
+.manage-users-button-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.manage-users-button-warning:hover {
+    background-color: #ffca2c;
+}
+
+.manage-users-button-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.manage-users-button-danger:hover {
+    background-color: #bb2d3b;
+}
+
+.manage-users-text-end {
+    text-align: right;
+}
+
+.manage-users-text-muted {
+    color: #6c757d;
+}
+
+.manage-users-form-inline {
+    display: inline;
+}
+
