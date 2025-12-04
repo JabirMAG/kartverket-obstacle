@@ -174,7 +174,7 @@ namespace FirstWebApplication.Controllers
             }
             
             // Redirect back to the details page if returnUrl is set, otherwise to reports
-            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("AdminObstacleDetails"))
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DetaljerOmRapport"))
             {
                 // If status is Rejected, redirect to reports since the obstacle is deleted
                 if (status == 3)
@@ -208,7 +208,7 @@ namespace FirstWebApplication.Controllers
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View("AdminObstacleDetails", obstacle);
+            return View("DetaljerOmRapport", obstacle);
         }
         
         /// <summary>

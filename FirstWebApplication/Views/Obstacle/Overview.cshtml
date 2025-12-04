@@ -1,4 +1,4 @@
-﻿@model FirstWebApplication.Models.ObstacleData
+﻿@model FirstWebApplication.Models.ViewModel.ObstacleDataViewModel
 
 @{
     ViewData["Title"] = "Oversikt";
@@ -24,13 +24,13 @@
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">Hindringens navn:</dt>
-                        <dd class="col-sm-8">@Model.ObstacleName</dd>
+                        <dd class="col-sm-8">@Model.ViewObstacleName</dd>
 
                         <dt class="col-sm-4">Høyde:</dt>
-                        <dd class="col-sm-8">@Model.ObstacleHeight m</dd>
+                        <dd class="col-sm-8">@Model.ViewObstacleHeight m</dd>
 
                         <dt class="col-sm-4">Beskrivelse:</dt>
-                        <dd class="col-sm-8">@Model.ObstacleDescription</dd>
+                        <dd class="col-sm-8">@Model.ViewObstacleDescription</dd>
 
                         <dt class="col-sm-4">Koordinater:</dt>
                         <dd class="col-sm-8">
@@ -65,7 +65,7 @@
 </div>
 
 <!-- Hidden field for GeoJSON data -->
-<textarea id="OverviewCoordinates">@Model.GeometryGeoJson</textarea>
+<textarea id="OverviewCoordinates">@Model.ViewGeometryGeoJson</textarea>
 
 @section Scripts {
     <!-- Leaflet CSS -->
