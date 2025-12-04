@@ -4,26 +4,29 @@
     ViewData["Title"] = "Rapporter";
 }
 
-<h1 class="display-6">Rapporter</h1>
+<link rel="stylesheet" href="~/css/AdminViewReports.css" />
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+<div class="admin-reports-page">
+    <h1 class="admin-reports-title">Rapporter</h1>
 
-@if (Model == null || !Model.Any())
-{
-    <div class="alert alert-info">
-        <p>Ingen rapporter funnet.</p>
-    </div>
-}
-else
-{
-    <table class="table table-striped align-middle">
+    @if (TempData["Success"] != null)
+    {
+        <div class="admin-reports-alert admin-reports-alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="admin-reports-alert admin-reports-alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="admin-reports-alert admin-reports-alert-info">
+            <p>Ingen rapporter funnet.</p>
+        </div>
+    }
+    else
+    {
+        <table class="admin-reports-table">
         <thead>
             <tr>
                 <th>Navn</th>
@@ -39,13 +42,13 @@ else
                     <td>
                         @if (rapport.Obstacle != null)
                         {
-                            <a asp-controller="Admin" asp-action="DetaljerOmRapport" asp-route-obstacleId="@rapport.Obstacle.ObstacleId" class="text-decoration-none">
+                            <a asp-controller="Admin" asp-action="DetaljerOmRapport" asp-route-obstacleId="@rapport.Obstacle.ObstacleId" class="admin-reports-link">
                                 @rapport.Obstacle.ObstacleName
                             </a>
                         }
                         else
                         {
-                            <span class="text-muted">N/A</span>
+                            <span class="admin-reports-text-muted">N/A</span>
                         }
                     </td>
                     <td>
@@ -55,11 +58,11 @@ else
                         }
                         else
                         {
-                            <span class="text-muted">N/A</span>
+                            <span class="admin-reports-text-muted">N/A</span>
                         }
                     </td>
                     <td>@(rapport.Obstacle?.ObstacleHeight ?? 0)</td>
-                    <td class="text-end">
+                    <td class="admin-reports-text-end">
                         @if (rapport.Obstacle != null)
                         {
                             var statusText = rapport.Obstacle.ObstacleStatus switch
@@ -69,23 +72,24 @@ else
                                 3 => "Avslått",
                                 _ => "Ukjent"
                             };
-                            var statusBadge = rapport.Obstacle.ObstacleStatus == 1 ? "bg-warning" : rapport.Obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
+                            var statusClass = rapport.Obstacle.ObstacleStatus == 1 ? "admin-reports-status-warning" : rapport.Obstacle.ObstacleStatus == 2 ? "admin-reports-status-success" : "admin-reports-status-danger";
                             
-                            <div class="d-flex align-items-center justify-content-end gap-2">
-                                <span class="badge @statusBadge">@statusText</span>
-                                <a asp-controller="Admin" asp-action="DetaljerOmRapport" asp-route-obstacleId="@rapport.Obstacle.ObstacleId" class="btn btn-sm btn-outline-primary">
+                            <div class="admin-reports-actions">
+                                <span class="admin-reports-status-badge @statusClass">@statusText</span>
+                                <a asp-controller="Admin" asp-action="DetaljerOmRapport" asp-route-obstacleId="@rapport.Obstacle.ObstacleId" class="admin-reports-button">
                                     Se detaljer
                                 </a>
                             </div>
                         }
                         else
                         {
-                            <span class="text-muted">N/A</span>
+                            <span class="admin-reports-text-muted">N/A</span>
                         }
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-}
+    }
+</div>
 

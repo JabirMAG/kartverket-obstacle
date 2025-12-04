@@ -40,6 +40,11 @@
     display: none !important;
 }
 
+/* Initially hidden warning */
+#pending-obstacle-warning.hidden-warning {
+    display: none;
+}
+
 /* Knapp-wrapper */
 .obstacle-form-buttons {
     gap: 20px !important;

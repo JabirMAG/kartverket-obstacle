@@ -155,4 +155,21 @@ body {
     background-color: #0d6efd;
 }
 
+/* Navbar logo styling */
+.navbar-brand img {
+    height: 30px;
+    margin-right: 10px;
+}
+
+/* Notification badge styling */
+#notification-badge {
+    display: none;
+}
+
+/* Detail map styling */
+#detail-map {
+    height: 400px;
+    width: 100%;
+}
+
 

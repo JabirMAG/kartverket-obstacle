@@ -5,7 +5,10 @@
     ViewData["Title"] = "Arkiverte rapporter";
 }
 
-<h1 class="display-6">Arkiverte rapporter</h1>
+<link rel="stylesheet" href="~/css/ArchivedReports.css" />
+
+<div class="archived-reports-page">
+    <h1 class="archived-reports-title">Arkiverte rapporter</h1>
 
 @if (TempData["Success"] != null)
 {

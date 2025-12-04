@@ -6,26 +6,29 @@
     ViewData["Title"] = "Rapporter";
 }
 
-<h1 class="display-6">Rapporter</h1>
+<link rel="stylesheet" href="~/css/Registrar.css" />
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+<div class="registrar-page">
+    <h1 class="registrar-title">Rapporter</h1>
 
-@if (Model == null || Model.Obstacles == null || !Model.Obstacles.Any())
-{
-    <div class="alert alert-info">
-        <p>Ingen hindringer funnet.</p>
-    </div>
-}
-else
-{
-    <table class="table table-striped align-middle">
+    @if (TempData["Success"] != null)
+    {
+        <div class="registrar-alert registrar-alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="registrar-alert registrar-alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model == null || Model.Obstacles == null || !Model.Obstacles.Any())
+    {
+        <div class="registrar-alert registrar-alert-info">
+            <p>Ingen hindringer funnet.</p>
+        </div>
+    }
+    else
+    {
+        <table class="registrar-table">
         <thead>
             <tr>
                 <th>Navn</th>
@@ -89,7 +92,7 @@ else
                     3 => "Avslått",
                     _ => "Ukjent"
                 };
-                var statusBadge = obstacle.ObstacleStatus == 1 ? "bg-warning" : obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
+                var statusClass = obstacle.ObstacleStatus == 1 ? "registrar-status-warning" : obstacle.ObstacleStatus == 2 ? "registrar-status-success" : "registrar-status-danger";
 
                 <tr>
                     <td>@obstacle.ObstacleName</td>
@@ -97,10 +100,10 @@ else
                     <td>@obstacle.ObstacleDescription</td>
                     <td>@coordinatesDisplay</td>
                     <td>@obstacle.ObstacleHeight</td>
-                    <td class="text-end">
-                        <div class="d-flex align-items-center justify-content-end gap-2">
-                            <span class="badge @statusBadge">@statusText</span>
-                            <a asp-controller="Registrar" asp-action="DetaljerOmRapport" asp-route-obstacleId="@obstacle.ObstacleId" class="btn btn-sm btn-outline-primary">
+                    <td class="registrar-text-end">
+                        <div class="registrar-actions">
+                            <span class="registrar-status-badge @statusClass">@statusText</span>
+                            <a asp-controller="Registrar" asp-action="DetaljerOmRapport" asp-route-obstacleId="@obstacle.ObstacleId" class="registrar-button">
                                 Se detaljer
                             </a>
                         </div>
@@ -109,5 +112,6 @@ else
             }
         </tbody>
     </table>
-}
+    }
+</div>
 

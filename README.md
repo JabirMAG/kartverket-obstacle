@@ -7,22 +7,15 @@ The technologies used in this application are as follows:
 - **Docker**: For building and running the application and the database.
 - **MariaDB**: Relational database used for data storage.
 - **ASP.NET Core MVC**: Application built with the .NET 9 MVC framework.
-- **IDE**: Visual Studio or Rider.
 
-## How to Run the Application - Windows
+## How to Run the Application
 
-To run the application on Windows, follow these steps:
+Docker Compose fungerer likt på alle operativsystemer (Windows, Mac, Linux). Følg disse stegene for å starte applikasjonen:
 
-1. Install Docker on the machine that will run the application.
-2. Clone the repository to your local system.
-3. Open the application in Visual Studio or Rider.
-4. Run the application using Docker Compose to start both the web application and the database in separate containers.
-
-## How to Run the Application - Mac
-
-The application can run on macOS.
-
-To start the database and the application using Docker, run the following commands in the project directory in the terminal:
+1. **Installer Docker Desktop** på maskinen som skal kjøre applikasjonen.
+2. **Klon repositoryet** til ditt lokale system.
+3. **Naviger til prosjektet** i terminalen.
+4. **Start database og applikasjon** ved å kjøre følgende kommandoer i prosjektmappen i terminalen:
 
 ```bash
 docker compose down -v
@@ -30,19 +23,35 @@ docker compose build
 docker compose up -d
 ```
 
-After the containers are running, start the application locally through your IDE:
+5. **Åpne applikasjonen i nettleseren**:
+   - Vent til containere er startet (sjekk i Docker Desktop at begge containere kjører).
+   - I Docker Desktop, finn containeren `kartverket-obstacle-firstwebapplication-1`.
+   - Klikk på porten `8080:8080` for å åpne applikasjonen i nettleseren.
+   - Alternativt kan du åpne nettleseren og gå til `http://localhost:8080`.
 
-- Run "FirstWebApplication: http" inside Visual Studio or Rider.
-- This will launch the web application with a working connection to the MariaDB database running in Docker.
+## Hvordan logge inn
+
+For å logge inn i applikasjonen, bruk følgende innloggingsinformasjon:
+
+- **Brukernavn**: `Admin@kartverket.com`
+- **Passord**: `Admin123!`
+
+Dette er en forhåndsdefinert administratorbruker som har full tilgang til alle funksjoner i systemet.
+
+## Opprette nye brukere
+
+Den mest effektive måten å opprette en ny bruker på er gjennom administratorpanelet:
+
+1. **Logg inn** som administrator med innloggingsinformasjonen over.
+2. Klikk på **"Brukerhåndtering"** i navigasjonsmenyen.
+3. Klikk på **"Opprett ny bruker"**.
+4. Fyll ut skjemaet med brukerens informasjon.
+
+**Hvorfor denne metoden?** Hvis du prøver å registrere en bruker utenfor administratorpanelet (via registreringsskjemaet), må personen uansett få godkjenning fra en administrator før de kan bruke systemet. Ved å opprette brukeren direkte gjennom administratorpanelet unngår du dette ekstra godkjenningssteget og sparer tid.
 
 ## Application Features
 
 This is an obstacle reporting and validation system for airspace safety, with role-based workflows for pilots, registrars, and administrators.
-
-### Seeded Administrator Login
-E-Mail: Admin@Kartverket.com
-Password: Admin123!
-This seeded Admin User has the ability to create other users/approve those who register.
 
 
 ### User Administration & Authentication

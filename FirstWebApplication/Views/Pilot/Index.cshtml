@@ -6,26 +6,29 @@
     ViewData["Title"] = "Mine rapporter";
 }
 
-<h1 class="display-6">Mine rapporter</h1>
+<link rel="stylesheet" href="~/css/PilotIndex.css" />
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+<div class="pilot-index-page">
+    <h1 class="pilot-index-title">Mine rapporter</h1>
 
-@if (Model == null || !Model.Any())
-{
-    <div class="alert alert-info">
-        <p>Du har ikke sendt inn noen hindringer ennå.</p>
-    </div>
-}
-else
-{
-    <table class="table table-striped align-middle">
+    @if (TempData["Success"] != null)
+    {
+        <div class="pilot-index-alert pilot-index-alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="pilot-index-alert pilot-index-alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="pilot-index-alert pilot-index-alert-info">
+            <p>Du har ikke sendt inn noen hindringer ennå.</p>
+        </div>
+    }
+    else
+    {
+        <table class="pilot-index-table">
         <thead>
             <tr>
                 <th>Navn</th>
@@ -81,17 +84,17 @@ else
                     3 => "Avslått",
                     _ => "Ukjent"
                 };
-                var statusBadge = obstacle.ObstacleStatus == 1 ? "bg-warning" : obstacle.ObstacleStatus == 2 ? "bg-success" : "bg-danger";
+                var statusClass = obstacle.ObstacleStatus == 1 ? "pilot-index-status-warning" : obstacle.ObstacleStatus == 2 ? "pilot-index-status-success" : "pilot-index-status-danger";
 
                 <tr>
                     <td>@obstacle.ObstacleName</td>
                     <td>@obstacle.ObstacleDescription</td>
                     <td>@coordinatesDisplay</td>
                     <td>@obstacle.ObstacleHeight</td>
-                    <td class="text-end">
-                        <div class="d-flex align-items-center justify-content-end gap-2">
-                            <span class="badge @statusBadge">@statusText</span>
-                            <a asp-controller="Pilot" asp-action="DetaljerOmRapport" asp-route-obstacleId="@obstacle.ObstacleId" class="btn btn-sm btn-outline-primary">
+                    <td class="pilot-index-text-end">
+                        <div class="pilot-index-actions">
+                            <span class="pilot-index-status-badge @statusClass">@statusText</span>
+                            <a asp-controller="Pilot" asp-action="DetaljerOmRapport" asp-route-obstacleId="@obstacle.ObstacleId" class="pilot-index-button">
                                 Se detaljer
                             </a>
                         </div>
@@ -100,6 +103,6 @@ else
             }
         </tbody>
     </table>
-}
-
+    }
+</div>
 

@@ -9,76 +9,81 @@
     var pwPolicyJson = pwPolicy != null ? JsonSerializer.Serialize(pwPolicy) : "{}";
     var organizations = ViewBag.OrganizationOptions as IEnumerable<string> ?? Enumerable.Empty<string>();
 }
-<h1 class="display-6">Opprett ny bruker</h1>
 
-<form asp-action="CreateUser" method="post" class="mt-3" novalidate>
-    @Html.AntiForgeryToken()
-    <div class="mb-3">
-        <label asp-for="Username" class="form-label"></label>
-        <input asp-for="Username" class="form-control" id="Username" />
-        <span asp-validation-for="Username" class="text-danger"></span>
-    </div>
+<link rel="stylesheet" href="~/css/CreateUser.css" />
 
-    <div class="mb-3">
-        <label asp-for="Email" class="form-label"></label>
-        <input asp-for="Email" class="form-control" id="Email" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
+<div class="create-user-page">
+    <h1 class="create-user-title">Opprett ny bruker</h1>
 
-    <div class="mb-3">
-        <label asp-for="Password" class="form-label"></label>
-        <input asp-for="Password" class="form-control" type="password" id="Password" autocomplete="new-password" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-
-        @* Adaptive password requirements UI *@
-        <div id="pw-reqs-container" class="form-text text-muted mt-1" data-policy='@Html.Raw(pwPolicyJson)'>
-            <strong>Krav til passord:</strong>
-            <ul id="pw-reqs" class="mb-0">
-                @if (pwReqs != null && pwReqs.Any())
-                {
-                    var idx = 0;
-                    foreach (var r in pwReqs)
-                    {
-                        <li data-req-index="@idx" class="pw-req-item text-muted">
-                            <span class="pw-req-icon">◻</span> <span class="pw-req-text">@r</span>
-                        </li>
-                        idx++;
-                    }
-                }
-                else
-                {
-                    <li class="pw-req-item text-muted">Standard passordkrav gjelder.</li>
-                }
-            </ul>
+    <form asp-action="CreateUser" method="post" class="create-user-form" novalidate>
+        @Html.AntiForgeryToken()
+        <div class="create-user-form-group">
+            <label asp-for="Username" class="create-user-form-label"></label>
+            <input asp-for="Username" class="create-user-form-control" id="Username" />
+            <span asp-validation-for="Username" class="create-user-validation-error"></span>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label asp-for="Role" class="form-label">Rolle</label>
-        <select asp-for="Role" class="form-select" id="Role">
-            @foreach (var r in roles)
-            {
-                <option value="@r">@r</option>
-            }
-        </select>
-        <span asp-validation-for="Role" class="text-danger"></span>
-    </div>
+        <div class="create-user-form-group">
+            <label asp-for="Email" class="create-user-form-label"></label>
+            <input asp-for="Email" class="create-user-form-control" id="Email" />
+            <span asp-validation-for="Email" class="create-user-validation-error"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Organization" class="form-label">Organisasjon</label>
-        <select asp-for="Organization" class="form-select" id="Organization">
-            <option value="">-- Velg organisasjon --</option>
-            @foreach (var org in organizations)
-            {
-                <option value="@org">@org</option>
-            }
-        </select>
-        <span asp-validation-for="Organization" class="text-danger"></span>
-    </div>
+        <div class="create-user-form-group">
+            <label asp-for="Password" class="create-user-form-label"></label>
+            <input asp-for="Password" class="create-user-form-control" type="password" id="Password" autocomplete="new-password" />
+            <span asp-validation-for="Password" class="create-user-validation-error"></span>
 
-    <button type="submit" class="btn btn-success">Opprett</button>
-    <a asp-action="ManageUsers" class="btn btn-secondary ms-2">Tilbake</a>
-</form>
+            @* Adaptive password requirements UI *@
+            <div id="pw-reqs-container" class="create-user-password-requirements" data-policy='@Html.Raw(pwPolicyJson)'>
+                <strong>Krav til passord:</strong>
+                <ul id="pw-reqs">
+                    @if (pwReqs != null && pwReqs.Any())
+                    {
+                        var idx = 0;
+                        foreach (var r in pwReqs)
+                        {
+                            <li data-req-index="@idx" class="create-user-password-requirement-item">
+                                <span class="create-user-password-requirement-icon">◻</span> <span class="pw-req-text">@r</span>
+                            </li>
+                            idx++;
+                        }
+                    }
+                    else
+                    {
+                        <li class="create-user-password-requirement-item">Standard passordkrav gjelder.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="create-user-form-group">
+            <label asp-for="Role" class="create-user-form-label">Rolle</label>
+            <select asp-for="Role" class="create-user-form-select" id="Role">
+                @foreach (var r in roles)
+                {
+                    <option value="@r">@r</option>
+                }
+            </select>
+            <span asp-validation-for="Role" class="create-user-validation-error"></span>
+        </div>
+
+        <div class="create-user-form-group">
+            <label asp-for="Organization" class="create-user-form-label">Organisasjon</label>
+            <select asp-for="Organization" class="create-user-form-select" id="Organization">
+                <option value="">-- Velg organisasjon --</option>
+                @foreach (var org in organizations)
+                {
+                    <option value="@org">@org</option>
+                }
+            </select>
+            <span asp-validation-for="Organization" class="create-user-validation-error"></span>
+        </div>
+
+        <button type="submit" class="create-user-button create-user-button-success">Opprett</button>
+        <a asp-action="ManageUsers" class="create-user-button create-user-button-secondary">Tilbake</a>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

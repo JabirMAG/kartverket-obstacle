@@ -5,22 +5,24 @@
     var roles = (string[])ViewBag.AssignableRoles;
     string defaultAdmin = "admin@kartverket.com";
 }
-<h1 class="display-6">Brukerhåndtering</h1>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+<link rel="stylesheet" href="~/css/ManageUsers.css" />
 
-<div class="mb-3">
-    <a class="btn btn-success" asp-action="CreateUser">Opprett ny bruker</a>
-</div>
+<div class="manage-users-page">
+    <h1 class="manage-users-title">Brukerhåndtering</h1>
 
-<table class="table table-striped align-middle">
+    @if (TempData["Success"] != null)
+    {
+        <div class="manage-users-alert manage-users-alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="manage-users-alert manage-users-alert-danger">@TempData["Error"]</div>
+    }
+
+    <a class="manage-users-create-button" asp-action="CreateUser">Opprett ny bruker</a>
+
+    <table class="manage-users-table">
     <thead>
         <tr>
             <th>E-post</th>
@@ -46,7 +48,7 @@
                     }
                     else
                     {
-                        <span class="text-muted">Ikke satt</span>
+                        <span class="manage-users-text-muted">Ikke satt</span>
                     }
                 </td>
                 <td>
@@ -56,7 +58,7 @@
                     }
                     else
                     {
-                        <span class="text-muted">Ikke satt</span>
+                        <span class="manage-users-text-muted">Ikke satt</span>
                     }
                 </td>
                 <td>
@@ -70,53 +72,53 @@
                     }
                     else
                     {
-                        <span class="text-muted">Ingen roller</span>
+                        <span class="manage-users-text-muted">Ingen roller</span>
                     }
                 </td>
                 <td>
                     @if (u.IsApproved)
                     {
-                        <span class="badge bg-success">Godkjent</span>
+                        <span class="manage-users-badge manage-users-badge-success">Godkjent</span>
                     }
                     else
                     {
-                        <span class="badge bg-warning">Ikke godkjent</span>
+                        <span class="manage-users-badge manage-users-badge-warning">Ikke godkjent</span>
                     }
                 </td>
-                <td class="text-end">
+                <td class="manage-users-text-end">
                     @if (!isDefaultAdmin)
                     {
-                        <div class="d-flex gap-2 justify-content-end">
+                        <div class="manage-users-actions">
                             @if (!u.IsApproved)
                             {
-                                <form asp-action="ApproveUser" method="post" class="d-inline">
+                                <form asp-action="ApproveUser" method="post" class="manage-users-form-inline">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="UserId" value="@u.Id" />
-                                    <button type="submit" class="btn btn-success btn-sm">Godkjenn</button>
+                                    <button type="submit" class="manage-users-button manage-users-button-success">Godkjenn</button>
                                 </form>
-                                <form asp-action="RejectUser" method="post" class="d-inline">
+                                <form asp-action="RejectUser" method="post" class="manage-users-form-inline">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="UserId" value="@u.Id" />
-                                    <button type="submit" class="btn btn-warning btn-sm">Avvis</button>
+                                    <button type="submit" class="manage-users-button manage-users-button-warning">Avvis</button>
                                 </form>
                             }
                             @if (u.IsApproved)
                             {
-                                <form asp-action="DeleteUser" method="post" class="d-inline" onsubmit="return confirm('Er du sikker på at du vil slette denne brukeren? Denne handlingen kan ikke angres.');">
+                                <form asp-action="DeleteUser" method="post" class="manage-users-form-inline" onsubmit="return confirm('Er du sikker på at du vil slette denne brukeren? Denne handlingen kan ikke angres.');">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="UserId" value="@u.Id" />
-                                    <button type="submit" class="btn btn-danger btn-sm">Slett</button>
+                                    <button type="submit" class="manage-users-button manage-users-button-danger">Slett</button>
                                 </form>
                             }
                         </div>
                     }
                     else
                     {
-                        @* For clarity, show that admin cannot be changed or deleted *@
-                        <span class="badge bg-info ms-2">Standard administrator (kan ikke endres eller slettes)</span>
+                        <span class="manage-users-badge manage-users-badge-info">Standard administrator (kan ikke endres eller slettes)</span>
                     }
                 </td>
             </tr>
         }
     </tbody>
 </table>
+</div>

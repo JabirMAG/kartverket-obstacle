@@ -55,3 +55,11 @@
 .login-link a:hover {
     text-decoration: underline;
 }
+
+/* Register map styling */
+.register-map {
+    height: 420px;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}

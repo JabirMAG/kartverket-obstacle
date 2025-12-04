@@ -1,4 +1,4 @@
-﻿@model FirstWebApplication.Models.ObstacleData
+@model FirstWebApplication.Models.ObstacleData
 @using System.Text.Json
 
 <!DOCTYPE html>
@@ -17,29 +17,36 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin="" />
     <link rel="stylesheet" href="~/css/Map.css">
-
 </head>
 <body>
-    <div class="map-container">
-        <div id="map"></div>
-        
-        <!-- Button positioned over the map -->
-        <div class="location-button-container">
-            <button id="use-current-location">
-                Bruk nåværende posisjon
-            </button>
+    <div class="map-wrapper">
+        <div class="map-container">
+            <div id="map"></div>
+
+            <!-- Info om rapporterte hindringer -->
+            <div class="pending-info-container">
+                <div class="legend-item">
+                    <span class="pending-marker-example"></span>
+                    <span>Rapporter under behandling</span>
+                </div>
+                <div class="legend-item">
+                    <span class="approved-marker-example"></span>
+                    <span>Godkjente rapporter</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Info om rapporterte hindringer -->
-        <div class="pending-info-container">
-            <div class="legend-item">
-                <span class="pending-marker-example"></span>
-                <span>Rapporter under behandling</span>
-            </div>
-            <div class="legend-item">
-                <span class="approved-marker-example"></span>
-                <span>Godkjente rapporter</span>
-            </div>
+        <!-- Drawing buttons positioned next to the map -->
+        <div class="draw-buttons-container">
+            <button id="draw-point-btn" class="draw-button" title="Tegn punkt">
+                Punkt
+            </button>
+            <button id="draw-line-btn" class="draw-button" title="Tegn linje">
+                Linje
+            </button>
+            <button id="use-current-location" class="draw-button">
+                Nåværende posisjon
+            </button>
         </div>
     </div>
 
@@ -195,21 +202,46 @@
                 });
             }
 
-            // Leaflet.draw-kontroll
-            const drawControl = new L.Control.Draw({
-                draw: {
-                    polygon: false,
-                    polyline: true,
-                    marker: true,
-                    circle: false,
-                    rectangle: false,
-                    circlemarker: false
-                },
-                edit: {
-                    featureGroup: drawnItems
+            // Custom drawing buttons - remove default draw control
+            let currentDrawHandler = null;
+            
+            // Function to stop current drawing
+            function stopDrawing() {
+                if (currentDrawHandler) {
+                    map.removeLayer(currentDrawHandler);
+                    currentDrawHandler = null;
                 }
+            }
+            
+            // Point button handler
+            document.getElementById('draw-point-btn').addEventListener('click', function() {
+                stopDrawing();
+                currentDrawHandler = new L.Draw.Marker(map, {
+                    icon: new L.Icon.Default()
+                });
+                currentDrawHandler.enable();
+                
+                // Update button states
+                document.getElementById('draw-point-btn').classList.add('active');
+                document.getElementById('draw-line-btn').classList.remove('active');
             });
-            map.addControl(drawControl);
+            
+            // Line button handler
+            document.getElementById('draw-line-btn').addEventListener('click', function() {
+                stopDrawing();
+                currentDrawHandler = new L.Draw.Polyline(map, {
+                    allowIntersection: false,
+                    shapeOptions: {
+                        color: '#ff6b00',
+                        weight: 4
+                    }
+                });
+                currentDrawHandler.enable();
+                
+                // Update button states
+                document.getElementById('draw-line-btn').classList.add('active');
+                document.getElementById('draw-point-btn').classList.remove('active');
+            });
 
             // Lagre siste tegnede lags GeoJSON
             let lastGeoJsonString = "";
@@ -324,6 +356,12 @@
                 if (overlay) {
                     overlay.style.display = "none";
                 }
+                
+                // Vis knappen igjen når skjemaet lukkes
+                const buttonContainer = document.querySelector('.location-button-container');
+                if (buttonContainer) {
+                    buttonContainer.style.display = 'block';
+                }
             }
 
         // Funksjon for å åpne hindringsskjemaet (ekstrahert for gjenbruk)
@@ -385,13 +423,13 @@
                                 });
                             }
                             // Kopier verdier til skjulte felt i skjemaet
-                            const formGeoInput = formElem.querySelector('input[name="GeometryGeoJson"]');
+                            const formGeoInput = formElem.querySelector('input[name="ViewGeometryGeoJson"]') || formElem.querySelector('#GeometryGeoJson');
                             const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
 
                             if (formGeoInput) {
                                 formGeoInput.value = geoJsonValue;
                             } else {
-                                console.error("Could not find input[name='GeometryGeoJson'] in form");
+                                console.error("Could not find ViewGeometryGeoJson input in form");
                             }
                             
                             if (formGeoInputCoordinates) {
@@ -507,7 +545,7 @@
                                                 });
                                             }
                                             // Kopier koordinater tilbake til skjemaet
-                                            const formGeoInput = updatedForm.querySelector('input[name="GeometryGeoJson"]');
+                                            const formGeoInput = updatedForm.querySelector('input[name="ViewGeometryGeoJson"]') || updatedForm.querySelector('#GeometryGeoJson');
                                             const formGeoInputCoordinates = updatedForm.querySelector('input[name="GeometryGeoCoordinates"]');
                                             const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
                                             const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
@@ -589,6 +627,14 @@
 
             // Hendelse når en ny form er tegnet
             map.on(L.Draw.Event.CREATED, function (e) {
+                // Stop drawing and reset button states
+                if (currentDrawHandler) {
+                    currentDrawHandler.disable();
+                    currentDrawHandler = null;
+                }
+                document.getElementById('draw-point-btn').classList.remove('active');
+                document.getElementById('draw-line-btn').classList.remove('active');
+                
                 const layer = e.layer;
                 drawnItems.addLayer(layer);
 
@@ -602,6 +648,12 @@
 
                 if (geoInput) geoInput.value = lastGeoJsonString;
                 if (coordsInput) coordsInput.value = JSON.stringify(coordinatesOnly);
+                
+                // Skjul knappen når man tegner med tegneverktøyene
+                const buttonContainer = document.querySelector('.location-button-container');
+                if (buttonContainer) {
+                    buttonContainer.style.display = 'none';
+                }
                 
                 // Åpne hindringsskjemaet automatisk etter at koordinater er satt (samme som bruk-nåværende-posisjon)
                 openObstacleForm();
@@ -649,6 +701,12 @@
 
                         button.disabled = false;
                         button.textContent = originalText;
+
+                        // Skjul knappen etter at posisjon er hentet
+                        const buttonContainer = document.querySelector('.location-button-container');
+                        if (buttonContainer) {
+                            buttonContainer.style.display = 'none';
+                        }
 
                         // Åpne hindringsskjemaet automatisk etter at posisjon er satt
                         openObstacleForm();
