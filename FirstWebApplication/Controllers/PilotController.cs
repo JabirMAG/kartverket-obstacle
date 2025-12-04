@@ -74,7 +74,7 @@ namespace FirstWebApplication.Controllers
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View("PilotObstacleDetails", obstacle);
+            return View("DetaljerOmRapport", obstacle);
         }
 
         /// <summary>
