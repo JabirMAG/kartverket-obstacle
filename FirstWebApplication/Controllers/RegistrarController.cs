@@ -77,8 +77,9 @@ namespace FirstWebApplication.Controllers
                 }
             }
 
+
             // Omdiriger tilbake til detaljsiden hvis returnUrl er satt, ellers til rapporter
-            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("RegistrarObstacleDetails"))
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DetaljerOmRapport"))
             {
                 // Hvis status er Avslått, omdiriger til rapporter siden hindringen er slettet
                 if (status == StatusRejected)
@@ -130,7 +131,7 @@ namespace FirstWebApplication.Controllers
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View("RegistrarObstacleDetails", obstacle);
+            return View("DetaljerOmRapport", obstacle);
         }
 
         // Legger til en kommentar til en hindrings rapport

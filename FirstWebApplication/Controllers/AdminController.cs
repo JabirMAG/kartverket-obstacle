@@ -151,8 +151,9 @@ namespace FirstWebApplication.Controllers
                 TempData["Success"] = $"Status for hindring '{obstacle.ObstacleName}' er oppdatert.";
             }
             
-            // Omdiriger tilbake til detaljsiden hvis returnUrl er satt, ellers til rapporter
-            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("AdminObstacleDetails"))
+
+            // Redirect back to the details page if returnUrl is set, otherwise to reports
+            if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("DetaljerOmRapport"))
             {
                 // Hvis status er Avslått, omdiriger til rapporter siden hindringen er slettet
                 if (status == 3)
@@ -182,7 +183,7 @@ namespace FirstWebApplication.Controllers
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View("AdminObstacleDetails", obstacle);
+            return View("DetaljerOmRapport", obstacle);
         }
         
         // Legger til en kommentar til en hindrings rapport

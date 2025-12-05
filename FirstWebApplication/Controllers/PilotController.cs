@@ -65,7 +65,7 @@ namespace FirstWebApplication.Controllers
             ViewBag.Obstacle = obstacle;
             ViewBag.Rapports = obstacleRapports;
 
-            return View("PilotObstacleDetails", obstacle);
+            return View("DetaljerOmRapport", obstacle);
         }
 
         // Oppdaterer en hindring. Kun hindringer med status "Under behandling" (1) kan oppdateres.
