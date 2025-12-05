@@ -1,11 +1,6 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
-
-// Adaptive password requirement checker for admin CreateUser form.
-// Updates requirements as user types and when the user leaves the password field.
-
+﻿
+// Adaptiv sjekk av passordkrav for admin CreateUser-skjema.
+// Oppdaterer kravene mens brukeren skriver og når brukeren forlater passordfeltet.
 document.addEventListener('DOMContentLoaded', function () {
     var pwd = document.querySelector('input[name="Password"], #Password');
     var reqContainer = document.getElementById('pw-reqs-container');
@@ -20,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         policy = {};
     }
 
-    // Helper to check unique chars count
+    // Hjelpefunksjon for å telle antall unike tegn
     function countUniqueChars(s) {
         var set = new Set();
         for (var i = 0; i < s.length; i++) set.add(s[i]);
@@ -30,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function checkPassword(p) {
         var checks = [];
 
-        // Required length
+       // Påkrevd lengde
         var minLen = policy.RequiredLength || 0;
         checks.push({
             ok: p.length >= minLen,
@@ -92,25 +87,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Initial render (empty password)
+    // Første oppdatering (tomt passord)
     renderChecks(checkPassword(pwd.value || ''));
 
-    // Live feedback while typing
+    // Live oppdatering mens brukeren skriver
     pwd.addEventListener('input', function (e) {
         renderChecks(checkPassword(e.target.value || ''));
     });
 
-    // When user leaves the password field (tabs to next), also update UI
+    // Når brukeren forlater passordfeltet (tabber videre), oppdater UI
     pwd.addEventListener('blur', function (e) {
         renderChecks(checkPassword(e.target.value || ''));
     });
 
-    // If user focuses next control after password, update as well.
-    // Listen for focusin on the form and if coming from password, update.
+    // Hvis brukeren fokuserer på neste felt etter passord, oppdater også.
+    // Lytter på focusin på skjemaet og oppdaterer hvis fokus flyttes fra passordfeltet.
     var form = pwd.closest('form');
     if (form) {
         form.addEventListener('focusin', function (e) {
-            // If focus moved away from password, refresh checks
+            // Hvis fokus har flyttet seg bort fra passordfeltet, oppdater kravene
             if (document.activeElement !== pwd) {
                 renderChecks(checkPassword(pwd.value || ''));
             }
