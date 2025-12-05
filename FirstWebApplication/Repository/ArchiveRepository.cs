@@ -5,9 +5,7 @@ using System.Text.Json;
 
 namespace FirstWebApplication.Repositories
 {
-    /// <summary>
-    /// Repository for archiving obstacles and their reports
-    /// </summary>
+    // Repository for arkivering av hindringer og deres rapporter
     public class ArchiveRepository : IArchiveRepository
     {
         private readonly ApplicationDBContext _context;
@@ -21,10 +19,7 @@ namespace FirstWebApplication.Repositories
             _registrarRepository = registrarRepository;
         }
 
-        /// <summary>
-        /// Archives an obstacle and all its associated reports
-        /// </summary>
-        /// <returns>The number of reports that were archived</returns>
+        // Arkiverer en hindring og alle tilknyttede rapporter
         public async Task<int> ArchiveObstacleAsync(ObstacleData obstacle)
         {
             var rapports = await _context.Rapports
@@ -55,17 +50,14 @@ namespace FirstWebApplication.Repositories
             
             await _context.SaveChangesAsync();
 
-            // Set obstacle status to 3 (Rejected) so UpdateObstacles will delete it
+            // Setter hindringsstatus til 3 (Avslått) slik at UpdateObstacles vil slette den
             obstacle.ObstacleStatus = 3;
             await _obstacleRepository.UpdateObstacles(obstacle);
             
             return rapports.Count;
         }
 
-        /// <summary>
-        /// Gets all archived reports ordered by archived date descending
-        /// </summary>
-        /// <returns>List of archived reports</returns>
+        // Henter alle arkiverte rapporter sortert etter arkiveringsdato synkende
         public async Task<List<ArchivedReport>> GetAllArchivedReportsAsync()
         {
             return await _context.ArchivedReports
@@ -73,23 +65,14 @@ namespace FirstWebApplication.Repositories
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Gets an archived report by ID
-        /// </summary>
-        /// <param name="archivedReportId">The ID of the archived report</param>
-        /// <returns>The archived report if found, null otherwise</returns>
+        // Henter en arkivert rapport etter ID
         public async Task<ArchivedReport?> GetArchivedReportByIdAsync(int archivedReportId)
         {
             return await _context.ArchivedReports
                 .FirstOrDefaultAsync(ar => ar.ArchivedReportId == archivedReportId);
         }
 
-        /// <summary>
-        /// Restores an archived report back to active obstacles with a new status
-        /// </summary>
-        /// <param name="archivedReportId">The ID of the archived report to restore</param>
-        /// <param name="newStatus">The new status for the restored obstacle (1 = Under behandling, 2 = Godkjent)</param>
-        /// <returns>The number of reports that were restored</returns>
+        // Gjenoppretter en arkivert rapport tilbake til aktive hindringer med en ny status
         public async Task<int> RestoreArchivedReportAsync(int archivedReportId, int newStatus)
         {
             var archivedReport = await GetArchivedReportByIdAsync(archivedReportId);
@@ -98,7 +81,7 @@ namespace FirstWebApplication.Repositories
                 throw new InvalidOperationException("Fant ikke arkivert rapport.");
             }
 
-            // Create new ObstacleData from ArchivedReport
+            // Oppretter ny ObstacleData fra ArchivedReport
             var restoredObstacle = new ObstacleData
             {
                 ObstacleName = archivedReport.ObstacleName,
@@ -106,13 +89,13 @@ namespace FirstWebApplication.Repositories
                 ObstacleDescription = archivedReport.ObstacleDescription,
                 GeometryGeoJson = archivedReport.GeometryGeoJson,
                 ObstacleStatus = newStatus,
-                OwnerUserId = null // We don't have OwnerUserId in ArchivedReport, so set to null
+                OwnerUserId = null // Vi har ikke OwnerUserId i ArchivedReport, så sett til null
             };
 
-            // Put the obstacle in the database - AddObstacle returns obstacle with ObstacleId
+            // Legger hindringen i databasen - AddObstacle returnerer hindring med ObstacleId
             var savedObstacle = await _obstacleRepository.AddObstacle(restoredObstacle);
 
-            // Parse and create RapportData entries from RapportComments
+            // Parser og oppretter RapportData-oppføringer fra RapportComments
             List<string> rapportComments = new List<string>();
             try
             {
@@ -126,7 +109,7 @@ namespace FirstWebApplication.Repositories
                 rapportComments = new List<string>();
             }
 
-            // Create RapportData for each comment
+            // Oppretter RapportData for hver kommentar
             foreach (var comment in rapportComments)
             {
                 var rapport = new RapportData
@@ -137,17 +120,13 @@ namespace FirstWebApplication.Repositories
                 await _registrarRepository.AddRapport(rapport);
             }
 
-            // Delete from ArchivedReport
+            // Sletter fra ArchivedReport
             await DeleteArchivedReportAsync(archivedReport);
 
             return rapportComments.Count;
         }
 
-        /// <summary>
-        /// Deletes an archived report
-        /// </summary>
-        /// <param name="archivedReport">The archived report to delete</param>
-        /// <returns>Task representing the async operation</returns>
+        // Sletter en arkivert rapport
         public async Task DeleteArchivedReportAsync(ArchivedReport archivedReport)
         {
             _context.ArchivedReports.Remove(archivedReport);
@@ -155,4 +134,3 @@ namespace FirstWebApplication.Repositories
         }
     }
 }
-
