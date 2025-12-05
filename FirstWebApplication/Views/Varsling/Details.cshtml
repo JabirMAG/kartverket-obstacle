@@ -40,7 +40,6 @@
     else
     {
         <div class="row mt-4">
-            <!-- Overview Section -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
@@ -67,14 +66,13 @@
                     </div>
                 </div>
 
-                <!-- Kommentar Section -->
+                
                 <div class="card mt-3">
                     <div class="card-header">
                         <h5 class="card-title mb-0">Kommentarer</h5>
                     </div>
                     <div class="card-body">
                         @{
-                            // Filtrer ut automatisk genererte kommentarer (de som starter med "Hindring 'X' ble sendt inn")
                             var adminComments = rapports?.Where(r => !(r.RapportComment.StartsWith("Hindring '") && r.RapportComment.Contains(" ble sendt inn. Høyde:"))).ToList();
                         }
                         @if (adminComments != null && adminComments.Any())
@@ -104,7 +102,7 @@
                 </div>
             </div>
 
-            <!-- Map Section -->
+            
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
@@ -139,16 +137,16 @@
                 
                 try {
                     var geojson = typeof geometryGeoJson === 'string' ? JSON.parse(geometryGeoJson) : geometryGeoJson;
-                    
-                    // Initialize map
+
+                    // Initialiser kartet
                     var map = L.map('detail-map');
-                    
-                    // Add OSM tile layer
+
+                    // Legg til OSM-kartlag
                     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     }).addTo(map);
-                    
-                    // Add GeoJSON layer
+
+                    // Legg til OSM-kartlag
                     var geojsonLayer = L.geoJSON(geojson, {
                         pointToLayer: function (feature, latlng) {
                             return L.marker(latlng);
@@ -161,8 +159,8 @@
                             };
                         }
                     }).addTo(map);
-                    
-                    // Fit map bounds to the GeoJSON
+
+                    // Tilpass kartgrensene til GeoJSON
                     if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
                         map.fitBounds(geojsonLayer.getBounds().pad(0.1));
                     } else {
@@ -171,7 +169,7 @@
                     }
                 } catch (err) {
                     console.error("Error rendering map:", err);
-                    // Initialize map with default view if GeoJSON is invalid
+                    // Initialiser kartet med standardvisning hvis det ikke finnes geometri
                     var map = L.map('detail-map').setView([59.9139, 10.7522], 7);
                     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -182,7 +180,6 @@
             else
             {
                 <text>
-                // Initialize map with default view if no geometry
                 var map = L.map('detail-map').setView([59.9139, 10.7522], 7);
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

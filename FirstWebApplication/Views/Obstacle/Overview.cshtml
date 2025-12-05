@@ -15,7 +15,7 @@
     </div>
 
     <div class="row">
-        <!-- Overview Section -->
+        <!-- Overview -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <!-- Map Section -->
+        <!-- Map -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
@@ -64,7 +64,7 @@
     </div>
 </div>
 
-<!-- Hidden field for GeoJSON data -->
+
 <textarea id="OverviewCoordinates">@Model.ViewGeometryGeoJson</textarea>
 
 @section Scripts {
@@ -103,10 +103,10 @@
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
 
-                // Add the GeoJSON layer
+                // Legg til GeoJSON-laget
                 var geojsonLayer = L.geoJSON(geojson).addTo(map);
 
-                // Fit the map view to the GeoJSON bounds
+                // Tilpass kartvisningen til GeoJSON-grensene
                 map.fitBounds(geojsonLayer.getBounds());
 
             } catch (err) {

@@ -76,7 +76,7 @@
                             <span></span>
                             <span></span>
                         </span>
-                        @* Only show notification badge for pilots*@
+                        
                         @if (SignInManager.IsSignedIn(User) && isPilot)
                         {
                             <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none;">
@@ -95,10 +95,10 @@
                         }
                         else
                         {
-                            @* Role-based menus when logged in *@
+                            @* Rolebasert meny når man er logget inn *@
                             @if (isAdmin)
                             {
-                                @* Admin menu - only show when in Admin views *@
+                                @* Admin meny *@
                                 <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
                                 <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers">Brukerhåndtering</a></li>
                                 <li><a class="dropdown-item" asp-controller="Admin" asp-action="Reports">Rapporter</a></li>
@@ -109,7 +109,7 @@
                             }
                             else if (isPilot)
                             {
-                                @* Pilot menu - only show when in Pilot views *@
+                                @* Pilot meny *@
                                 <li><a class="dropdown-item" asp-controller="Map" asp-action="Map">Kart</a></li>
                                 <li><a class="dropdown-item" asp-controller="Pilot" asp-action="Index">Mine rapporter</a></li>
                                 <li><a class="dropdown-item" id="varsling-menu-item" asp-controller="Varsling" asp-action="Index">Varsling</a></li>
@@ -120,7 +120,7 @@
                             }
                             else if (isRegistrar)
                             {
-                                @* Registerfører menu - only show when in Registerfører views *@
+                                @* Registerfører meny *@
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="Registrar">Rapporter</a></li>
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Registrar" asp-action="ArchivedReports">Arkiverte rapporter</a></li>
                                 <li><a class="dropdown-item" asp-area="" asp-controller="Advice" asp-action="FeedbackForm">Gi tilbakemelding</a></li>
@@ -146,18 +146,15 @@
         </div>
     </footer>
 
-    @await Html.PartialAsync("_Scripts")  <!-- Include JS -->
-    @RenderSection("Scripts", required: false)  <!-- Optional page-specific scripts -->
+    @await Html.PartialAsync("_Scripts")  
+    @RenderSection("Scripts", required: false)  
     
-    @* Only load notification script for pilots *@
     @if (SignInManager.IsSignedIn(User) && isPilot)
     {
         <script>
-            // Hent notification count når siden lastes
             document.addEventListener('DOMContentLoaded', function() {
                 loadNotificationCount();
                 
-                // Oppdater hvert 30. sekund
                 setInterval(loadNotificationCount, 30000);
             });
 
@@ -170,7 +167,6 @@
                         const varslingMenuItem = document.getElementById('varsling-menu-item');
                         
                         if (data.count > 0) {
-                            // Vis badge med antall
                             if (badge) {
                                 badge.style.display = 'inline-block';
                                 if (countElement) {
@@ -178,17 +174,14 @@
                                 }
                             }
                             
-                            // Legg til blå outline på Varsling menypunkt (uten bakgrunnsfarge)
                             if (varslingMenuItem) {
                                 varslingMenuItem.classList.add('border', 'border-primary', 'border-2', 'rounded', 'px-2', 'py-1');
                             }
                         } else {
-                            // Skjul badge
                             if (badge) {
                                 badge.style.display = 'none';
                             }
                             
-                            // Fjern outline fra Varsling menypunkt
                             if (varslingMenuItem) {
                                 varslingMenuItem.classList.remove('border', 'border-primary', 'border-2', 'rounded', 'px-2', 'py-1');
                                 varslingMenuItem.style.backgroundColor = '';

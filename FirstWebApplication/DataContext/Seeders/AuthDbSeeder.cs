@@ -6,14 +6,14 @@ using System.Linq;
 namespace FirstWebApplication.DataContext.Seeders
 {
     /// <summary>
-    /// Seeds the database with initial roles and admin user on application startup
+    /// Fyller databasen med standardroller og en admin-bruker når applikasjonen starter
     /// </summary>
     public static class AuthDbSeeder
     {
         /// <summary>
-        /// Seeds the database with default roles and admin user
+        /// Fyller databasen med standardroller og admin-bruker
         /// </summary>
-        /// <param name="serviceProvider">The service provider to get required services</param>
+        /// <param name="serviceProvider">Tjenesteleverandøren som brukes for å hente nødvendige tjenester</param>
         public static async Task SeedAsync(IServiceProvider serviceProvider)
         {
             var context = serviceProvider.GetRequiredService<ApplicationDBContext>();

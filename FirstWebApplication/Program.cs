@@ -126,13 +126,6 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();
-// Konfigurerer for å lytte på alle nettverksgrensesnitt for iPad-tilgang
-
-//if (app.Environment.IsDevelopment())
-//{
-//    app.Urls.Clear();
-//    app.Urls.Add("http://0.0.0.0:5193");
-//}
 
 // Ruting: Konfigurerer standard MVC-ruting
 app.MapControllerRoute(
