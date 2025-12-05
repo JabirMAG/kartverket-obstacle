@@ -2,9 +2,7 @@
 
 namespace FirstWebApplication.Models.AdminViewModels
 {
-    /// <summary>
-    /// ViewModel for creating a new user account by admin
-    /// </summary>
+    // ViewModel for opprettelse av en ny brukerkonto av admin
     public class CreateUserVm
     {
         [Required]
@@ -18,9 +16,7 @@ namespace FirstWebApplication.Models.AdminViewModels
         [Required, MinLength(6)]
         public string Password { get; set; } = default!;
 
-        /// <summary>
-        /// Default role selection
-        /// </summary>
+        // Standard rollevalg
         [Display(Name = "Rolle")]
         public string Role { get; set; } = "Pilot";
 

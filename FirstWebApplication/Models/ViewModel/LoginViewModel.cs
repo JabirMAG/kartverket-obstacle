@@ -2,9 +2,7 @@
 
 namespace FirstWebApplication.Models.ViewModel
 {
-    /// <summary>
-    /// ViewModel for user login form
-    /// </summary>
+    // ViewModel for brukerinnloggingsskjema
     public class LoginViewModel
     {
         [Required(ErrorMessage = "Brukernavn er påkrevd")]

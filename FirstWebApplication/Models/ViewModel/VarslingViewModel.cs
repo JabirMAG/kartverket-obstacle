@@ -3,9 +3,7 @@ using System.Collections.Generic;
 
 namespace FirstWebApplication.Models.ViewModel
 {
-    /// <summary>
-    /// ViewModel for displaying notifications/comments on obstacles
-    /// </summary>
+    // ViewModel for visning av varslinger/kommentarer på hindringer
     public class VarslingViewModel
     {
         public ObstacleData Obstacle { get; set; }
@@ -13,4 +11,3 @@ namespace FirstWebApplication.Models.ViewModel
         public List<RapportData> Comments { get; set; } = new List<RapportData>();
     }
 }
-

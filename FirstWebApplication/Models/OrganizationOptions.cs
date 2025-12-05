@@ -1,8 +1,6 @@
 namespace FirstWebApplication.Models
 {
-    /// <summary>
-    /// Defines valid organization options for user registration and management. Provides a centralized list of allowed organizations to ensure consistency across the application
-    /// </summary>
+    // Definerer gyldige organisasjonsalternativer for brukerregistrering og administrasjon. Gir en sentralisert liste over tillatte organisasjoner for å sikre konsistens i applikasjonen
     public static class OrganizationOptions
     {
         public const string Kartverket = "Kartverket";
@@ -17,4 +15,3 @@ namespace FirstWebApplication.Models
         };
     }
 }
-

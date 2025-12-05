@@ -2,9 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FirstWebApplication.Models.ViewModel;
 
-/// <summary>
-/// ViewModel for reset password form
-/// </summary>
+// ViewModel for tilbakestill passord-skjema
 public class ResetPasswordViewModel
 {
     [Required]
@@ -25,4 +23,3 @@ public class ResetPasswordViewModel
     [Compare("Password", ErrorMessage = "Passordene stemmer ikke overens.")]
     public string ConfirmPassword { get; set; }
 }
-
