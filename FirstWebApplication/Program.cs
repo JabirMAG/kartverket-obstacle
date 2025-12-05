@@ -7,23 +7,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
-/// <summary>
-/// Application entry point and configuration. Sets up services, middleware, and routing
-/// </summary>
+// Applikasjonsinngangspunkt og konfigurasjon. Setter opp tjenester, middleware og ruting
 var builder = WebApplication.CreateBuilder(args);
 
-/// <summary>
-/// Configure MVC with automatic CSRF protection for all POST requests
-/// </summary>
+// Konfigurerer MVC med automatisk CSRF-beskyttelse for alle POST-forespørsler
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 builder.Services.AddRazorPages();
 
-/// <summary>
-/// Register repositories for dependency injection
-/// </summary>
+// Registrerer repositories for dependency injection
 builder.Services.AddScoped<IAdviceRepository, AdviceRepository>();
 builder.Services.AddScoped<IObstacleRepository, ObstacleRepository>();
 builder.Services.AddScoped<IRegistrarRepository, RegistrarRepository>();
@@ -31,9 +25,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IArchiveRepository, ArchiveRepository>();
 builder.Services.AddScoped<IGreetingRepository, GreetingRepository>();
 
-/// <summary>
-/// Database setup: Configure MySQL connection with retry logic
-/// </summary>
+// Databaseoppsett: Konfigurerer MySQL-tilkobling med retry-logikk
 var conn = builder.Configuration.GetConnectionString("DatabaseConnection");
 if (string.IsNullOrEmpty(conn))
 {
@@ -49,16 +41,12 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(30),
             errorNumbersToAdd: null)));
 
-/// <summary>
-/// Identity setup: Configure ASP.NET Identity for user authentication and authorization
-/// </summary>
+// Identity-oppsett: Konfigurerer ASP.NET Identity for brukerautentisering og autorisasjon
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDBContext>()
     .AddDefaultTokenProviders();
 
-/// <summary>
-/// Password policy configuration: Require strong passwords
-/// </summary>
+// Passordpolicy-konfigurasjon: Krever sterke passord
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Password.RequireDigit = true;
@@ -69,9 +57,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredUniqueChars = 1;
 });
 
-/// <summary>
-/// Cookie configuration: Set login paths and session timeout
-/// </summary>
+// Cookie-konfigurasjon: Setter innloggingsstier og session-timeout
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -79,9 +65,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 });
 
-/// <summary>
-/// Session configuration: Configure distributed memory cache and session settings
-/// </summary>
+// Session-konfigurasjon: Konfigurerer distribuert minnehurtiglager og session-innstillinger
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -92,9 +76,7 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-/// <summary>
-/// Apply database migrations automatically on startup
-/// </summary>
+// Bruker database-migreringer automatisk ved oppstart
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -106,22 +88,18 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        logger.LogError(ex, "En feil oppstod under migrering av databasen.");
     }
 }
 
-/// <summary>
-/// Seed database with initial data (roles and admin user)
-/// </summary>
+// Seeder database med innledende data (roller og admin-bruker)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     AuthDbSeeder.SeedAsync(services).GetAwaiter().GetResult();
 }
 
-/// <summary>
-/// Security headers: Add security headers to all HTTP responses
-/// </summary>
+// Sikkerhetshoder: Legger til sikkerhetshoder til alle HTTP-responser
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
@@ -132,18 +110,14 @@ app.Use(async (context, next) =>
     await next();
 });
 
-/// <summary>
-/// Error handling: Use custom error page in production, enable HSTS
-/// </summary>
+// Feilhåndtering: Bruker tilpasset feilside i produksjon, aktiverer HSTS
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-/// <summary>
-/// Middleware pipeline: Configure request processing order
-/// </summary>
+// Middleware-pipeline: Konfigurerer forespørselsbehandlingsrekkefølge
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -152,7 +126,7 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();
-// Configure to listen on all network interfaces for iPad access
+// Konfigurerer for å lytte på alle nettverksgrensesnitt for iPad-tilgang
 
 //if (app.Environment.IsDevelopment())
 //{
@@ -160,9 +134,7 @@ app.MapStaticAssets();
 //    app.Urls.Add("http://0.0.0.0:5193");
 //}
 
-/// <summary>
-/// Routing: Configure default MVC routing
-/// </summary>
+// Ruting: Konfigurerer standard MVC-ruting
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

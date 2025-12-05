@@ -9,9 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for authentication and account management. Handles user registration, login, logout, and password reset
-    /// </summary>
+    // Controller for autentisering og kontoadministrasjon. Håndterer brukerregistrering, innlogging, utlogging og passordtilbakestilling
     public class AccountController : Controller
     {
         private readonly IUserRepository _userRepository;
@@ -19,11 +17,11 @@ namespace FirstWebApplication.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<AccountController> _logger;
 
-        // Role name constants - avoids hardcoded strings and makes code more maintainable
+        // Rollenavn konstanter - unngår hardkodede strenger og gjør koden mer vedlikeholdbar
         private const string RoleAdmin = "Admin";
         private const string RoleRegistrar = "Registerfører";
         
-        // Redirect action constants - centralizes redirect targets for easier maintenance
+        // Omdirigeringshandlingskonstanter - sentraliserer omdirigeringsmål for enklere vedlikehold
         private const string ActionMap = "Map";
         private const string ActionDashboard = "Dashboard";
         private const string ActionRegistrar = "Registrar";
@@ -31,7 +29,7 @@ namespace FirstWebApplication.Controllers
         private const string ControllerAdmin = "Admin";
         private const string ControllerRegistrar = "Registrar";
         
-        // Error messages - centralizes messages for consistency
+        // Feilmeldinger - sentraliserer meldinger for konsistens
         private const string ErrorInvalidCredentials = "Ugyldig brukernavn eller passord.";
         private const string ErrorAccountNotApproved = "Din konto er ikke godkjent ennå. Vent til en administrator har godkjent kontoen din.";
         private const string ErrorInvalidResetLink = "Ugyldig tilbakestillingslink.";
@@ -50,10 +48,7 @@ namespace FirstWebApplication.Controllers
         }
         
         
-        /// <summary>
-        /// Displays the user registration form
-        /// </summary>
-        /// <returns>The registration view</returns>
+        // Viser brukerregistreringsskjemaet
         [HttpGet]
         public IActionResult Register()
         {
@@ -61,16 +56,12 @@ namespace FirstWebApplication.Controllers
             return View();
         }
         
-        /// <summary>
-        /// Processes user registration. New users must be approved by an admin before they can log in
-        /// </summary>
-        /// <param name="registerViewModel">The registration data from the form</param>
-        /// <returns>Redirects to confirmation page on success, or returns the registration view with errors</returns>
+        // Behandler brukerregistrering. Nye brukere må godkjennes av en admin før de kan logge inn
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
-            // Validate and normalize organization (case-insensitive matching)
+            // Validerer og normaliserer organisasjon (case-insensitive matching)
             var normalizedOrganization = _userRepository.ValidateAndNormalizeOrganization(registerViewModel.Organization);
             if (normalizedOrganization == null)
             {
@@ -87,13 +78,13 @@ namespace FirstWebApplication.Controllers
                 return View(registerViewModel);
             }
             
-            // Create new user - not approved until admin approves
+            // Oppretter ny bruker - ikke godkjent før admin godkjenner
             var newUser = new ApplicationUser
             {
                 UserName = registerViewModel.Username,
                 Email = registerViewModel.Email,
                 DesiredRole = registerViewModel.DesiredRole,
-                IaApproved = false, // Requires admin approval
+                IaApproved = false, // Krever admin-godkjenning
                 Organization = registerViewModel.Organization
             };
             
@@ -101,32 +92,26 @@ namespace FirstWebApplication.Controllers
 
             if (!createResult.Succeeded)
             {
-                // Add error messages from Identity (password requirements, etc.)
+                // Legger til feilmeldinger fra Identity (passordkrav, etc.)
                 AddIdentityErrorsToModelState(createResult.Errors, nameof(registerViewModel.Password));
                 PopulateRegisterViewData();
                 return View(registerViewModel);
             }
 
-            // Success - redirect to confirmation page
+            // Suksess - omdiriger til bekreftelsesside
             TempData["Message"] = 
                 "Takk for registreringen! Du vil motta e-post når en administrator har godkjent kontoen din";
             return RedirectToAction("RegisterConfirmation");
         }
         
-        /// <summary>
-        /// Displays registration confirmation page
-        /// </summary>
-        /// <returns>The registration confirmation view</returns>
+        // Viser registreringsbekreftelsesside
         [HttpGet]
         public IActionResult RegisterConfirmation()
         {
             return View();
         }
         
-        /// <summary>
-        /// Displays the login form. If user is already logged in, redirects to their role-specific view.
-        /// </summary>
-        /// <returns>The login view, or redirects to role-specific view if already logged in</returns>
+        // Viser innloggingsskjemaet. Hvis bruker allerede er innlogget, omdirigeres til deres rolle-spesifikke visning.
         [HttpGet]
         public async Task<IActionResult> Login()
         {
@@ -142,11 +127,7 @@ namespace FirstWebApplication.Controllers
             return View();
         }
         
-        /// <summary>
-        /// Processes user login. Only approved users can log in. Redirects to appropriate page based on user role.
-        /// </summary>
-        /// <param name="model">The login credentials</param>
-        /// <returns>Redirects to appropriate page based on role, or returns login view with errors</returns>
+        // Behandler brukerinnlogging. Kun godkjente brukere kan logge inn. Omdirigerer til passende side basert på brukerrolle.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -154,11 +135,11 @@ namespace FirstWebApplication.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // Find user and validate that it exists and is approved
+            // Finner bruker og validerer at den eksisterer og er godkjent
             var user = await _userRepository.GetByNameAsync(model.Username);
             if (user == null || !user.IaApproved)
             {
-                // Use generic error message to avoid revealing if user exists
+                // Bruker generisk feilmelding for å unngå å avsløre om bruker eksisterer
                 if (user != null && !user.IaApproved)
                 {
                     ModelState.AddModelError(string.Empty, ErrorAccountNotApproved);
@@ -170,7 +151,7 @@ namespace FirstWebApplication.Controllers
                 return View(model);
             }
 
-            // Attempt to sign in
+            // Forsøker å logge inn
             var signInResult = await _signInManager.PasswordSignInAsync(
                 user.UserName!, 
                 model.Password, 
@@ -186,10 +167,7 @@ namespace FirstWebApplication.Controllers
             return await RedirectToRoleBasedActionAsync(user);
         }
         
-        /// <summary>
-        /// Logs out the current user and clears the session
-        /// </summary>
-        /// <returns>Redirects to the home page</returns>
+        // Logger ut den nåværende brukeren og tømmer sessionen
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -197,21 +175,14 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction("Index", "Home");
         }
         
-        /// <summary>
-        /// Displays the forgot password form
-        /// </summary>
-        /// <returns>The forgot password view</returns>
+        // Viser glemt passord-skjemaet
         [HttpGet]
         public IActionResult ForgotPassword()
         {
             return View();
         }
         
-        /// <summary>
-        /// Initiates password reset process. Generates a reset token and sends it via email (in production).
-        /// </summary>
-        /// <param name="model">The forgot password form data containing the email address</param>
-        /// <returns>Redirects to confirmation page</returns>
+        // Starter passordtilbakestillingsprosess. Genererer en tilbakestillingsnøkkel og sender den via e-post (i produksjon).
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
@@ -220,46 +191,38 @@ namespace FirstWebApplication.Controllers
                 return View(model);
 
             var user = await _userRepository.GetByEmailAsync(model.Email);
-            // Don't reveal that user doesn't exist - always redirect to confirmation
+            // Avslør ikke at bruker ikke eksisterer - omdiriger alltid til bekreftelse
             if (user == null)
             {
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
             }
 
-            // Generate and encode reset token
+            // Genererer og koder tilbakestillingsnøkkel
             var encodedToken = await _userRepository.GenerateEncodedPasswordResetTokenAsync(user);
             
-            // Create reset URL
+            // Oppretter tilbakestillings-URL
             var callbackUrl = CreatePasswordResetUrl(encodedToken, user.Email!);
 
-            // Log in development (in production this is sent via email)
+            // Logger i utvikling (i produksjon sendes dette via e-post)
             if (_environment.IsDevelopment())
             {
-                _logger.LogInformation("Password Reset Email for {Email}: {CallbackUrl}", user.Email, callbackUrl);
+                _logger.LogInformation("Passordtilbakestillings-e-post for {Email}: {CallbackUrl}", user.Email, callbackUrl);
             }
 
-            // TODO: Send email here via email service
-            // In production: implement IEmailSender and send the email
+            // TODO: Send e-post her via e-posttjeneste
+            // I produksjon: implementer IEmailSender og send e-posten
 
             return RedirectToAction(nameof(ForgotPasswordConfirmation));
         }
 
-        /// <summary>
-        /// Displays confirmation page after password reset request has been submitted
-        /// </summary>
-        /// <returns>The forgot password confirmation view</returns>
+        // Viser bekreftelsesside etter at passordtilbakestillingsforespørsel er sendt inn
         [HttpGet]
         public IActionResult ForgotPasswordConfirmation()
         {
             return View();
         }
         
-        /// <summary>
-        /// Displays the password reset form with the provided token and email
-        /// </summary>
-        /// <param name="token">The password reset token</param>
-        /// <param name="email">The user's email address</param>
-        /// <returns>The reset password view, or error view if token/email is invalid</returns>
+        // Viser passordtilbakestillingsskjemaet med den oppgitte nøkkelen og e-posten
         [HttpGet]
         public IActionResult ResetPassword(string token, string email)
         {
@@ -280,11 +243,7 @@ namespace FirstWebApplication.Controllers
             return View(model);
         }
         
-        /// <summary>
-        /// Processes password reset with the provided token and new password
-        /// </summary>
-        /// <param name="model">The reset password form data containing token, email, and new password</param>
-        /// <returns>Redirects to confirmation page on success, or returns reset password view with errors</returns>
+        // Behandler passordtilbakestilling med den oppgitte nøkkelen og det nye passordet
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
@@ -297,7 +256,7 @@ namespace FirstWebApplication.Controllers
             }
 
             var user = await _userRepository.GetByEmailAsync(model.Email);
-            // Don't reveal that user doesn't exist - always redirect to confirmation
+            // Avslør ikke at bruker ikke eksisterer - omdiriger alltid til bekreftelse
             if (user == null)
             {
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
@@ -314,28 +273,21 @@ namespace FirstWebApplication.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// Displays confirmation page after password has been successfully reset
-        /// </summary>
-        /// <returns>The reset password confirmation view</returns>
+        // Viser bekreftelsesside etter at passordet er tilbakestilt
         [HttpGet]
         public IActionResult ResetPasswordConfirmation()
         {
             return View();
         }
 
-        /// <summary>
-        /// Populates ViewBag with data needed for the registration form
-        /// </summary>
+        // Fyller ViewBag med data som trengs for registreringsskjemaet
         private void PopulateRegisterViewData()
         {
             PopulatePasswordViewData();
             ViewBag.OrganizationOptions = _userRepository.GetAllOrganizations();
         }
 
-        /// <summary>
-        /// Populates ViewBag with password requirements and policy for display in form
-        /// </summary>
+        // Fyller ViewBag med passordkrav og policy for visning i skjema
         private void PopulatePasswordViewData()
         {
             var passwordOptions = _userRepository.GetPasswordOptions();
@@ -344,11 +296,7 @@ namespace FirstWebApplication.Controllers
         }
 
 
-        /// <summary>
-        /// Adds Identity errors to ModelState, separating password errors from other errors
-        /// </summary>
-        /// <param name="errors">The Identity errors to add</param>
-        /// <param name="passwordPropertyName">The name of the password property for error targeting</param>
+        // Legger til Identity-feil til ModelState, skiller passordfeil fra andre feil
         private void AddIdentityErrorsToModelState(IEnumerable<IdentityError> errors, string passwordPropertyName)
         {
             var passwordOptions = _userRepository.GetPasswordOptions();
@@ -376,11 +324,7 @@ namespace FirstWebApplication.Controllers
             }
         }
 
-        /// <summary>
-        /// Determines if an Identity error is related to password validation
-        /// </summary>
-        /// <param name="error">The Identity error to check</param>
-        /// <returns>True if the error is password-related, false otherwise</returns>
+        // Bestemmer om en Identity-feil er relatert til passordvalidering
         private static bool IsPasswordError(IdentityError error)
         {
             return (!string.IsNullOrEmpty(error.Code) && 
@@ -389,11 +333,7 @@ namespace FirstWebApplication.Controllers
                     error.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
-        /// <summary>
-        /// Builds a list of password requirements based on configured settings
-        /// </summary>
-        /// <param name="opts">Password options configuration</param>
-        /// <returns>List of password requirements to display to the user</returns>
+        // Bygger en liste med passordkrav basert på konfigurerte innstillinger
         private static IEnumerable<string> BuildPasswordRequirements(PasswordOptions opts)
         {
             var requirements = new List<string>
@@ -401,7 +341,7 @@ namespace FirstWebApplication.Controllers
                 $"Minimum lengde: {opts.RequiredLength} tegn"
             };
 
-            // Add requirements based on configuration
+            // Legger til krav basert på konfigurasjon
             if (opts.RequireDigit)
                 requirements.Add("Minst ett siffer (0-9)");
             
@@ -420,11 +360,7 @@ namespace FirstWebApplication.Controllers
             return requirements;
         }
 
-        /// <summary>
-        /// Builds an object with password policy settings for use in frontend
-        /// </summary>
-        /// <param name="opts">Password options configuration</param>
-        /// <returns>Anonymous object with password policy settings</returns>
+        // Bygger et objekt med passordpolicy-innstillinger for bruk i frontend
         private static object BuildPasswordPolicyObject(PasswordOptions opts)
         {
             return new
@@ -438,12 +374,7 @@ namespace FirstWebApplication.Controllers
             };
         }
 
-        /// <summary>
-        /// Translates Identity error messages to Norwegian, user-friendly messages
-        /// </summary>
-        /// <param name="description">Original error message from Identity</param>
-        /// <param name="opts">Password settings to retrieve default values</param>
-        /// <returns>Norwegian, user-friendly error message</returns>
+        // Oversetter Identity-feilmeldinger til norske, brukervennlige meldinger
         private string TranslatePasswordError(string? description, PasswordOptions opts)
         {
             if (string.IsNullOrEmpty(description))
@@ -451,13 +382,13 @@ namespace FirstWebApplication.Controllers
 
             var lowerDescription = description.ToLowerInvariant();
 
-            // Check length requirement
+            // Sjekker lengdekrav
             if (lowerDescription.Contains("at least") && lowerDescription.Contains("characters"))
             {
                 return GetLengthErrorMessage(lowerDescription, opts.RequiredLength);
             }
 
-            // Check specific character requirements
+            // Sjekker spesifikke tegnkrav
             if (IsUppercaseError(lowerDescription))
                 return "Må inneholde minst en stor bokstav (A-Z).";
 
@@ -475,16 +406,11 @@ namespace FirstWebApplication.Controllers
                 return GetUniqueCharsErrorMessage(lowerDescription, opts.RequiredUniqueChars);
             }
 
-            // Fallback: return original message with prefix
+            // Fallback: returnerer original melding med prefiks
             return "Passordfeil: " + description;
         }
 
-        /// <summary>
-        /// Extracts and formats length requirement error message
-        /// </summary>
-        /// <param name="description">The error description containing length information</param>
-        /// <param name="defaultLength">The default length if not found in description</param>
-        /// <returns>Formatted Norwegian error message for length requirement</returns>
+        // Ekstraherer og formaterer lengdekrav-feilmelding
         private static string GetLengthErrorMessage(string description, int defaultLength)
         {
             var digits = Regex.Match(description, @"\d+").Value;
@@ -492,12 +418,7 @@ namespace FirstWebApplication.Controllers
             return $"Passordet må være minst {length} tegn langt.";
         }
 
-        /// <summary>
-        /// Extracts and formats unique characters requirement error message
-        /// </summary>
-        /// <param name="description">The error description containing unique characters information</param>
-        /// <param name="defaultUniqueChars">The default unique characters count if not found in description</param>
-        /// <returns>Formatted Norwegian error message for unique characters requirement</returns>
+        // Ekstraherer og formaterer unike tegn-krav-feilmelding
         private static string GetUniqueCharsErrorMessage(string description, int defaultUniqueChars)
         {
             var digits = Regex.Match(description, @"\d+").Value;
@@ -505,11 +426,7 @@ namespace FirstWebApplication.Controllers
             return $"Må inneholde minst {uniqueChars} unike tegn.";
         }
 
-        /// <summary>
-        /// Checks if error description indicates uppercase letter requirement
-        /// </summary>
-        /// <param name="description">The error description to check</param>
-        /// <returns>True if error is about uppercase requirement</returns>
+        // Sjekker om feilbeskrivelse indikerer krav til store bokstaver
         private static bool IsUppercaseError(string description)
         {
             return description.Contains("uppercase") || 
@@ -517,11 +434,7 @@ namespace FirstWebApplication.Controllers
                    description.Contains("store bokstav");
         }
 
-        /// <summary>
-        /// Checks if error description indicates lowercase letter requirement
-        /// </summary>
-        /// <param name="description">The error description to check</param>
-        /// <returns>True if error is about lowercase requirement</returns>
+        // Sjekker om feilbeskrivelse indikerer krav til små bokstaver
         private static bool IsLowercaseError(string description)
         {
             return description.Contains("lowercase") || 
@@ -529,11 +442,7 @@ namespace FirstWebApplication.Controllers
                    description.Contains("liten bokstav");
         }
 
-        /// <summary>
-        /// Checks if error description indicates digit requirement
-        /// </summary>
-        /// <param name="description">The error description to check</param>
-        /// <returns>True if error is about digit requirement</returns>
+        // Sjekker om feilbeskrivelse indikerer sifferkrav
         private static bool IsDigitError(string description)
         {
             return description.Contains("digit") || 
@@ -541,11 +450,7 @@ namespace FirstWebApplication.Controllers
                    description.Contains("number");
         }
 
-        /// <summary>
-        /// Checks if error description indicates non-alphanumeric character requirement
-        /// </summary>
-        /// <param name="description">The error description to check</param>
-        /// <returns>True if error is about non-alphanumeric requirement</returns>
+        // Sjekker om feilbeskrivelse indikerer krav til ikke-alfanumeriske tegn
         private static bool IsNonAlphanumericError(string description)
         {
             return description.Contains("non alphanumeric") || 
@@ -553,21 +458,14 @@ namespace FirstWebApplication.Controllers
                    description.Contains("ikke-alfanumerisk");
         }
 
-        /// <summary>
-        /// Adds standard error message for invalid login
-        /// </summary>
+        // Legger til standard feilmelding for ugyldig innlogging
         private void AddLoginError()
         {
             ModelState.AddModelError(string.Empty, ErrorInvalidCredentials);
         }
 
 
-        /// <summary>
-        /// Creates full URL for password reset
-        /// </summary>
-        /// <param name="token">The encoded reset token</param>
-        /// <param name="email">The user's email address</param>
-        /// <returns>Full URL that can be sent in email</returns>
+        // Oppretter full URL for passordtilbakestilling
         private string CreatePasswordResetUrl(string token, string email)
         {
             return Url.Action(
@@ -578,11 +476,7 @@ namespace FirstWebApplication.Controllers
         }
 
 
-        /// <summary>
-        /// Redirects user to the appropriate page based on their role
-        /// </summary>
-        /// <param name="user">The user to redirect</param>
-        /// <returns>Redirect result to role-specific page</returns>
+        // Omdirigerer bruker til passende side basert på deres rolle
         private async Task<IActionResult> RedirectToRoleBasedActionAsync(ApplicationUser user)
         {
             if (user == null)
@@ -600,7 +494,7 @@ namespace FirstWebApplication.Controllers
                 return RedirectToAction(ActionRegistrar, ControllerRegistrar);
             }
 
-            // Pilots and other approved users go to Map page
+            // Piloter og andre godkjente brukere går til Kart-side
             return RedirectToAction(ActionMap, ControllerMap);
         }
     }

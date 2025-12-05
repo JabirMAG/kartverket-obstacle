@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for feedback/advice functionality. Handles submission and viewing of user feedback.
-    /// </summary>
+    // Controller for tilbakemelding/tilråding-funksjonalitet. Håndterer innsending og visning av brukertilbakemeldinger.
     public class AdviceController : Controller
     {
         private readonly IAdviceRepository _adviceRepository;
@@ -17,21 +15,14 @@ namespace FirstWebApplication.Controllers
             _adviceRepository = adviceRepository;
         }
 
-        /// <summary>
-        /// Displays the feedback form
-        /// </summary>
-        /// <returns>The feedback form view</returns>
+        // Viser tilbakemeldingsskjemaet
         [HttpGet]
         public IActionResult FeedbackForm()
         {
             return View(new AdviceViewModel());
         }
 
-        /// <summary>
-        /// Processes the feedback form submission from the user
-        /// </summary>
-        /// <param name="model">The feedback data from the form</param>
-        /// <returns>Redirects to thank you page on success, or returns feedback form with errors</returns>
+        // Behandler innsending av tilbakemeldingsskjema fra brukeren
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FeedbackForm(AdviceViewModel model)
@@ -47,19 +38,14 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(ThankForm), new { email = model.ViewEmail, message = model.ViewadviceMessage });
         }
 
-        /// <summary>
-        /// Displays a thank you page after feedback has been submitted
-        /// </summary>
-        /// <param name="email">The email address from the feedback</param>
-        /// <param name="message">The advice message from the feedback</param>
-        /// <returns>The thank you view</returns>
+        // Viser en takkside etter at tilbakemelding er sendt inn
         [HttpGet]
         public IActionResult ThankForm(string email, string message)
         {
-            // Validate that required parameters are provided
+            // Validerer at påkrevde parametere er oppgitt
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(message))
             {
-                // Redirect to feedback form if data is missing
+                // Omdirigerer til tilbakemeldingsskjema hvis data mangler
                 return RedirectToAction(nameof(FeedbackForm));
             }
 

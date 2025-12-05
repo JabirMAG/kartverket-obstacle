@@ -11,9 +11,7 @@ using System.Linq;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for admin functionality. Handles user management, obstacle reports, and system administration
-    /// </summary>
+    // Controller for admin-funksjonalitet. Håndterer brukeradministrasjon, hindringsrapporter og systemadministrasjon
     [Authorize(Roles = "Admin")]
     [Route("admin")]
     public class AdminController : Controller
@@ -41,27 +39,21 @@ namespace FirstWebApplication.Controllers
             _adviceRepository = adviceRepository;
         }
         
-        /// <summary>
-        /// Displays the admin dashboard
-        /// </summary>
-        /// <returns>The admin dashboard view</returns>
+        // Viser admin-dashbordet
         [HttpGet("dashboard")]
         public IActionResult Dashboard()
         {
             return View();
         }
         
-        /// <summary>
-        /// Displays all obstacle reports that need admin review. Filters out rejected obstacles (status 3) as they are archived
-        /// </summary>
-        /// <returns>The admin reports view with unique obstacles</returns>
+        // Viser alle hindringsrapporter som trenger admin-gjennomgang. Filtrerer bort avviste hindringer (status 3) da de er arkivert
         [HttpGet("reports")]
         public async Task<IActionResult> Reports()
         {
-            // Get all obstacles that have reports
+            // Henter alle hindringer som har rapporter
             var rapports = await _registrarRepository.GetAllRapports();
-            // Filter out rejected obstacles (status 3) as they are archived
-            // Group by ObstacleId and take the first report for each obstacle to avoid duplicates
+            // Filtrerer bort avviste hindringer (status 3) da de er arkivert
+            // Grupperer etter ObstacleId og tar første rapport for hver hindring for å unngå duplikater
             var uniqueRapports = rapports
                 .Where(r => r.Obstacle != null && r.Obstacle.ObstacleStatus != 3)
                 .GroupBy(r => r.ObstacleId)
@@ -71,10 +63,7 @@ namespace FirstWebApplication.Controllers
             return View("AdminViewReports", uniqueRapports);
         }
         
-        /// <summary>
-        /// Displays all archived reports (rejected obstacles)
-        /// </summary>
-        /// <returns>The archived reports view</returns>
+        // Viser alle arkiverte rapporter (avviste hindringer)
         [HttpGet("archived-reports")]
         public async Task<IActionResult> ArchivedReports()
         {
@@ -96,17 +85,12 @@ namespace FirstWebApplication.Controllers
 
         
         
-        /// <summary>
-        /// Restores an archived report back to active obstacles with a new status
-        /// </summary>
-        /// <param name="archivedReportId">The ID of the archived report to restore</param>
-        /// <param name="newStatus">The new status for the restored obstacle (1 = Under behandling, 2 = Godkjent)</param>
-        /// <returns>Redirects to archived reports page</returns>
+        // Gjenoppretter en arkivert rapport tilbake til aktive hindringer med en ny status
         [HttpPost("restore-archived-report")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RestoreArchivedReport(int archivedReportId, int newStatus)
         {
-            // Validate that newStatus is either 1 (Under behandling) or 2 (Godkjent)
+            // Validerer at newStatus er enten 1 (Under behandling) eller 2 (Godkjent)
             if (newStatus != 1 && newStatus != 2)
             {
                 TempData["Error"] = "Ugyldig status. Status må være 'Under behandling' (1) eller 'Godkjent' (2).";
@@ -141,13 +125,7 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(ArchivedReports));
         }
         
-        /// <summary>
-        /// Updates the status of an obstacle. If status is 3 (Rejected), the obstacle is archived
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to update</param>
-        /// <param name="status">The new status for the obstacle</param>
-        /// <param name="returnUrl">Optional return URL to redirect back to details page</param>
-        /// <returns>Redirects to reports page or details page based on returnUrl</returns>
+        // Oppdaterer statusen til en hindring. Hvis status er 3 (Avslått), arkiveres hindringen
         [HttpPost("update-obstacle-status")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateObstacleStatus(int obstacleId, int status, string returnUrl = null)
@@ -161,7 +139,7 @@ namespace FirstWebApplication.Controllers
 
             obstacle.ObstacleStatus = status;
             
-            // If the status is Rejected (3), archive the obstacle and all reports
+            // Hvis statusen er Avslått (3), arkiver hindringen og alle rapporter
             if (status == 3)
             {
                 var archivedReportCount = await _archiveRepository.ArchiveObstacleAsync(obstacle);
@@ -173,10 +151,10 @@ namespace FirstWebApplication.Controllers
                 TempData["Success"] = $"Status for hindring '{obstacle.ObstacleName}' er oppdatert.";
             }
             
-            // Redirect back to the details page if returnUrl is set, otherwise to reports
+            // Omdiriger tilbake til detaljsiden hvis returnUrl er satt, ellers til rapporter
             if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("AdminObstacleDetails"))
             {
-                // If status is Rejected, redirect to reports since the obstacle is deleted
+                // Hvis status er Avslått, omdiriger til rapporter siden hindringen er slettet
                 if (status == 3)
                 {
                     return RedirectToAction(nameof(Reports));
@@ -187,11 +165,7 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(Reports));
         }
         
-        /// <summary>
-        /// Displays detailed view of an obstacle and all its associated reports
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle to view</param>
-        /// <returns>The obstacle details view, or redirects to reports if obstacle not found</returns>
+        // Viser detaljert visning av en hindring og alle tilknyttede rapporter
         [HttpGet("report-details/{obstacleId}")]
         public async Task<IActionResult> DetaljerOmRapport(int obstacleId)
         {
@@ -211,12 +185,7 @@ namespace FirstWebApplication.Controllers
             return View("AdminObstacleDetails", obstacle);
         }
         
-        /// <summary>
-        /// Adds a comment to an obstacle's report
-        /// </summary>
-        /// <param name="obstacleId">The ID of the obstacle</param>
-        /// <param name="comment">The comment text to add</param>
-        /// <returns>Redirects to obstacle details page</returns>
+        // Legger til en kommentar til en hindrings rapport
         [HttpPost("add-comment")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddComment(int obstacleId, string comment)
@@ -245,10 +214,7 @@ namespace FirstWebApplication.Controllers
             return RedirectToAction(nameof(DetaljerOmRapport), new { obstacleId });
         }
         
-        /// <summary>
-        /// Displays user management page with all users and their roles
-        /// </summary>
-        /// <returns>The user management view</returns>
+        // Viser brukeradministrasjonsside med alle brukere og deres roller
         [HttpGet("manage-users")]
         public async Task<IActionResult> ManageUsers()
         {
@@ -274,11 +240,7 @@ namespace FirstWebApplication.Controllers
             return View(vm);
         }
         
-        /// <summary>
-        /// Adds a role to a user. Users can only have one role at a time. Default admin account is protected from changes.
-        /// </summary>
-        /// <param name="model">The role assignment data</param>
-        /// <returns>Redirects to user management page</returns>
+        // Legger til en rolle til en bruker. Brukere kan kun ha én rolle om gangen. Standard admin-konto er beskyttet mot endringer.
         [ValidateAntiForgeryToken]
         [HttpPost("add-role")]
         public async Task<IActionResult> AddRole(AssignRoleVm model)
@@ -291,7 +253,7 @@ namespace FirstWebApplication.Controllers
 
             return await ExecuteUserAction(model.UserId, async user =>
             {
-                // Enforce single-role rule: user must have no roles before assigning a new one
+                // Håndhever enkeltrolle-regel: bruker må ikke ha roller før tildeling av ny
                 var existingRoles = await _userRepository.GetRolesAsync(user);
                 if (existingRoles.Any())
                 {
@@ -321,11 +283,7 @@ namespace FirstWebApplication.Controllers
             });
         }
         
-        /// <summary>
-        /// Removes a role from a user. Default admin account is protected from changes.
-        /// </summary>
-        /// <param name="model">The role removal data</param>
-        /// <returns>Redirects to user management page</returns>
+        // Fjerner en rolle fra en bruker. Standard admin-konto er beskyttet mot endringer.
         [ValidateAntiForgeryToken]
         [HttpPost("remove-role")]
         public async Task<IActionResult> RemoveRole(AssignRoleVm model)
@@ -346,11 +304,7 @@ namespace FirstWebApplication.Controllers
             });
         }
         
-        /// <summary>
-        /// Deletes a user from the system. Default admin account cannot be deleted.
-        /// </summary>
-        /// <param name="UserId">The ID of the user to delete</param>
-        /// <returns>Redirects to user management page</returns>
+        // Sletter en bruker fra systemet. Standard admin-konto kan ikke slettes.
         [ValidateAntiForgeryToken]
         [HttpPost("delete-user")]
         public async Task<IActionResult> DeleteUser(string UserId)
@@ -371,11 +325,7 @@ namespace FirstWebApplication.Controllers
             });
         }
         
-        /// <summary>
-        /// Approves a user account, allowing them to log in. Automatically assigns desired role if specified. Default admin account is protected from changes.
-        /// </summary>
-        /// <param name="UserId">The ID of the user to approve</param>
-        /// <returns>Redirects to user management page</returns>
+        // Godkjenner en brukerkonto, slik at de kan logge inn. Tildeler automatisk ønsket rolle hvis spesifisert. Standard admin-konto er beskyttet mot endringer.
         [ValidateAntiForgeryToken]
         [HttpPost("approve-user")]
         public async Task<IActionResult> ApproveUser(string UserId)
@@ -391,7 +341,7 @@ namespace FirstWebApplication.Controllers
                     return RedirectToAction(nameof(ManageUsers));
                 }
 
-                // Reload user from database to ensure we have the latest data
+                // Last inn bruker fra database på nytt for å sikre at vi har de nyeste dataene
                 user = await _userRepository.GetByIdAsync(UserId);
                 if (user == null)
                 {
@@ -399,7 +349,7 @@ namespace FirstWebApplication.Controllers
                     return RedirectToAction(nameof(ManageUsers));
                 }
 
-                // Assign the DesiredRole if the user has one and doesn't already have a role
+                // Tildel DesiredRole hvis brukeren har en og ikke allerede har en rolle
                 if (!string.IsNullOrEmpty(user.DesiredRole))
                 {
                     var existingRoles = await _userRepository.GetRolesAsync(user);
@@ -407,7 +357,7 @@ namespace FirstWebApplication.Controllers
                     {
                         await _userRepository.EnsureRoleExistsAsync(user.DesiredRole);
 
-                        // Assign the role
+                        // Tildel rollen
                         var roleResult = await _userRepository.AddToRoleAsync(user, user.DesiredRole);
                         if (!roleResult.Succeeded)
                         {
@@ -431,11 +381,7 @@ namespace FirstWebApplication.Controllers
             });
         }
         
-        /// <summary>
-        /// Rejects a user account, preventing them from logging in. Default admin account is protected from changes.
-        /// </summary>
-        /// <param name="UserId">The ID of the user to reject</param>
-        /// <returns>Redirects to user management page</returns>
+        // Avviser en brukerkonto, slik at de ikke kan logge inn. Standard admin-konto er beskyttet mot endringer.
         [ValidateAntiForgeryToken]
         [HttpPost("reject-user")]
         public async Task<IActionResult> RejectUser(string UserId)
@@ -457,10 +403,7 @@ namespace FirstWebApplication.Controllers
             });
         }
         
-        /// <summary>
-        /// Displays the create user form
-        /// </summary>
-        /// <returns>The create user view</returns>
+        // Viser opprett bruker-skjemaet
         [HttpGet("create-user")]
         public IActionResult CreateUser()
         {
@@ -468,11 +411,7 @@ namespace FirstWebApplication.Controllers
             return View(new CreateUserVm());
         }
         
-        /// <summary>
-        /// Creates a new user account with the specified role. Admin-created users are automatically approved
-        /// </summary>
-        /// <param name="model">The user creation data</param>
-        /// <returns>Redirects to user management page on success, or returns create user view with errors</returns>
+        // Oppretter en ny brukerkonto med den spesifiserte rollen. Admin-opprettede brukere godkjennes automatisk
         [ValidateAntiForgeryToken]
         [HttpPost("create-user")]
         public async Task<IActionResult> CreateUser(CreateUserVm model)
@@ -520,14 +459,14 @@ namespace FirstWebApplication.Controllers
             {
                 UserName = model.Username,
                 Email = model.Email,
-                IaApproved = true, // Admin-created users are automatically approved
+                IaApproved = true, // Admin-opprettede brukere godkjennes automatisk
                 Organization = model.Organization
             };
 
             var createResult = await _userRepository.CreateAsync(user, model.Password);
             if (!createResult.Succeeded)
             {
-                // Detect password-related errors so they can be shown near the password field
+                // Oppdager passordrelaterte feil slik at de kan vises nær passordfeltet
                 var pwErrors = createResult.Errors.Where(e =>
                     (!string.IsNullOrEmpty(e.Code) && e.Code.StartsWith("Password", StringComparison.OrdinalIgnoreCase)) ||
                     (!string.IsNullOrEmpty(e.Description) && e.Description.IndexOf("password", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -535,10 +474,10 @@ namespace FirstWebApplication.Controllers
 
                 if (pwErrors.Any())
                 {
-                    // Message
+                    // Melding
                     ModelState.AddModelError(nameof(model.Password), "Passordet oppfyller ikke kravene. Følg kravene som vises under passordfeltet.");
 
-                    // Mssages near the password field so non-programmers understand
+                    // Meldinger nær passordfeltet slik at ikke-programmerere forstår
                     var passwordOptions = _userRepository.GetPasswordOptions();
                     foreach (var pe in pwErrors)
                     {
@@ -547,7 +486,7 @@ namespace FirstWebApplication.Controllers
                     }
                 }
 
-                // Keep other identity errors as form-level messages (original descriptions for debugging/consumers)
+                // Beholder andre identitetsfeil som skjemasnivå-meldinger (originale beskrivelser for feilsøking/konsumenter)
                 var otherErrors = createResult.Errors.Except(pwErrors).ToList();
                 foreach (var err in otherErrors)
                     ModelState.AddModelError(string.Empty, err.Description);
@@ -645,7 +584,7 @@ namespace FirstWebApplication.Controllers
 
             if (d.Contains("at least") && d.Contains("characters"))
             {
-                // extract number if present
+                // ekstraherer tall hvis tilstede
                 var digits = System.Text.RegularExpressions.Regex.Match(d, @"\d+").Value;
                 if (!string.IsNullOrEmpty(digits))
                     return $"Passordet må være minst {digits} tegn langt.";
@@ -672,15 +611,11 @@ namespace FirstWebApplication.Controllers
                 return $"Må inneholde minst {opts.RequiredUniqueChars} unike tegn.";
             }
 
-            // fallback: return original (safe) but prefixed for clarity
+            // fallback: returnerer original (sikker) men prefikset for klarhet
             return "Passordfeil: " + description;
         }
 
-        /// <summary>
-        /// Helper method to check if user is the default admin account
-        /// </summary>
-        /// <param name="user">The user to check</param>
-        /// <returns>True if the user is the default admin account, false otherwise</returns>
+        // Hjelpemetode for å sjekke om bruker er standard admin-konto
         private bool IsDefaultAdmin(ApplicationUser? user)
         {
             return user != null && 
@@ -688,12 +623,7 @@ namespace FirstWebApplication.Controllers
                    string.Equals(user.Email, DefaultAdminEmail, StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>
-        /// Helper method to redirect with error message
-        /// </summary>
-        /// <param name="actionName">The action name to redirect to</param>
-        /// <param name="errorMessage">The error message to display</param>
-        /// <returns>Redirect result to the specified action</returns>
+        // Hjelpemetode for å omdirigere med feilmelding
         private IActionResult RedirectToActionWithError(string actionName, string errorMessage)
         {
             TempData["Error"] = errorMessage;

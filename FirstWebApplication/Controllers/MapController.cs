@@ -5,9 +5,7 @@ using FirstWebApplication.Repositories;
 
 namespace FirstWebApplication.Controllers
 {
-    /// <summary>
-    /// Controller for map functionality. Handles display of obstacles on the map.
-    /// </summary>
+    // Controller for kart-funksjonalitet. Håndterer visning av hindringer på kartet.
     [Authorize(Roles = "Pilot")]
     public class MapController : Controller
     {
@@ -18,26 +16,20 @@ namespace FirstWebApplication.Controllers
             _obstacleRepository = obstacleRepository;
         }
 
-        /// <summary>
-        /// Displays the map view with all pending and approved obstacles
-        /// </summary>
-        /// <returns>The map view with obstacle data</returns>
+        // Viser kartvisningen med alle ventende og godkjente hindringer
         [HttpGet]
         public async Task<IActionResult> Map()
         {
             var reportedObstacles = await _obstacleRepository.GetReportedObstacles();
             
-            // Pass obstacles to view via ViewBag (required by Map.cshtml JavaScript serialization)
+            // Sender hindringer til visning via ViewBag (påkrevd av Map.cshtml JavaScript serialisering)
             ViewBag.ReportedObstacles = reportedObstacles;
             
             var obstacleData = new ObstacleData();
             return View(obstacleData);
         }
 
-        /// <summary>
-        /// Returns JSON data of all pending obstacles for map display
-        /// </summary>
-        /// <returns>JSON array of pending obstacles</returns>
+        // Returnerer JSON-data for alle ventende hindringer for kartvisning
         [HttpGet]
         public async Task<IActionResult> GetPendingObstacles()
         {
