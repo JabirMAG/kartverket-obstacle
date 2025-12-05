@@ -15,7 +15,7 @@ The technologies used in this application are as follows:
 1. **Install Docker Desktop** on your machine ([Download Docker Desktop](https://www.docker.com/products/docker-desktop/))
 2. **Clone the repository** to your local system:
    ```bash
-   git clone <repository-url>
+   git clone <https://github.com/JabirMAG/kartverket-obstacle>
    cd kartverket-obstacle
    ```
 

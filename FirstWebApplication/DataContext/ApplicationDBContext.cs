@@ -5,40 +5,40 @@ using Microsoft.EntityFrameworkCore;
 namespace FirstWebApplication.DataContext
 {
     /// <summary>
-    /// Database context for the application. Extends IdentityDbContext to include custom entities
+    /// Databasekontekst for applikasjonen. Utvider IdentityDbContext for å inkludere egendefinerte entiteter
     /// </summary>
     public class ApplicationDBContext : IdentityDbContext<ApplicationUser>
     {
         /// <summary>
-        /// Initializes a new instance of the ApplicationDBContext
+        /// Initialiserer en ny instans av ApplicationDBContext
         /// </summary>
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)
         {
         }
 
         /// <summary>
-        /// Database set for user feedback/advice entries
+        /// Databsett for brukerfeedback/råd-innslag
         /// </summary>
         public DbSet<Advice> Feedback { get; set; }
         
         /// <summary>
-        /// Database set for obstacle data entries
+        /// Databsett for hinderdata-innslag
         /// </summary>
         public DbSet<ObstacleData> ObstaclesData { get; set; }
         
         /// <summary>
-        /// Database set for report/rapport entries
+        /// Databsett for rapport-innslag
         /// </summary>
         public DbSet<RapportData> Rapports { get; set; }
         
         /// <summary>
-        /// Database set for archived reports
+        /// Databsett for arkiverte rapporter
         /// </summary>
         public DbSet<ArchivedReport> ArchivedReports { get; set; }
         
 
         /// <summary>
-        /// Configures entity relationships and constraints
+        /// Konfigurerer entitetsrelasjoner og restriksjoner
         /// </summary>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
