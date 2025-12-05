@@ -40,7 +40,7 @@ The technologies used in this application are as follows:
    ```
 
 5. **Verify the containers are running** by checking Docker Desktop. You should see two containers running:
-   - The FirstWebapplication container (ASP.NET Core)
+   - The FirstWebApplication container (ASP.NET Core)
    - The MariaDB container (MariaDB)
 
 ### Stopping the Application
@@ -100,8 +100,8 @@ This seeded admin user has full access to create users, approve registrations, a
 
 **Recommended approach:** Create users directly through the admin interface:
 
-1. After logging in as admin:
-2. Select **"Brukerhåndtering"** (User Management)
+1. After logging in as admin, do the following steps:
+2. Select **"Brukerhandtering"** (User Management)
 3. Click **"Opprett ny bruker"** (Create New User)
 4. Fill in the form:
    - Username
@@ -125,7 +125,7 @@ This seeded admin user has full access to create users, approve registrations, a
 
 **Admin Menu:**
 - Dashboard → Overview of system
-- Brukerhåndtering → User management
+- Brukerhandtering → User management
 - Rapporter → View all obstacle reports
 - Arkiverte rapporter → View archived/rejected obstacles
 - Tilbakemelding → View feedback submissions
@@ -165,7 +165,7 @@ This seeded admin user has full access to create users, approve registrations, a
 
 ### Obstacle Status Management
 
-- Under treatment (1)
+- Under behandling (1)
 - Approved (2)
 - Rejected (3) - automatically archived
 - Automatic report generation when obstacles are created
@@ -285,3 +285,7 @@ All repositories implement interfaces for testability and dependency injection.
 The application uses MySQL/MariaDB as the database, managed through Entity Framework Core's `ApplicationDBContext`. The context defines `DbSet` properties for `ObstaclesData`, `Rapports`, `ArchivedReports`, and `Feedback`, and configures relationships (e.g., obstacles to reports, obstacles to users) with cascade delete rules.
 
 The database connection is configured in `appsettings.json` and can run in Docker containers for easy deployment and portability.
+
+## Acknowledgments
+
+During the development of this application, the team utilized various resources and support tools, including guidance from teaching assistant Dennis, course lectures, and AI-assisted development tools, which contributed to the learning process and code development.
