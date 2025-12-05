@@ -1,4 +1,4 @@
-/* Body reset og base */
+
 .body-reset {
     margin: 0;
     padding: 0;
@@ -59,7 +59,7 @@
     max-width: 90%;
 }
 
-/* Login og register seksjon */
+
 .login-and-register-section {
     flex: 0 1 320px;
     min-width: 280px;
@@ -70,7 +70,7 @@
     animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
-/* Knappene */
+
 .login-button {
     background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
     color: white;
@@ -115,7 +115,7 @@
     overflow: hidden;
 }
 
-/* Pseudoelementer for animasjon på knappene */
+
 .login-button::before,
 .register-button::before {
     content: '';
@@ -167,7 +167,7 @@
     transform: translateX(4px);
 }
 
-/* Read more link */
+
 .read-more-link {
     color: #1976d2;
     text-decoration: none;
@@ -189,7 +189,7 @@
     transition: width 0.3s ease;
 }
 
-/* Footer */
+
 .footer-background {
     background-color: #f5f5f5;
     padding: 2rem 0;
