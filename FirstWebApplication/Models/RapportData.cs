@@ -4,25 +4,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FirstWebApplication.Models
 {
-    /// <summary>
-    /// Represents a report/comment associated with an obstacle
-    /// </summary>
+    // Representerer en rapport/kommentar tilknyttet en hindring
     public class RapportData
     {
         [Key]
         public int RapportID { get; set; }
 
-        /// <summary>
-        /// Foreign key to ObstacleData
-        /// </summary>
+        // Fremmednøkkel til ObstacleData
         [ForeignKey(nameof(Obstacle))]
         public int ObstacleId { get; set; }
 
         public ObstacleData Obstacle { get; set; }
 
-        /// <summary>
-        /// Comment text for the report. Max 1000 characters
-        /// </summary>
+        // Kommentartekst for rapporten. Maks 1000 tegn
         [MaxLength(1000)]
         public string RapportComment { get; set; } = string.Empty;
     }

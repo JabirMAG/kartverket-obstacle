@@ -2,9 +2,7 @@
 
 namespace FirstWebApplication.Models.AdminViewModels
 {
-    /// <summary>
-    /// ViewModel for displaying user information with their assigned roles
-    /// </summary>
+    // ViewModel for visning av brukerinformasjon med deres tildelte roller
     public class UserWithRolesVm
     {
         public string Id { get; set; } = default!;

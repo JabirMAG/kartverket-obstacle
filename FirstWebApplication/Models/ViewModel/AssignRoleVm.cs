@@ -2,9 +2,7 @@
 
 namespace FirstWebApplication.Models.AdminViewModels
 {
-    /// <summary>
-    /// ViewModel for assigning or removing a role from a user
-    /// </summary>
+    // ViewModel for tildeling eller fjerning av en rolle fra en bruker
     public class AssignRoleVm
     {
         [Required]

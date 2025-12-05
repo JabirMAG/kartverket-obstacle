@@ -7,43 +7,137 @@ The technologies used in this application are as follows:
 - **Docker**: For building and running the application and the database.
 - **MariaDB**: Relational database used for data storage.
 - **ASP.NET Core MVC**: Application built with the .NET 9 MVC framework.
-- **IDE**: Visual Studio or Rider.
 
-## How to Run the Application - Windows
+## How to Run the Application
 
-To run the application on Windows, follow these steps:
+### Prerequisites
 
-1. Install Docker on the machine that will run the application.
-2. Clone the repository to your local system.
-3. Open the application in Visual Studio or Rider.
-4. Run the application using Docker Compose to start both the web application and the database in separate containers.
+1. **Install Docker Desktop** on your machine ([Download Docker Desktop](https://www.docker.com/products/docker-desktop/))
+2. **Clone the repository** to your local system:
+   ```bash
+   git clone <repository-url>
+   cd kartverket-obstacle
+   ```
 
-## How to Run the Application - Mac
+### Starting the Application
 
-The application can run on macOS.
+1. **Open a terminal** and navigate to the project directory.
 
-To start the database and the application using Docker, run the following commands in the project directory in the terminal:
+2. **Build and start the containers** using Docker Compose:
+   ```bash
+   docker compose up --build
+   ```
+   This command will build the Docker images and start both the application and database containers.
 
+3. **Run in detached mode** (optional, if you want to run containers in the background):
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Access the application** by opening your web browser and navigating to:
+   ```
+   http://localhost:8080
+   ```
+
+5. **Verify the containers are running** by checking Docker Desktop. You should see two containers running:
+   - The FirstWebapplication container (ASP.NET Core)
+   - The MariaDB container (MariaDB)
+
+### Stopping the Application
+
+To stop the application, press `Ctrl+C` in the terminal where it's running, or run:
 ```bash
-docker compose down -v
-docker compose build
-docker compose up -d
+docker compose down
 ```
 
-After the containers are running, start the application locally through your IDE:
+To stop and remove all containers, volumes, and networks:
+```bash
+docker compose down -v
+```
 
-- Run "FirstWebApplication: http" inside Visual Studio or Rider.
-- This will launch the web application with a working connection to the MariaDB database running in Docker.
+### Troubleshooting
+
+**Application won't start:**
+- Ensure Docker Desktop is running
+- Check if port 8080 is already in use by another application
+- Verify containers are running in Docker Desktop
+- Check terminal for error messages
+
+**Can't access the application:**
+- Verify the URL is correct: `http://localhost:8080` (not `https://`)
+- Check that both containers (app and database) are running in Docker Desktop
+- Try restarting the containers: `docker compose restart`
+
+**Database connection errors:**
+- Wait a few seconds after starting containers for the database to fully initialize
+- Restart containers: `docker compose restart`
+- Check database container logs in Docker Desktop
+
+**Port conflicts:**
+- If port 8080 is in use, modify `docker-compose.yml` to use a different port
+- Update the port mapping (e.g., `8081:8080`) and access via `http://localhost:8081`
 
 ## Application Features
 
 This is an obstacle reporting and validation system for airspace safety, with role-based workflows for pilots, registrars, and administrators.
 
-### Seeded Administrator Login
-E-Mail: Admin@Kartverket.com
-Password: Admin123!
-This seeded Admin User has the ability to create other users/approve those who register.
+## Quick Start Guide
 
+### Step 1: Access the Application
+
+Once the application is running, open your browser and go to `http://localhost:8080`.
+
+### Step 2: Login as Administrator
+
+Use the following credentials to log in as an administrator:
+
+- **Email:** `Admin@Kartverket.com`
+- **Password:** `Admin123!`
+
+This seeded admin user has full access to create users, approve registrations, and manage obstacles.
+
+### Step 3: Create Test Users
+
+**Recommended approach:** Create users directly through the admin interface:
+
+1. After logging in as admin:
+2. Select **"Brukerhåndtering"** (User Management)
+3. Click **"Opprett ny bruker"** (Create New User)
+4. Fill in the form:
+   - Username
+   - Email
+   - Password (must meet requirements)
+   - Role: Select either **"Pilot"** or **"Registerfører"**
+   - Organization (optional)
+5. Click **"Opprett"** (Create)
+
+**Why this method?** Users created this way are immediately active and don't require approval, making it ideal for testing and demonstration.
+
+**Alternative method:** Users can register through the front page registration form, but they will need admin approval before accessing the system.
+
+### Step 4: Test Different Roles
+
+1. **Log out** from the admin account
+2. **Log in** with one of the newly created user accounts
+3. **Explore the features** available to that role (see feature sections below)
+
+### Navigation Guide
+
+**Admin Menu:**
+- Dashboard → Overview of system
+- Brukerhåndtering → User management
+- Rapporter → View all obstacle reports
+- Arkiverte rapporter → View archived/rejected obstacles
+- Tilbakemelding → View feedback submissions
+
+**Pilot Menu:**
+- Kart → Interactive map to report obstacles
+- Mine rapporter → View own submitted obstacles
+- Varsling → View notifications about comments on obstacles
+
+**Registerfører Menu:**
+- Rapporter → View and manage all obstacles
+- Arkiverte rapporter → View archived obstacles
 
 ### User Administration & Authentication
 
@@ -80,7 +174,7 @@ This seeded Admin User has the ability to create other users/approve those who r
 
 - View own obstacles
 - View obstacle details and associated reports
-- Update obstacles (only when status is "Under treatment")
+- Update obstacles (only when status is "Under behandling")
 - Receive notifications about comments on obstacles
 
 ### Registrar Features
@@ -113,6 +207,7 @@ This seeded Admin User has the ability to create other users/approve those who r
 
 - Submit feedback form
 - Thank you confirmation page
+- Admin can view all feedback sent about the system
 
 ### General Features
 
@@ -146,11 +241,11 @@ There is a clear separation of concerns, easier maintenance, and better testabil
 
 Entity Framework Core is an ORM that lets the application work with the MySQL/MariaDB database using C# objects instead of SQL. It maps models like `ObstacleData`, `RapportData`, and `ApplicationUser` to database tables and handles queries, updates, and migrations.
 
-**Database communication**: The application uses `ApplicationDBContext` (configured in `Program.cs`) to interact with the database. EF translates LINQ queries from repositories (e.g., `ObstacleRepository`, `UserRepository`) into SQL, executes them against MySQL/MariaDB, and maps results back to model objects. Database schema changes are managed through EF migrations (e.g., `InitialCreate`, `CombineArchivedTables`).
+**Database communication**: The application uses `ApplicationDBContext` (configured in `Program.cs`) to interact with the database. EF translates LINQ queries from repositories (e.g., `ObstacleRepository`, `UserRepository`) into SQL, executes them against MySQL/MariaDB, and maps results back to model objects. Database schema changes are managed through EF migrations (e.g., `InitialDBContext`).
 
 ## Migrations
 
-Migrations are version-controlled database schema changes managed by Entity Framework Core. They define how the database structure evolves over time, such as creating tables for obstacles, reports, and users. In this application, migrations like `InitialCreate` and `CombineArchivedTables` are applied to keep the MySQL/MariaDB database schema in sync with the model definitions.
+Migrations are version-controlled database schema changes managed by Entity Framework Core. They define how the database structure evolves over time, such as creating tables for obstacles, reports, and users. In this application, the `InitialDBContext` migration is applied to keep the MySQL/MariaDB database schema in sync with the model definitions.
 
 ## Domain Models
 

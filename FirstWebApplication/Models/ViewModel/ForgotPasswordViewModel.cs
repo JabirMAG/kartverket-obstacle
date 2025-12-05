@@ -2,9 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FirstWebApplication.Models.ViewModel;
 
-/// <summary>
-/// ViewModel for forgot password form
-/// </summary>
+// ViewModel for glemt passord-skjema
 public class ForgotPasswordViewModel
 {
     [Required(ErrorMessage = "E-post er påkrevd")]
@@ -12,4 +10,3 @@ public class ForgotPasswordViewModel
     [Display(Name = "E-post")]
     public string Email { get; set; }
 }
-

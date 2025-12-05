@@ -5,9 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FirstWebApplication.Repositories
 {
-    /// <summary>
-    /// Repository for advice/feedback data operations
-    /// </summary>
+    // Repository for tilråding/tilbakemelding dataoperasjoner
     public class AdviceRepository : IAdviceRepository
     {
 
@@ -18,9 +16,7 @@ namespace FirstWebApplication.Repositories
             _context = context;
         }
 
-        /// <summary>
-        /// Adds a new advice entry
-        /// </summary>
+        // Legger til en ny tilrådingsoppføring
         public async Task<Advice> AddAdvice(Advice advice)
         {
             await _context.Feedback.AddAsync(advice);
@@ -28,9 +24,7 @@ namespace FirstWebApplication.Repositories
             return advice;
         }
 
-        /// <summary>
-        /// Gets an advice entry by ID
-        /// </summary>
+        // Henter en tilrådingsoppføring etter ID
         public async Task<Advice?> GetElementById(int id)
         {
             return await _context.Feedback
@@ -38,9 +32,7 @@ namespace FirstWebApplication.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        /// <summary>
-        /// Deletes an advice entry by ID
-        /// </summary>
+        // Sletter en tilrådingsoppføring etter ID
         public async Task<Advice?> DeleteById(int id)
         {
             var elementById = await _context.Feedback.FindAsync(id);
@@ -54,9 +46,7 @@ namespace FirstWebApplication.Repositories
             return null;
         }
 
-        /// <summary>
-        /// Updates an existing advice entry
-        /// </summary>
+        // Oppdaterer en eksisterende tilrådingsoppføring
         public async Task<Advice> UpdateAdvice(Advice advice)
         {
             _context.Feedback.Update(advice);
@@ -65,9 +55,7 @@ namespace FirstWebApplication.Repositories
 
         }
 
-        /// <summary>
-        /// Gets the 50 most recent advice entries
-        /// </summary>
+        // Henter de 50 nyeste tilrådingsoppføringene
         public async Task<IEnumerable<Advice>> GetAllAdvice()
         {
             return await _context.Feedback
@@ -76,11 +64,7 @@ namespace FirstWebApplication.Repositories
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Maps AdviceViewModel to Advice entity
-        /// </summary>
-        /// <param name="viewModel">The ViewModel containing feedback data</param>
-        /// <returns>Advice entity ready for database storage</returns>
+        // Mapper AdviceViewModel til Advice entity
         public Advice MapFromViewModel(AdviceViewModel viewModel)
         {
             return new Advice
@@ -90,12 +74,7 @@ namespace FirstWebApplication.Repositories
             };
         }
 
-        /// <summary>
-        /// Creates an Advice entity from email and message strings
-        /// </summary>
-        /// <param name="email">The email address</param>
-        /// <param name="message">The advice message</param>
-        /// <returns>Advice entity</returns>
+        // Oppretter en Advice entity fra e-post og meldingsstrenger
         public Advice CreateFromEmailAndMessage(string email, string message)
         {
             return new Advice
@@ -106,4 +85,3 @@ namespace FirstWebApplication.Repositories
         }
     }
 }
-

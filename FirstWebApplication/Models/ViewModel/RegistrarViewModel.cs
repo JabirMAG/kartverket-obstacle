@@ -3,9 +3,7 @@ using System.Collections.Generic;
 
 namespace FirstWebApplication.Models.ViewModel
 {
-    /// <summary>
-    /// ViewModel for registrar view containing obstacles, reports, and a new report form
-    /// </summary>
+    // ViewModel for registerfører-visning som inneholder hindringer, rapporter og et nytt rapporskjema
     public class RegistrarViewModel
     {
         public IEnumerable<ObstacleData> Obstacles { get; set; } = new List<ObstacleData>();

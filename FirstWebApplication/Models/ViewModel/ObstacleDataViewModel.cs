@@ -2,44 +2,31 @@
 
 namespace FirstWebApplication.Models.ViewModel
 {
-    /// <summary>
-    /// ViewModel for obstacle data used in forms. GeometryGeoJson is always required.
-    /// Other fields are optional to support quick save functionality.
-    /// </summary>
+    // ViewModel for hindringsdata brukt i skjemaer. GeometryGeoJson er alltid påkrevd.
+    // Andre felt er valgfrie for å støtte hurtiglagringsfunksjonalitet.
     public class ObstacleDataViewModel
     {
         public int ViewObstacleId { get; set; }
 
-        /// <summary>
-        /// Name of the obstacle. Optional for quick save, max 100 characters
-        /// </summary>
+        // Navn på hindringen. Valgfri for hurtiglagring, maks 100 tegn
         [MaxLength(100)]
         public string ViewObstacleName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Height of the obstacle in meters. Optional for quick save, must be between 0 and 200 when provided
-        /// </summary>
+        // Høyde på hindringen i meter. Valgfri for hurtiglagring, må være mellom 0 og 200 når oppgitt
         [Range(0, 200, ErrorMessage = "Height must be between 0 and 200 meters")]
         public double ViewObstacleHeight { get; set; }
 
-        /// <summary>
-        /// Description of the obstacle. Optional for quick save, max 1000 characters
-        /// </summary>
+        // Beskrivelse av hindringen. Valgfri for hurtiglagring, maks 1000 tegn
         [MaxLength(1000)]
         public string ViewObstacleDescription { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Geometric representation of the obstacle in GeoJSON format. Required field that holds the coordinates of the obstacle's location
-        /// </summary>
+        // Geometrisk representasjon av hindringen i GeoJSON-format. Påkrevd felt som holder koordinatene til hindringens plassering
         [Required(ErrorMessage = "Geometry (GeoJSON) is required.")]
         public string ViewGeometryGeoJson { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Status of the obstacle (1=Pending, 2=Approved, 3=Rejected). Default is "Pending"
-        /// </summary>
+        // Status på hindringen (1=Ventende, 2=Godkjent, 3=Avslått). Standard er "Ventende"
         [Range(1, 3)]
         public int ViewObstacleStatus { get; set; } = 1;
     }
 }
-
 

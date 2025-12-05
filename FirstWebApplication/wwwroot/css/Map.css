@@ -1,4 +1,4 @@
-/* Kart-container og map */
+
 .map-container {
     position: relative;
     width: 100%;
@@ -10,13 +10,13 @@
     height: 100%;
 }
 
-/* Knapper for nåværende posisjon */
+
 .location-button-container {
     position: absolute;
     bottom: 90px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1100; /* beholdt høyere z-index for å vises over andre elementer */
+    z-index: 1100; 
     width: min(420px, calc(100% - 40px));
 }
 
@@ -105,7 +105,7 @@
     margin-bottom: 5px;
 }
 
-/* Overlay for hindringer */
+
 .obstacle-overlay {
     position: absolute;
     top: 10%;
@@ -121,7 +121,7 @@
     display: none;
 }
 
-/* Map wrapper og draw-knapper */
+
 .map-wrapper {
     display: flex;
     gap: 15px;

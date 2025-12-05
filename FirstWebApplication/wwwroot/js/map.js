@@ -35,9 +35,11 @@ const API = {
 class GeoJsonHelper {
     static parse(geoJsonValue) {
         try {
-            return typeof geoJsonValue === 'string' 
-                ? JSON.parse(geoJsonValue) 
-                : geoJsonValue;
+            if (typeof geoJsonValue === 'string') {
+                return JSON.parse(geoJsonValue);
+            } else {
+                return geoJsonValue;
+            }
         } catch (err) {
             console.error("Feil ved parsing av GeoJSON:", err);
             return null;
@@ -47,7 +49,11 @@ class GeoJsonHelper {
     static extractGeometry(geoJsonValue) {
         const parsed = this.parse(geoJsonValue);
         if (!parsed) return null;
-        return parsed.geometry || parsed;
+        if (parsed.geometry) {
+            return parsed.geometry;
+        } else {
+            return parsed;
+        }
     }
 
     static extractCoordinates(geoJsonValue) {
@@ -86,15 +92,22 @@ class GeoJsonHelper {
 // Status-hjelper
 class StatusHelper {
     static getText(status) {
-        return CONFIG.STATUS_TEXTS[status] || 'Ukjent';
+        if (CONFIG.STATUS_TEXTS[status]) {
+            return CONFIG.STATUS_TEXTS[status];
+        } else {
+            return 'Ukjent';
+        }
     }
 
     static getColor(status) {
-        return CONFIG.STATUS_COLORS[status] || '#9e9e9e';
+        if (CONFIG.STATUS_COLORS[status]) {
+            return CONFIG.STATUS_COLORS[status];
+        } else {
+            return '#9e9e9e';
+        }
     }
 }
 
-// Markør-oppretter
 class MarkerCreator {
     static createStatusIcon(statusColor) {
         return L.divIcon({
@@ -108,9 +121,24 @@ class MarkerCreator {
     static createPopupContent(obstacle) {
         const statusColor = StatusHelper.getColor(obstacle.status);
         const statusText = StatusHelper.getText(obstacle.status);
+        
+        let obstacleName;
+        if (obstacle.name) {
+            obstacleName = obstacle.name;
+        } else {
+            obstacleName = 'Rapportert hindring';
+        }
+        
+        let obstacleHeight;
+        if (obstacle.height) {
+            obstacleHeight = obstacle.height;
+        } else {
+            obstacleHeight = 'N/A';
+        }
+        
         return `
-            <strong>${obstacle.name || 'Rapportert hindring'}</strong><br>
-            Høyde: ${obstacle.height || 'N/A'}m<br>
+            <strong>${obstacleName}</strong><br>
+            Høyde: ${obstacleHeight}m<br>
             <small>Status: <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span></small>
         `;
     }
@@ -149,7 +177,7 @@ class MarkerCreator {
     }
 }
 
-// Hindringskart-kontroller
+
 class ObstacleMap {
     constructor(mapElementId, reportedObstacles) {
         this.map = L.map(mapElementId).setView(CONFIG.DEFAULT_VIEW, CONFIG.DEFAULT_ZOOM);
@@ -158,9 +186,13 @@ class ObstacleMap {
         this.currentDrawHandler = null;
         this.lastGeoJsonString = "";
         this.currentLocationMarker = null;
-        this.pendingObstacles = reportedObstacles 
-            ? reportedObstacles.filter(o => o.status === 1) 
-            : [];
+        if (reportedObstacles) {
+            this.pendingObstacles = reportedObstacles.filter(function(obstacle) {
+                return obstacle.status === 1;
+            });
+        } else {
+            this.pendingObstacles = [];
+        }
         
         this.initializeMap();
         this.setupDrawingTools();
@@ -272,7 +304,11 @@ class ObstacleMap {
         const coordsInput = document.getElementById('GeometryGeoJsonCoordinates');
 
         if (geoInput) {
-            geoInput.value = typeof geoJsonData === 'string' ? geoJsonData : JSON.stringify(geoJsonData);
+            if (typeof geoJsonData === 'string') {
+                geoInput.value = geoJsonData;
+            } else {
+                geoInput.value = JSON.stringify(geoJsonData);
+            }
         }
         if (coordsInput) {
             coordsInput.value = JSON.stringify(coordinatesOnly);
@@ -331,8 +367,14 @@ class ObstacleMap {
         warningDiv.style.display = 'block';
         const warningText = warningDiv.querySelector('.warning-text');
         if (warningText) {
+            let obstacleName;
+            if (existingObstacle.name) {
+                obstacleName = existingObstacle.name;
+            } else {
+                obstacleName = 'Rapport under behandling';
+            }
             warningText.textContent = 
-                `Det er allerede en ubehandlet rapport i denne koordinaten (${existingObstacle.name || 'Rapport under behandling'}). Du er fortsatt velkommen til å rapportere.`;
+                `Det er allerede en ubehandlet rapport i denne koordinaten (${obstacleName}). Du er fortsatt velkommen til å rapportere.`;
         }
     }
 
@@ -372,8 +414,15 @@ class ObstacleMap {
         const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
         const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
         
-        let geoJsonValue = geoJsonInput?.value || "";
-        let geoJsonCoordinates = coordinatesInput?.value || "";
+        let geoJsonValue = "";
+        if (geoJsonInput && geoJsonInput.value) {
+            geoJsonValue = geoJsonInput.value;
+        }
+        
+        let geoJsonCoordinates = "";
+        if (coordinatesInput && coordinatesInput.value) {
+            geoJsonCoordinates = coordinatesInput.value;
+        }
 
         // Hvis ingen verdi i hidden input, prøv lastGeoJsonString
         if (!geoJsonValue && this.lastGeoJsonString) {
@@ -400,8 +449,10 @@ class ObstacleMap {
     }
 
     populateFormFields(formElem, geoJsonValue, geoJsonCoordinates) {
-        const formGeoInput = formElem.querySelector('input[name="ViewGeometryGeoJson"]') || 
-                           formElem.querySelector('#GeometryGeoJson');
+        let formGeoInput = formElem.querySelector('input[name="ViewGeometryGeoJson"]');
+        if (!formGeoInput) {
+            formGeoInput = formElem.querySelector('#GeometryGeoJson');
+        }
         const formGeoInputCoordinates = formElem.querySelector('input[name="GeometryGeoCoordinates"]');
 
         if (formGeoInput) {
@@ -484,10 +535,15 @@ class ObstacleMap {
         const currentForm = e.target;
         const formData = new FormData(currentForm);
         
-        const submitButton = e.submitter || document.activeElement;
+        let submitButton;
+        if (e.submitter) {
+            submitButton = e.submitter;
+        } else {
+            submitButton = document.activeElement;
+        }
         let actionUrl = API.SUBMIT;
         
-        if (submitButton?.type === 'submit') {
+        if (submitButton && submitButton.type === 'submit') {
             if (submitButton.hasAttribute('formaction')) {
                 actionUrl = submitButton.getAttribute('formaction');
             } else if (submitButton.id === 'obstacle-quick-save-button') {
@@ -507,7 +563,7 @@ class ObstacleMap {
             const contentType = response.headers.get("content-type");
             let data;
 
-            if (contentType?.includes("application/json")) {
+            if (contentType && contentType.includes("application/json")) {
                 data = await response.json();
             } else {
                 const html = await response.text();
@@ -537,12 +593,27 @@ class ObstacleMap {
         // Kopier koordinater tilbake
         const geoJsonInput = document.getElementById("GeometryGeoJsonMap");
         const coordinatesInput = document.getElementById("GeometryGeoJsonCoordinates");
-        this.populateFormFields(updatedForm, geoJsonInput?.value || "", coordinatesInput?.value || "");
+        
+        let geoJsonValue = "";
+        if (geoJsonInput && geoJsonInput.value) {
+            geoJsonValue = geoJsonInput.value;
+        }
+        
+        let geoJsonCoordinates = "";
+        if (coordinatesInput && coordinatesInput.value) {
+            geoJsonCoordinates = coordinatesInput.value;
+        }
+        
+        this.populateFormFields(updatedForm, geoJsonValue, geoJsonCoordinates);
 
         updatedForm.style.display = "block";
 
         // Sjekk for konflikter igjen
-        const coords = GeoJsonHelper.extractCoordinates(geoJsonInput?.value || "");
+        let geoJsonValueForCoords = "";
+        if (geoJsonInput && geoJsonInput.value) {
+            geoJsonValueForCoords = geoJsonInput.value;
+        }
+        const coords = GeoJsonHelper.extractCoordinates(geoJsonValueForCoords);
         await this.checkAndShowConflictWarning(updatedForm, coords);
 
         // Oppsett av validering og innsendings-håndterer på nytt

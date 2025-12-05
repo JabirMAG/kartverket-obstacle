@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FirstWebApplication.Models;
 
-/// <summary>
-/// Extended user model for the application. Default approval status is false until approved by Admin
-/// </summary>
+// Utvidet brukermodell for applikasjonen. Standard godkjenningsstatus er false til godkjent av Admin
 public class ApplicationUser : IdentityUser
 { 
     public string? DesiredRole { get; set; }
