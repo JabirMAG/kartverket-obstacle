@@ -17,19 +17,20 @@ namespace FirstWebApplication.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<AccountController> _logger;
 
-        // Rollenavn konstanter - unngår hardkodede strenger og gjør koden mer vedlikeholdbar
+        // Rolenavn samlet for å unngå hardkodede strenger.
         private const string RoleAdmin = "Admin";
         private const string RoleRegistrar = "Registerfører";
-        
-        // Omdirigeringshandlingskonstanter - sentraliserer omdirigeringsmål for enklere vedlikehold
+
+        // Samlet definisjon av omdirigeringsmål for enklere vedlikehold.
         private const string ActionMap = "Map";
         private const string ActionDashboard = "Dashboard";
         private const string ActionRegistrar = "Registrar";
         private const string ControllerMap = "Map";
         private const string ControllerAdmin = "Admin";
         private const string ControllerRegistrar = "Registrar";
-        
-        // Feilmeldinger - sentraliserer meldinger for konsistens
+
+        // Samler feilmeldinger for konsistent bruk i hele controlleren.
+
         private const string ErrorInvalidCredentials = "Ugyldig brukernavn eller passord.";
         private const string ErrorAccountNotApproved = "Din konto er ikke godkjent ennå. Vent til en administrator har godkjent kontoen din.";
         private const string ErrorInvalidResetLink = "Ugyldig tilbakestillingslink.";
@@ -48,7 +49,7 @@ namespace FirstWebApplication.Controllers
         }
         
         
-        // Viser brukerregistreringsskjemaet
+        
         [HttpGet]
         public IActionResult Register()
         {
@@ -61,7 +62,8 @@ namespace FirstWebApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
-            // Validerer og normaliserer organisasjon (case-insensitive matching)
+            // Validerer organisasjonen og normaliserer navnet uavhengig av store/små bokstaver.
+
             var normalizedOrganization = _userRepository.ValidateAndNormalizeOrganization(registerViewModel.Organization);
             if (normalizedOrganization == null)
             {

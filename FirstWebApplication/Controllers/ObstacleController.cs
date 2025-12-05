@@ -20,13 +20,12 @@ namespace FirstWebApplication.Controllers
             _userRepository = userRepository;
         }
 
-        // Returnerer hindringsskjemaet som en delvis visning
         public IActionResult DataFormPartial()
         {
             return PartialView("_ObstacleFormPartial", new ObstacleDataViewModel());
         }
 
-        // Viser oversikt over en spesifikk hindring
+        //// Viser hindringen med gitt ID.
         [HttpGet]
         public async Task<IActionResult> Overview(int id)
         {
@@ -39,7 +38,7 @@ namespace FirstWebApplication.Controllers
             return View(viewModel);
         }
 
-        // Hurtiglagrer en hindring med minimal påkrevd data (kun geometri er påkrevd). Oppretter automatisk en rapportoppføring når hindringen lagres.
+        // Hurtiglagrer hindringen med kun geometri og oppretter en automatisk rapport.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> QuickSaveObstacle(ObstacleDataViewModel viewModel)
@@ -65,39 +64,38 @@ namespace FirstWebApplication.Controllers
             return await SaveObstacleAndCreateReport(viewModel, _registrarRepository.GenerateSubmitReportMessage);
         }
 
-        // Hjelpemetode for å lagre hindring, opprette rapport og returnere passende respons
+        // Lagrer hindringen, oppretter rapport og returnerer riktig respons.
+
         private async Task<IActionResult> SaveObstacleAndCreateReport(
             ObstacleDataViewModel viewModel,
             Func<ObstacleData, string> generateReportMessage)
         {
-            // Mapper ViewModel til Entity
-            var obstacleData = _obstacleRepository.MapFromViewModel(viewModel);
+             var obstacleData = _obstacleRepository.MapFromViewModel(viewModel);
             
-            // Setter eier av hindringen (innlogget pilot)
+            // Setter innlogget bruker som eier av hindringen.
+
             var currentUser = await _userRepository.GetUserAsync(User);
             if (currentUser != null)
             {
                 _obstacleRepository.SetObstacleOwner(obstacleData, currentUser.Id);
             }
 
-            // Lagrer hindringen
             var savedObstacle = await _obstacleRepository.AddObstacle(obstacleData);
 
             // Oppretter automatisk rapport når hindring opprettes
             await _registrarRepository.AddRapportToObstacle(savedObstacle.ObstacleId, generateReportMessage(savedObstacle));
 
-            // Mapper tilbake til ViewModel for respons
             var savedViewModel = _obstacleRepository.MapToViewModel(savedObstacle);
             return ReturnJsonOrViewIfAjax(savedObstacle.ObstacleId, savedViewModel);
         }
 
-        // Hjelpemetode for å sjekke om forespørselen er AJAX
         private bool IsAjaxRequest()
         {
             return Request.Headers["X-Requested-With"].ToString() == "XMLHttpRequest";
         }
 
-        // Hjelpemetode for å returnere JSON hvis AJAX-forespørsel, ellers returnere visning
+        // Returnerer JSON ved AJAX-forespørsel, ellers vanlig visning.
+
         private IActionResult ReturnJsonOrViewIfAjax(int obstacleId, ObstacleDataViewModel viewModel)
         {
             if (IsAjaxRequest())
@@ -107,10 +105,12 @@ namespace FirstWebApplication.Controllers
             return View("ObstacleOverview", viewModel);
         }
 
-        // Validerer hindring ViewModel for hurtiglagring (kun geometri er påkrevd)
+        // Validerer hindring for hurtiglagring der kun geometri er påkrevd.
+
         private bool ValidateQuickSave(ObstacleDataViewModel viewModel)
         {
-            // Fjerner valideringsfeil for felt som kan hoppes over i hurtiglagring
+        // Fjerner validering for felter som ikke er påkrevd ved hurtiglagring.
+
             var fieldsToSkip = new[] 
             { 
                 nameof(ObstacleDataViewModel.ViewObstacleName), 
