@@ -20,7 +20,7 @@
     overflow-y: auto;
 }
 
-/* Advarsel */
+
 #pending-obstacle-warning {
     background-color: #fff3cd;
     border-color: #ffc107;
@@ -47,7 +47,7 @@
     margin-bottom: 16px;
 }
 
-    /* Felles knapp-stiler */
+   
     .obstacle-form-buttons .btn,
     .btn-cancel-custom,
     .btn-orange-custom,
@@ -64,7 +64,7 @@
         white-space: nowrap !important;
     }
 
-/* Avbryt-knapp (rød) */
+
 .btn-cancel-custom,
 #cancel-obstacle-button.btn-cancel-custom {
     background-color: #dc3545 !important;
@@ -93,7 +93,7 @@
         box-shadow: 0 0 0 5px rgba(220, 53, 69, 0.3) !important;
     }
 
-/* Hurtiglagre-knapp (oransje) */
+
 .btn-orange-custom,
 #obstacle-quick-save-button.btn-orange-custom {
     background-color: #ff6b00 !important;
@@ -125,7 +125,7 @@
         box-shadow: 0 0 0 5px rgba(255, 107, 0, 0.3) !important;
     }
 
-/* Send inn-knapp (grønn) */
+
 .btn-green-custom,
 #obstacle-submit-button.btn-green-custom {
     background-color: #00973D !important;
